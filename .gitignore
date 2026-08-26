@@ -1,0 +1,35 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+*.egg-info/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE / editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large generated artifacts (keep a sample manually if you want one in the repo)
+*.log
+bandit_audit_log.json
+baseline_audit_log.json
+
+# Jupyter (if you use any notebooks for analysis)
+.ipynb_checkpoints/
