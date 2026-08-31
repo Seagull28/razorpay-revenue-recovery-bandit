@@ -73,8 +73,12 @@ def generate_decision_explanation(
             alt_parts.append(f"{arm} (EV: INR {ev:,.2f})")
     alt_text = ", ".join(alt_parts)
 
+    # Check if this is a marginal case (very low expected net value or near-zero recovery probability)
+    is_marginal = (theta_dot_x <= 25.0 or implied_prob_pct <= 3.0)
+    marginal_prefix = "Marginal case: model believes this retry is barely worth attempting — " if is_marginal else ""
+
     explanation = (
-        f"Recommended {recommended_delay} delay for transaction {tx_id} (amount: INR {amount:,.2f}, {code} on {bank}): "
+        f"{marginal_prefix}Recommended {recommended_delay} delay for transaction {tx_id} (amount: INR {amount:,.2f}, {code} on {bank}): "
         f"estimated {implied_prob_pct:.1f}% recovery probability on this context, yielding expected net value of "
         f"INR {theta_dot_x:,.2f} after INR 10 retry cost. Alternative arms considered: {alt_text}."
     )
