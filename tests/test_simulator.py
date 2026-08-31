@@ -32,6 +32,16 @@ from bandit_retry_scheduler.simulator.stream_generator import TransactionStreamG
 class TestGroundTruthProbabilities:
     """Tests evaluating true recovery probability logic."""
 
+    def test_base_recovery_probabilities_completeness_100_combinations(self):
+        """Assert that all 100 (5 failure codes x 4 banks x 5 delay arms) combinations are explicitly defined."""
+        from bandit_retry_scheduler.simulator.config import FAILURE_CODES, BANKS, DELAY_ARMS
+        for code in FAILURE_CODES:
+            assert code in BASE_RECOVERY_PROBABILITIES, f"Failure code '{code}' missing from BASE_RECOVERY_PROBABILITIES"
+            for bank in BANKS:
+                assert bank in BASE_RECOVERY_PROBABILITIES[code], f"Bank '{bank}' missing from BASE_RECOVERY_PROBABILITIES[{code}]"
+                for delay in DELAY_ARMS:
+                    assert delay in BASE_RECOVERY_PROBABILITIES[code][bank], f"Delay '{delay}' missing from BASE_RECOVERY_PROBABILITIES[{code}][{bank}]"
+
     def test_bank_b_insufficient_funds_exact_values(self):
         """Verify Bank B insufficient_funds matches the exact ground-truth values from Section 4.6."""
         context = {

@@ -92,7 +92,7 @@ def run_comparison():
 
     # 3. LinUCB New Expected-Value Rule (Phase 3.5)
     sim_new = RetrySimulator(seed=seed)
-    pol_new = LinUCBPolicy(alpha=1.0, stopping_mode="expected_value", min_samples_for_stopping=5, max_attempts=4)
+    pol_new = LinUCBPolicy(alpha=1.0, stopping_mode="expected_value", min_samples_for_stopping=15, max_attempts=4)
     eng_new = PolicyExecutionEngine(simulator=sim_new, retry_cost=retry_cost)
     log_new = AuditLogger()
     eng_new.run(transactions=transactions, policy=pol_new, logger=log_new)

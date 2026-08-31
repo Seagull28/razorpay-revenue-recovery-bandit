@@ -263,7 +263,7 @@ class TestExpectedValueStoppingRule:
 
         # Run New EV Policy
         sim_new = RetrySimulator(seed=42)
-        pol_new = LinUCBPolicy(alpha=1.0, stopping_mode="expected_value", min_samples_for_stopping=5)
+        pol_new = LinUCBPolicy(alpha=1.0, stopping_mode="expected_value", min_samples_for_stopping=15)
         eng_new = PolicyExecutionEngine(simulator=sim_new, retry_cost=10.0)
         log_new = AuditLogger()
         eng_new.run(transactions=transactions, policy=pol_new, logger=log_new)

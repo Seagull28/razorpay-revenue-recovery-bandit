@@ -44,7 +44,7 @@ class LinUCBPolicy(BasePolicy):
         max_attempts: int = 4,
         retry_cost: float = DEFAULT_RETRY_COST,
         stopping_mode: str = "expected_value",  # "expected_value" or "tau_decay" (legacy)
-        min_samples_for_stopping: int = 5,
+        min_samples_for_stopping: int = 15,
         soft_decay_base_threshold: float = 0.0,
     ):
         super().__init__(max_attempts=max_attempts)
