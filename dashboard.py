@@ -367,3 +367,65 @@ if execute_clicked:
             f"- **Pull Count**: `{before_pulls}` ➔ `{after_pulls}` (+1 pull)\n"
             f"- **Point Estimate $\\hat{{\\theta}}^T \\mathbf{{x}}$**: `INR {before_theta:,.2f}` ➔ `INR {after_theta:,.2f}`"
         )
+
+# =============================================================================
+# SECTION C: LEARNING INSIGHTS & EMPIRICAL EVIDENCE CARDS
+# =============================================================================
+st.markdown("---")
+st.header("📈 Section C: Algorithmic Learning Insights & Empirical Evidence")
+st.markdown("Key structural findings from canonical evaluation (Seed 42 & 10-Seed Benchmark), paired directly with pre-rendered empirical plot evidence.")
+
+card_col1, card_col2 = st.columns(2)
+
+with card_col1:
+    st.subheader("1. `issuer_timeout` Convergence")
+    st.markdown("""
+    **Headline**: `issuer_timeout` on Bank C converges rapidly to `1hr`
+    
+    **Empirical Findings**:
+    - Ground-truth optimal arm is `1hr` (78% base recovery probability).
+    - The LinUCB bandit reaches 100% selection share on `1hr` delay.
+    - Recovery rate improved from **53.15%** (Baseline) to **93.15%** (LinUCB), generating a **+79.74%** net revenue lift (+INR 5,15,075.66).
+    """)
+    convergence_img_path = Path(r"C:\Users\Thanujha\.gemini\antigravity\scratch\bandit_retry_scheduler\audit\plots\convergence_plots.png")
+    if convergence_img_path.exists():
+        st.image(str(convergence_img_path), caption="Figure 1: Arm Selection Convergence Across 40-Decision Rolling Windows", use_container_width=True)
+
+with card_col2:
+    st.subheader("2. `insufficient_funds` Zero-Shot Generalization")
+    st.markdown("""
+    **Headline**: `insufficient_funds` generalizes to `3d` across all four banks
+    
+    **Empirical Findings**:
+    - `3d` delay is the ground-truth optimal arm for all 4 banks (Bank A: 40%, Bank B: 45%, Bank C: 38%, Bank D: 42%).
+    - Because `failure_code` is a shared linear feature in the disjoint LinUCB 19D encoder, the model transferred learned arm preferences to new banks zero-shot without needing separate exploration.
+    - Yields net revenue lift of **+15.16%** (+INR 7,60,212.80) on Seed 42.
+    """)
+
+st.markdown("")
+card_col3, card_col4 = st.columns(2)
+
+with card_col3:
+    st.subheader("3. Bank D Drift Adaptation")
+    st.markdown("""
+    **Headline**: Bank D policy drift on Day 20 — bandit adapts without retraining
+    
+    **Empirical Findings**:
+    - Bank D undergoes policy drift on Day 20 (`do_not_honor` recovery rate jumps from 3.57% to 82.14%).
+    - LinUCB automatically detects shifted reward distribution, increasing recovery rate from **3.57%** pre-drift to **82.14%** post-drift.
+    - Arm allocation shifts seamlessly from exploration to heavily favoring `1d`/`3d` without manual model retraining.
+    """)
+    drift_img_path = Path(r"C:\Users\Thanujha\.gemini\antigravity\scratch\bandit_retry_scheduler\audit\plots\drift_adaptation.png")
+    if drift_img_path.exists():
+        st.image(str(drift_img_path), caption="Figure 2: Bank D Rolling 40-Decision Arm Selection Distribution Pre/Post Drift", use_container_width=True)
+
+with card_col4:
+    st.subheader("4. Adaptive Threshold Experiment")
+    st.markdown("""
+    **Headline**: Tested per-segment adaptive stopping thresholds — and correctly rejected it
+    
+    **Empirical Findings**:
+    - Evaluated raising `min_samples_for_stopping` from 15 to 25 for high-ticket failure codes (`insufficient_funds`, `do_not_honor`).
+    - Forced extra exploration on non-viable arms reduced overall net revenue by **-1.63% (-INR 1,30,473.19)**.
+    - Retained the canonical `min_samples=15` configuration based on rigorous empirical evidence.
+    """)
