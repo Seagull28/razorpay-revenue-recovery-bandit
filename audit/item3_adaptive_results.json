@@ -1,0 +1,46 @@
+{
+  "seed_42_by_code": {
+    "card_expired": {
+      "baseline": -2450.0,
+      "locked": -2450.0,
+      "adaptive": -2450.0
+    },
+    "do_not_honor": {
+      "baseline": 342808.17000000004,
+      "locked": 495011.64,
+      "adaptive": 342364.47
+    },
+    "generic_decline": {
+      "baseline": 525991.0199999999,
+      "locked": 568369.1699999997,
+      "adaptive": 546839.9699999996
+    },
+    "insufficient_funds": {
+      "baseline": 5016138.309999998,
+      "locked": 5776351.1099999985,
+      "adaptive": 5843277.999999997
+    },
+    "issuer_timeout": {
+      "baseline": 645943.8199999998,
+      "locked": 1161019.4800000002,
+      "adaptive": 1137821.3199999998
+    }
+  },
+  "overall_multi_seed": {
+    "42": {
+      "baseline": 6528431.319999991,
+      "locked": 7998301.399999999,
+      "adaptive": 7867853.759999994
+    },
+    "101": {
+      "baseline": 6460757.149999997,
+      "locked": 7611508.259999997,
+      "adaptive": 7570683.800000001
+    },
+    "2026": {
+      "baseline": 6818863.239999996,
+      "locked": 7303756.050000007,
+      "adaptive": 6969437.050000002
+    }
+  }
+}
