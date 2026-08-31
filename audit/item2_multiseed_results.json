@@ -1,0 +1,92 @@
+{
+  "seed_results": [
+    {
+      "seed": 42,
+      "baseline_net_revenue": 6528431.319999991,
+      "linucb_net_revenue": 7998301.399999999,
+      "net_revenue_lift_inr": 1469870.0800000085,
+      "net_revenue_lift_pct": 22.514904545247028,
+      "linucb_recovery_rate_pct": 66.2
+    },
+    {
+      "seed": 101,
+      "baseline_net_revenue": 6460757.149999997,
+      "linucb_net_revenue": 7611508.259999997,
+      "net_revenue_lift_inr": 1150751.1100000003,
+      "net_revenue_lift_pct": 17.811397074412568,
+      "linucb_recovery_rate_pct": 62.63333333333333
+    },
+    {
+      "seed": 2026,
+      "baseline_net_revenue": 6818863.239999996,
+      "linucb_net_revenue": 7303756.050000007,
+      "net_revenue_lift_inr": 484892.8100000117,
+      "net_revenue_lift_pct": 7.111050521670413,
+      "linucb_recovery_rate_pct": 60.86666666666667
+    },
+    {
+      "seed": 7,
+      "baseline_net_revenue": 6600176.679999992,
+      "linucb_net_revenue": 7882396.139999993,
+      "net_revenue_lift_inr": 1282219.460000001,
+      "net_revenue_lift_pct": 19.427047519582498,
+      "linucb_recovery_rate_pct": 65.66666666666666
+    },
+    {
+      "seed": 13,
+      "baseline_net_revenue": 6960660.610000005,
+      "linucb_net_revenue": 7216368.870000009,
+      "net_revenue_lift_inr": 255708.26000000443,
+      "net_revenue_lift_pct": 3.6736205703326807,
+      "linucb_recovery_rate_pct": 60.86666666666667
+    },
+    {
+      "seed": 55,
+      "baseline_net_revenue": 6536728.419999995,
+      "linucb_net_revenue": 7714770.959999994,
+      "net_revenue_lift_inr": 1178042.539999999,
+      "net_revenue_lift_pct": 18.021898177620784,
+      "linucb_recovery_rate_pct": 64.23333333333333
+    },
+    {
+      "seed": 99,
+      "baseline_net_revenue": 6524038.56,
+      "linucb_net_revenue": 8049937.930000013,
+      "net_revenue_lift_inr": 1525899.3700000132,
+      "net_revenue_lift_pct": 23.38887724170676,
+      "linucb_recovery_rate_pct": 64.93333333333334
+    },
+    {
+      "seed": 123,
+      "baseline_net_revenue": 6652990.229999994,
+      "linucb_net_revenue": 7439370.1599999955,
+      "net_revenue_lift_inr": 786379.9300000016,
+      "net_revenue_lift_pct": 11.819947163818432,
+      "linucb_recovery_rate_pct": 61.86666666666667
+    },
+    {
+      "seed": 256,
+      "baseline_net_revenue": 6848455.419999994,
+      "linucb_net_revenue": 7763525.999999983,
+      "net_revenue_lift_inr": 915070.5799999889,
+      "net_revenue_lift_pct": 13.361707478267991,
+      "linucb_recovery_rate_pct": 63.53333333333333
+    },
+    {
+      "seed": 777,
+      "baseline_net_revenue": 6809285.900000007,
+      "linucb_net_revenue": 7917447.420000018,
+      "net_revenue_lift_inr": 1108161.5200000107,
+      "net_revenue_lift_pct": 16.274269229905734,
+      "linucb_recovery_rate_pct": 64.96666666666667
+    }
+  ],
+  "mean_lift_inr": 1015699.566000004,
+  "std_lift_inr": 409987.42650873197,
+  "mean_lift_pct": 15.34047195225649,
+  "std_lift_pct": 6.388055758808458,
+  "ci_lower_inr": 767630.311700001,
+  "ci_upper_inr": 1240136.8175750042,
+  "ci_lower_pct": 11.503311877689145,
+  "ci_upper_pct": 18.85904279124911
+}
