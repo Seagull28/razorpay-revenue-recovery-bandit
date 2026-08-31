@@ -203,3 +203,7 @@ class AuditLogger:
     def clear(self) -> None:
         """Clears all audit records."""
         self.records.clear()
+
+    def get_summary(self) -> Dict[str, Any]:
+        """Alias for compute_summary_metrics."""
+        return self.compute_summary_metrics()
