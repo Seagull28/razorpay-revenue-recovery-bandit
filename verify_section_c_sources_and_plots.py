@@ -16,7 +16,7 @@ def verify_images():
     print("1. EMBEDDED PLOT PNG IMAGE FILE VERIFICATION")
     print("====================================================================================================\n")
 
-    plots_dir = Path(r"C:\Users\Thanujha\.gemini\antigravity\scratch\bandit_retry_scheduler\audit\plots")
+    plots_dir = Path(__file__).resolve().parent / "audit" / "plots"
 
     img_files = ["convergence_plots.png", "drift_adaptation.png"]
     for img_name in img_files:
@@ -34,7 +34,7 @@ def verify_full_page_apptest():
     print("2. FULL-PAGE COLD-START AppTest LOAD VERIFICATION (SECTIONS B, A, C TOGETHER)")
     print("====================================================================================================\n")
 
-    dashboard_path = r"C:\Users\Thanujha\.gemini\antigravity\scratch\bandit_retry_scheduler\dashboard.py"
+    dashboard_path = str(Path(__file__).resolve().parent / "dashboard.py")
     at = AppTest.from_file(dashboard_path, default_timeout=15)
     at.run()
 

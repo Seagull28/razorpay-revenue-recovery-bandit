@@ -1,18 +1,21 @@
 """
 dashboard.py
 RecoverFlow Interactive Merchant Dashboard (Streamlit).
-Combines Overview Metrics (Page 1) and Live Decision Walkthrough (Section A).
+Combines Overview Metrics (Section 1), Interactive Simulation Mode (Section A), and Learning Insights (Section C).
 Uses live API calls from api/ decision_service, eligibility, explainability, action_executor, feedback_loop.
 """
 
 import sys
+import json
 from pathlib import Path
 import streamlit as st
 import pandas as pd
 import numpy as np
 
-# Append project root
-sys.path.append(r"C:\Users\Thanujha\.gemini\antigravity\scratch")
+# Project-relative root setup (portable across machines)
+PROJECT_ROOT = Path(__file__).resolve().parent
+if str(PROJECT_ROOT.parent) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT.parent))
 
 from bandit_retry_scheduler.policies.linucb import LinUCBPolicy
 from bandit_retry_scheduler.simulator.environment import RetrySimulator
@@ -23,6 +26,8 @@ from bandit_retry_scheduler.api.explainability import generate_decision_explanat
 from bandit_retry_scheduler.api.action_executor import execute_retry_action
 from bandit_retry_scheduler.api.feedback_loop import process_outcome_and_update
 from bandit_retry_scheduler.audit.logger import AuditLogger
+from bandit_retry_scheduler.runner.engine import PolicyExecutionEngine
+from bandit_retry_scheduler.simulator.stream_generator import TransactionStreamGenerator
 
 # Page configuration
 st.set_page_config(
@@ -69,8 +74,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-from bandit_retry_scheduler.runner.engine import PolicyExecutionEngine
-from bandit_retry_scheduler.simulator.stream_generator import TransactionStreamGenerator
 
 @st.cache_resource
 def load_pretrained_policy_and_simulator(num_tx: int = 1000):
@@ -84,6 +87,7 @@ def load_pretrained_policy_and_simulator(num_tx: int = 1000):
     engine.run(stream, policy=policy, logger=AuditLogger())
     return policy, simulator
 
+
 # Initialize persistent session state for Policy, Simulator, and Audit Logger
 if "policy" not in st.session_state:
     p_init, s_init = load_pretrained_policy_and_simulator(1000)
@@ -93,6 +97,42 @@ if "policy" not in st.session_state:
 if "audit_logger" not in st.session_state:
     st.session_state.audit_logger = AuditLogger()
 
+
+# Dynamic Benchmark Metrics Loader
+def load_benchmark_metrics():
+    item2_file = PROJECT_ROOT / "audit" / "item2_multiseed_results.json"
+    if item2_file.exists():
+        try:
+            with open(item2_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            s42 = data["seed_results"]["42"]
+            ms = data["multi_seed_summary"]
+            ci = data["bootstrap_ci_10000"]
+            return {
+                "baseline_net": f"INR {s42['baseline_net_revenue']:,.2f}",
+                "linucb_net": f"INR {s42['linucb_net_revenue']:,.2f}",
+                "lift_delta": f"+INR {s42['net_revenue_lift_inr']:,.2f} (+{s42['net_revenue_lift_pct']:.2f}%)",
+                "mean_lift": f"+{ms['mean_net_revenue_lift_pct']:.2f}%",
+                "ci_text": f"95% CI: [{ci['ci_lower_pct']:+.2f}%, {ci['ci_upper_pct']:+.2f}%]",
+                "recovery_rate": f"{s42['linucb_recovery_rate_pct']:.2f}%",
+                "rec_rate_delta": f"+{s42['linucb_recovery_rate_pct'] - s42['baseline_recovery_rate_pct']:.2f}% vs Baseline ({s42['baseline_recovery_rate_pct']:.2f}%)",
+            }
+        except Exception:
+            pass
+
+    # Fallback canonical values if JSON artifact is not present
+    return {
+        "baseline_net": "INR 6,528,431.32",
+        "linucb_net": "INR 7,998,301.40",
+        "lift_delta": "+INR 1,469,870.08 (+22.51%)",
+        "mean_lift": "+15.34%",
+        "ci_text": "95% CI: [+11.50%, +18.86%]",
+        "recovery_rate": "66.20%",
+        "rec_rate_delta": "+14.03% vs Baseline (52.17%)",
+    }
+
+
+metrics = load_benchmark_metrics()
 
 # Header Banner
 st.title("⚡ RecoverFlow: Bandit-Optimized Retry Scheduler")
@@ -109,37 +149,36 @@ col1, col2, col3, col4 = st.columns(4)
 with col1:
     st.metric(
         label="Baseline Net Revenue",
-        value="INR 65,28,431.32",
+        value=metrics["baseline_net"],
         help="Fixed-schedule baseline (1d -> 3d -> 7d) on Seed 42",
     )
 
 with col2:
     st.metric(
         label="LinUCB Net Revenue",
-        value="INR 79,98,301.40",
-        delta="+INR 14,69,870.08 (+22.51%)",
+        value=metrics["linucb_net"],
+        delta=metrics["lift_delta"],
         help="Canonical LinUCB Policy Net Revenue on Seed 42",
     )
 
 with col3:
     st.metric(
         label="10-Seed Mean Net Lift",
-        value="+15.34%",
-        delta="95% CI: [+11.50%, +18.86%]",
+        value=metrics["mean_lift"],
+        delta=metrics["ci_text"],
         help="Mean lift across 10 random seeds with 10,000 bootstrap CI",
     )
 
 with col4:
     st.metric(
         label="Canonical Recovery Rate",
-        value="66.20%",
-        delta="+14.03% vs Baseline (52.17%)",
+        value=metrics["recovery_rate"],
+        delta=metrics["rec_rate_delta"],
         help="Seed 42 overall transaction recovery rate",
     )
 
 st.markdown("### Per-Failure-Code Performance Breakdown (Seed 42)")
 
-# Pre-computed Seed 42 benchmark dataframe directly matching evaluation_report.md
 code_data = [
     {"Failure Code": "card_expired", "Baseline Net (INR)": -2450.00, "LinUCB Net (INR)": -2450.00, "Lift (INR)": 0.00, "Lift (%)": "0.00%", "Recovery Rate": "0.00%"},
     {"Failure Code": "do_not_honor", "Baseline Net (INR)": 342808.17, "LinUCB Net (INR)": 495011.64, "Lift (INR)": 152203.47, "Lift (%)": "+44.40%", "Recovery Rate": "19.52%"},
@@ -154,12 +193,15 @@ st.dataframe(df_code, use_container_width=True, hide_index=True)
 st.markdown("---")
 
 # =============================================================================
-# SECTION A: LIVE DECISION WALKTHROUGH
+# SECTION A: INTERACTIVE SIMULATION MODE & LIVE WALKTHROUGH
 # =============================================================================
-st.header("🔍 Section A: Live Decision Walkthrough & Action Execution")
-st.markdown("Select a sample transaction context below to inspect live LinUCB eligibility, arm scoring, plain-language business explanations, and test action execution against the environment.")
+st.header("🔍 Section A: Interactive Simulation Mode & Action Walkthrough")
+st.caption(
+    "💡 **Interactive Simulation Mode**: Each execution simulates a retry outcome against the environment "
+    "and updates the in-memory demonstration policy online. Re-running the same sample transaction is intended for "
+    "observing online model parameter updates and does not represent production transaction lifecycle management."
+)
 
-# Pre-loaded transaction options
 preset_txs = {
     "Insufficient Funds (High-Ticket, Bank B)": {
         "transaction_id": "tx_demo_insufficient_funds_001",
@@ -302,7 +344,6 @@ for arm_name in ["1hr", "6hr", "1d", "3d", "7d"]:
 
 df_arms = pd.DataFrame(table_rows)
 
-# Highlight recommended row using pandas styling
 def highlight_rec(row):
     if "RECOMMENDED" in str(row["Status"]):
         return ["background-color: #d1ecf1; font-weight: bold; color: #0c5460;"] * len(row)
@@ -327,20 +368,17 @@ with btn_col:
     execute_clicked = st.button("▶ Execute Retry Action", type="primary", use_container_width=True)
 
 if execute_clicked:
-    # Capture BEFORE state for chosen arm
     chosen_arm = decision["recommended_delay"] if decision["should_retry"] else "1hr"
     before_info = arm_scores.get(chosen_arm, {"pull_count": 0, "theta_dot_x": 0.0})
     before_pulls = before_info["pull_count"]
     before_theta = before_info["theta_dot_x"]
 
-    # Execute action against simulator
     exec_result = execute_retry_action(
         transaction=tx_context,
         decision=decision,
         simulator=st.session_state.simulator,
     )
 
-    # Process feedback and update policy parameters online
     update_record = process_outcome_and_update(
         transaction=tx_context,
         decision=decision,
@@ -349,7 +387,6 @@ if execute_clicked:
         audit_logger=st.session_state.audit_logger,
     )
 
-    # Capture AFTER state for chosen arm
     after_scores = st.session_state.policy.get_arm_scores(tx_context)
     after_info = after_scores.get(chosen_arm, {"pull_count": 0, "theta_dot_x": 0.0})
     after_pulls = after_info["pull_count"]
@@ -387,18 +424,20 @@ with card_col1:
     - The LinUCB bandit reaches 100% selection share on `1hr` delay.
     - Recovery rate improved from **53.15%** (Baseline) to **93.15%** (LinUCB), generating a **+79.74%** net revenue lift (+INR 5,15,075.66).
     """)
-    convergence_img_path = Path(r"C:\Users\Thanujha\.gemini\antigravity\scratch\bandit_retry_scheduler\audit\plots\convergence_plots.png")
+    convergence_img_path = PROJECT_ROOT / "audit" / "plots" / "convergence_plots.png"
     if convergence_img_path.exists():
         st.image(str(convergence_img_path), caption="Figure 1: Arm Selection Convergence Across 40-Decision Rolling Windows", use_container_width=True)
+    else:
+        st.warning("Plot artifact not found. Run the evaluation harness to generate it.")
 
 with card_col2:
-    st.subheader("2. `insufficient_funds` Zero-Shot Generalization")
+    st.subheader("2. `insufficient_funds` Cross-Context Learning")
     st.markdown("""
-    **Headline**: `insufficient_funds` generalizes to `3d` across all four banks
+    **Headline**: `insufficient_funds` transfers learned delay preferences to `3d` across all four banks
     
     **Empirical Findings**:
     - `3d` delay is the ground-truth optimal arm for all 4 banks (Bank A: 40%, Bank B: 45%, Bank C: 38%, Bank D: 42%).
-    - Because `failure_code` is a shared linear feature in the disjoint LinUCB 19D encoder, the model transferred learned arm preferences to new banks zero-shot without needing separate exploration.
+    - Because `failure_code` is a shared linear feature in the disjoint LinUCB 19D encoder, the model transferred learned arm preferences across banks without needing redundant exploration.
     - Yields net revenue lift of **+15.16%** (+INR 7,60,212.80) on Seed 42.
     """)
 
@@ -415,9 +454,11 @@ with card_col3:
     - LinUCB automatically detects shifted reward distribution, increasing recovery rate from **3.57%** pre-drift to **82.14%** post-drift.
     - Arm allocation shifts seamlessly from exploration to heavily favoring `1d`/`3d` without manual model retraining.
     """)
-    drift_img_path = Path(r"C:\Users\Thanujha\.gemini\antigravity\scratch\bandit_retry_scheduler\audit\plots\drift_adaptation.png")
+    drift_img_path = PROJECT_ROOT / "audit" / "plots" / "drift_adaptation.png"
     if drift_img_path.exists():
         st.image(str(drift_img_path), caption="Figure 2: Bank D Rolling 40-Decision Arm Selection Distribution Pre/Post Drift", use_container_width=True)
+    else:
+        st.warning("Plot artifact not found. Run the evaluation harness to generate it.")
 
 with card_col4:
     st.subheader("4. Adaptive Threshold Experiment")

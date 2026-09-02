@@ -14,7 +14,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 def test_dashboard_apptest():
-    dashboard_path = r"C:\Users\Thanujha\.gemini\antigravity\scratch\bandit_retry_scheduler\dashboard.py"
+    dashboard_path = str(Path(__file__).resolve().parent / "dashboard.py")
     
     print("====================================================================================================")
     print("STREAMLIT AppTest PROGRAMMATIC INTERACTION TEST FOR DASHBOARD.PY")

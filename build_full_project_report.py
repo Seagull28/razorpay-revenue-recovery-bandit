@@ -8,14 +8,9 @@ Saves to BOTH:
 Also synchronizes plot artifacts across audit/plots and brain/plots.
 """
 
-import sys
-import json
-import shutil
-import time
-from pathlib import Path
-import numpy as np
-
-sys.path.append(r"C:\Users\Thanujha\.gemini\antigravity\scratch")
+PROJECT_ROOT = Path(__file__).resolve().parent
+if str(PROJECT_ROOT.parent) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT.parent))
 
 from bandit_retry_scheduler.evaluation.harness import EvaluationHarness
 
@@ -25,14 +20,9 @@ def main():
     print("====================================================================================================\n")
 
     # Define paths
-    project_audit_dir = Path(r"C:\Users\Thanujha\.gemini\antigravity\scratch\bandit_retry_scheduler\audit")
+    project_audit_dir = PROJECT_ROOT / "audit"
     project_plots_dir = project_audit_dir / "plots"
-    
-    brain_dir = Path(r"C:\Users\Thanujha\.gemini\antigravity\brain\30eeb98e-59ae-47b5-85ad-a23d7f580f5a")
-    brain_plots_dir = brain_dir / "plots"
-
     project_plots_dir.mkdir(parents=True, exist_ok=True)
-    brain_plots_dir.mkdir(parents=True, exist_ok=True)
 
     # 1. Run canonical seed 42 / 3-seed evaluation harness to get base report data & plots
     print("Running base 3-seed evaluation harness...")
@@ -374,10 +364,9 @@ def main():
 
     full_report_text = "\n".join(lines)
 
-    # 4. Save report to ALL THREE target paths
-    target_project_root_path = Path(r"C:\Users\Thanujha\.gemini\antigravity\scratch\bandit_retry_scheduler\evaluation_report.md")
+    # 4. Save report to project target paths
+    target_project_root_path = PROJECT_ROOT / "evaluation_report.md"
     target_project_audit_path = project_audit_dir / "evaluation_report.md"
-    target_brain_path = brain_dir / "evaluation_report.md"
 
     with open(target_project_root_path, "w", encoding="utf-8") as f:
         f.write(full_report_text)
@@ -386,10 +375,6 @@ def main():
     with open(target_project_audit_path, "w", encoding="utf-8") as f:
         f.write(full_report_text)
     print(f"Full report saved to Project Audit Folder: {target_project_audit_path}")
-
-    with open(target_brain_path, "w", encoding="utf-8") as f:
-        f.write(full_report_text)
-    print(f"Full report saved to UI Brain Artifact: {target_brain_path}")
 
 if __name__ == "__main__":
     main()

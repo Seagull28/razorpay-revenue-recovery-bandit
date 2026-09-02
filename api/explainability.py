@@ -79,7 +79,7 @@ def generate_decision_explanation(
 
     explanation = (
         f"{marginal_prefix}Recommended {recommended_delay} delay for transaction {tx_id} (amount: INR {amount:,.2f}, {code} on {bank}): "
-        f"estimated {implied_prob_pct:.1f}% recovery probability on this context, yielding expected net value of "
-        f"INR {theta_dot_x:,.2f} after INR 10 retry cost. Alternative arms considered: {alt_text}."
+        f"model-implied recovery likelihood of approximately {implied_prob_pct:.1f}%, derived from the policy's learned reward estimate, "
+        f"yielding expected net value of INR {theta_dot_x:,.2f} after INR 10 retry cost. Alternative arms considered: {alt_text}."
     )
     return explanation

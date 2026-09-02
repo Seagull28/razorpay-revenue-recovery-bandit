@@ -9,8 +9,8 @@ import zipfile
 from pathlib import Path
 
 def main():
-    project_dir = Path(r"C:\Users\Thanujha\.gemini\antigravity\scratch\bandit_retry_scheduler")
-    output_zip = Path(r"C:\Users\Thanujha\.gemini\antigravity\scratch\bandit_retry_scheduler_phase5_tier3_final.zip")
+    project_dir = Path(__file__).resolve().parent
+    output_zip = project_dir.parent / "bandit_retry_scheduler_phase5_tier3_final.zip"
 
     ignore_dirs = {".git", "__pycache__", ".pytest_cache", ".streamlit"}
     ignore_extensions = {".pyc", ".pyo"}
