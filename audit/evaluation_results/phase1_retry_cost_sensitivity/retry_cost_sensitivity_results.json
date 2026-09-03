@@ -1,0 +1,76 @@
+{
+  "analysis_name": "Phase 1 Retry Cost Realism Post-Hoc Sensitivity Analysis",
+  "description": "Evaluates Phase 1 benchmark net revenue under realistic per-arm cost table without modifying canonical pipeline.",
+  "alternative_cost_table_inr": {
+    "1hr": 18.0,
+    "6hr": 14.0,
+    "1d": 10.0,
+    "3d": 12.0,
+    "7d": 15.0
+  },
+  "flat_retry_cost_baseline_inr": 10.0,
+  "policy_net_revenue_summary": {
+    "RecoverFlow LinUCB": {
+      "orig_mean_net_revenue": 9486147.13,
+      "alt_mean_net_revenue": 9463394.73,
+      "net_revenue_change": -22752.4,
+      "net_revenue_change_pct": -0.24
+    },
+    "Fixed Schedule": {
+      "orig_mean_net_revenue": 8765870.96,
+      "alt_mean_net_revenue": 8748930.77,
+      "net_revenue_change": -16940.2,
+      "net_revenue_change_pct": -0.19
+    },
+    "Best Static Arm": {
+      "orig_mean_net_revenue": 9273734.06,
+      "alt_mean_net_revenue": 9259328.66,
+      "net_revenue_change": -14405.4,
+      "net_revenue_change_pct": -0.16
+    },
+    "Contextual Heuristic": {
+      "orig_mean_net_revenue": 9302752.33,
+      "alt_mean_net_revenue": 9285853.73,
+      "net_revenue_change": -16898.6,
+      "net_revenue_change_pct": -0.18
+    }
+  },
+  "recoverflow_paired_lift_comparison": {
+    "vs_Fixed_Schedule": {
+      "baseline_policy": "Fixed Schedule",
+      "orig_flat_cost_mean_lift": 720276.16,
+      "orig_win_rate": "10/10 (100%)",
+      "alt_realistic_cost_mean_lift": 714463.96,
+      "alt_win_rate": "10/10 (100%)",
+      "alt_lift_change": -5812.2,
+      "alt_bootstrap_95ci": [
+        591045.59,
+        850546.39
+      ]
+    },
+    "vs_Best_Static_Arm": {
+      "baseline_policy": "Best Static Arm",
+      "orig_flat_cost_mean_lift": 212413.07,
+      "orig_win_rate": "9/10 (90%)",
+      "alt_realistic_cost_mean_lift": 204066.07,
+      "alt_win_rate": "9/10 (90%)",
+      "alt_lift_change": -8347.0,
+      "alt_bootstrap_95ci": [
+        91246.71,
+        318245.38
+      ]
+    },
+    "vs_Contextual_Heuristic": {
+      "baseline_policy": "Contextual Heuristic",
+      "orig_flat_cost_mean_lift": 183394.8,
+      "orig_win_rate": "9/10 (90%)",
+      "alt_realistic_cost_mean_lift": 177541.0,
+      "alt_win_rate": "9/10 (90%)",
+      "alt_lift_change": -5853.8,
+      "alt_bootstrap_95ci": [
+        89570.48,
+        276631.0
+      ]
+    }
+  }
+}

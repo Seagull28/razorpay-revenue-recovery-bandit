@@ -206,6 +206,8 @@ python run_phase4_strategy_diagnostics.py
 1. **Synthetic Simulation**: Benchmarks are evaluated within the synthetic simulation environment; production performance depends on real merchant transaction patterns.
 2. **Ground-Truth Greedy Oracle**: The Oracle policy accesses ground-truth probabilities and is strictly an evaluation benchmark. It is **not deployable** and **not part of production code**.
 3. **Model-Derived Probability Estimates**: Expected recovery probabilities in explainability strings are derived from learned linear reward estimates ($\hat{\theta}^T \mathbf{x}$), not direct calibrated probability classifiers.
+4. **Regulatory Scope**: RecoverFlow does not model India-specific recurring-payment retry regulations (e.g. RBI/NPCI e-mandate retry attempt and window rules). See [`audit/COMPLIANCE_DISCLOSURE.md`](audit/COMPLIANCE_DISCLOSURE.md) for a full disclosure of this scope boundary.
+5. **Flat Retry Cost Model**: `DEFAULT_RETRY_COST` is a single constant across all delay arms in the canonical Phase 1 evaluation. See [`audit/RETRY_COST_SENSITIVITY_REPORT.md`](audit/RETRY_COST_SENSITIVITY_REPORT.md) for a post-hoc sensitivity analysis under a more realistic per-arm cost assumption.
 
 ---
 
