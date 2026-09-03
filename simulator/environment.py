@@ -18,6 +18,18 @@ from bandit_retry_scheduler.simulator.config import (
 from bandit_retry_scheduler.simulator.ground_truth import calculate_recovery_probability
 
 
+import zlib
+
+def get_deterministic_uniform(seed: int, tx_id: str, attempt: int) -> float:
+    """
+    Derives a deterministic latent uniform value u in [0, 1) for paired Common Random Numbers (CRN) evaluation.
+    u = deterministic_uniform(evaluation_seed, transaction_id, attempt_number)
+    """
+    key = f"{seed}:{tx_id}:{attempt}".encode("utf-8")
+    crc = zlib.crc32(key) & 0xffffffff
+    return crc / 4294967296.0
+
+
 class RetrySimulator:
     """
     Simulates payment retries based on hidden ground-truth probability distributions,
@@ -51,30 +63,16 @@ class RetrySimulator:
         return calculate_recovery_probability(context, delay)
 
     def simulate_retry(
-        self, context: Dict[str, Any], delay: str
+        self,
+        context: Dict[str, Any],
+        delay: str,
+        attempt_number: Optional[int] = None,
+        evaluation_seed: Optional[int] = None,
+        use_crn: bool = False,
     ) -> Tuple[bool, float]:
         """
         Simulates retrying a failed transaction with the specified delay bucket.
-
-        Parameters:
-        -----------
-        context: dict containing transaction features:
-            - 'failure_code': str
-            - 'bank': str
-            - 'network': str
-            - 'retry_attempt_number': int
-            - 'day_of_month_bucket': str
-            - 'customer_prior_success_count': str/int
-            - 'customer_prior_failures_this_cycle': str/int
-            - 'amount': float (optional, will be sampled if not provided)
-            - 'simulated_day': int (optional, defaults to 1)
-        delay: str, one of ('1hr', '6hr', '1d', '3d', '7d')
-
-        Returns:
-        --------
-        (success: bool, amount_recovered: float)
-            - success: True if the retry succeeded, False otherwise
-            - amount_recovered: context['amount'] if success is True, else 0.0
+        Supports Common Random Numbers (CRN) for fair paired policy evaluation.
         """
         if delay not in DELAY_ARMS:
             raise ValueError(f"Invalid delay arm: '{delay}'. Must be one of {DELAY_ARMS}")
@@ -89,10 +87,16 @@ class RetrySimulator:
         # Calculate true recovery probability
         p_recover = self.get_true_recovery_probability(context, delay)
 
-        # Bernoulli trial
-        success = bool(self.rng.random() < p_recover)
-        amount_recovered = float(amount) if success else 0.0
+        # Bernoulli trial using CRN if enabled, else RNG
+        if use_crn and evaluation_seed is not None:
+            attempt = attempt_number or context.get("retry_attempt_number", 1)
+            tx_id = str(context.get("transaction_id", "tx_default"))
+            u = get_deterministic_uniform(evaluation_seed, tx_id, attempt)
+            success = bool(u < p_recover)
+        else:
+            success = bool(self.rng.random() < p_recover)
 
+        amount_recovered = float(amount) if success else 0.0
         return success, amount_recovered
 
     @staticmethod

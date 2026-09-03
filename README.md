@@ -2,7 +2,7 @@
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Build Status](https://img.shields.io/badge/tests-50%20passed-brightgreen.svg)](tests/)
+[![Build Status](https://img.shields.io/badge/tests-63%20passed-brightgreen.svg)](tests/)
 
 > An intelligent, context-aware payment retry scheduling engine powered by **Disjoint Contextual LinUCB** bandit algorithms and bounded safety rules. Replaces fixed retry schedules with contextual decision-making to optimize net revenue recovery while minimizing retry overhead.
 
@@ -14,10 +14,24 @@ When online payment transactions fail due to transient bank timeouts, insufficie
 
 **RecoverFlow** dynamically selects the optimal retry delay (`1hr`, `6hr`, `1d`, `3d`, `7d`) based on structured transaction context (failure code, issuing bank, card network, day-of-month salary cycle, and attempt history).
 
-### 🎯 Key Performance Highlights (Synthetic Benchmark)
-- **Mean Net Revenue Lift**: **+15.34%** across 10 random seeds (**95% Bootstrap CI: [+11.50%, +18.86%]**).
-- **Seed 42 Recovery Rate**: **66.20%** (+14.03% over fixed-schedule baseline).
-- **Segment Convergence**: Reaches **93.15%** recovery rate on `issuer_timeout` (+79.74% revenue lift) and automatically adapts to non-stationary bank policy drift.
+### 🎯 Key Performance Highlights (Phase 1 Rigorous 10-Seed Benchmark)
+All benchmark comparisons are evaluated under **Common Random Numbers (CRN)** and identical transaction streams across 10 random seeds (`[42, 101, 2026, 301, 402, 503, 604, 705, 806, 907]`):
+- **vs. Fixed Schedule Baseline (`1d -> 3d -> 7d`)**: Mean Net Lift = **+INR 720,276.16** (**100% win rate 10/10 seeds**, 95% Bootstrap CI: `[+INR 594,362, +INR 854,925]`).
+- **vs. Best Static Arm Baseline (`Always 3d`)**: Mean Net Lift = **+INR 212,413.07** (**90% win rate 9/10 seeds**, 95% Bootstrap CI: `[+INR 99,263, +INR 327,649]`). *Static arm was selected on 5 held-out validation seeds with ZERO test data leakage.*
+- **vs. Contextual Heuristic Baseline**: Mean Net Lift = **+INR 183,394.80** (**90% win rate 9/10 seeds**, 95% Bootstrap CI: `[+INR 96,305, +INR 282,621]`).
+- **vs. Oracle Upper Bound**: Oracle headroom gap = **+INR 367,743.11** (Oracle is evaluation-only).
+
+---
+
+## 🛡️ Phase 1 Evaluation Hardening Policies
+
+The Phase 1 evaluation framework benchmark compares 5 distinct policies under strictly matched conditions:
+
+1. **Fixed Schedule Baseline (`FixedSchedulePolicy`)**: Industry-standard naive sequence (Attempt 1 $\to$ `1d`, Attempt 2 $\to$ `3d`, Attempt 3 $\to$ `7d`).
+2. **Best Static Arm Baseline (`BestStaticArmPolicy`)**: Frozen `Always 3d` arm selected via 5 held-out validation seeds (`[1001, 1002, 1003, 1004, 1005]`).
+3. **Contextual Heuristic Baseline (`ContextualHeuristicPolicy`)**: Expert rule-based domain policy using observable context (failure code, salary cycle bucket, attempt number) with zero ground-truth access.
+4. **RecoverFlow LinUCB (`LinUCBPolicy`)**: Reference disjoint LinUCB contextual bandit model ($\alpha=1.0, \text{min\_samples}=15$).
+5. **Oracle Upper Bound (`OraclePolicy`)**: **Evaluation-Only Theoretical Upper Bound**. Evaluates ground-truth expected value $\mathbb{E}[R] = P_{\text{true}} \cdot \text{amount} - \text{cost}$, selecting optimal arm or stopping if $\max \mathbb{E}[R] \le 0$. Strictly isolated from production modules (`api/`, `policies/`).
 
 ---
 
@@ -65,24 +79,6 @@ When online payment transactions fail due to transient bank timeouts, insufficie
 
 ---
 
-## 🧮 Mathematical Model: Disjoint LinUCB
-
-For each candidate retry delay arm $a \in \{\text{1hr}, \text{6hr}, \text{1d}, \text{3d}, \text{7d}\}$, the policy maintains ridge regression parameters $\mathbf{A}_a \in \mathbb{R}^{19 \times 19}$ and $\mathbf{b}_a \in \mathbb{R}^{19}$.
-
-### 1. Point Estimate & Exploration Bonus
-Given a 19-dimensional context vector $\mathbf{x}$, the point estimate of expected net revenue is:
-$$\hat{\theta}_a = \mathbf{A}_a^{-1} \mathbf{b}_a, \quad \text{Point Estimate} = \hat{\theta}_a^T \mathbf{x}$$
-
-The Upper Confidence Bound (UCB) selection score is:
-$$\text{UCB}_a = \hat{\theta}_a^T \mathbf{x} + \alpha \sqrt{\mathbf{x}^T \mathbf{A}_a^{-1} \mathbf{x}}$$
-
-### 2. Learned Stopping Rule vs. Safety Safeguards
-- **Learned Stopping**: Retry is halted if $\max_{a} (\hat{\theta}_a^T \mathbf{x}) \le 0$ after accumulating sufficient experience.
-- **Cold-Start Protection**: Stopping rule evaluation is deferred until an arm collects $\ge 15$ samples (`min_samples_for_stopping = 15`) to prevent premature stopping.
-- **Hard Safety Rules**: Transactions with expired cards (on attempt $>1$), previous payment recoveries, or attempt count $>4$ are halted immediately by `EligibilityGate`.
-
----
-
 ## 📂 Project Structure
 
 ```text
@@ -95,23 +91,35 @@ bandit_retry_scheduler/
 │   ├── feedback_loop.py        # Online Policy Parameter Updater
 │   └── audit_service.py        # Audit Trail & Logging Service
 ├── audit/                      # Evaluation Reports & Plot Artifacts
-│   ├── evaluation_report.md    # 11-Section Comprehensive Report
-│   ├── item2_multiseed_results.json
-│   ├── item3_adaptive_results.json
-│   ├── item4_alpha_results.json
-│   └── plots/                  # Generated Empirical PNG Plots
+│   ├── evaluation_report.md    # Canonical Markdown Report
+│   └── evaluation_results/phase1/
+│       ├── phase1_static_arm_validation.json
+│       ├── phase1_per_seed_results.json
+│       ├── phase1_per_seed_results.csv
+│       ├── phase1_summary.json
+│       ├── phase1_paired_comparisons.json
+│       └── PHASE1_EVALUATION_REPORT.md
+├── evaluation/                 # Formal Evaluation Suite & Oracle
+│   ├── harness.py              # Base Evaluation Harness
+│   ├── metrics.py              # Performance & Regret Metrics
+│   ├── plotting.py             # Plot Rendering Module
+│   └── oracle.py               # Isolated Evaluation Oracle Policy
 ├── policies/                   # Policy Implementations
 │   ├── base.py                 # Abstract Base Policy Interface
 │   ├── fixed_schedule.py       # Canonical Baseline (1d -> 3d -> 7d)
-│   └── linucb.py               # Disjoint LinUCB Policy Implementation
+│   ├── linucb.py               # Disjoint LinUCB Policy Implementation
+│   ├── static_arm.py           # Static Arm & Best Static Arm Policies
+│   └── heuristic.py            # Contextual Heuristic Policy
 ├── runner/                     # Simulation Engine
-│   └── engine.py               # Policy Execution Engine & Metrics Collector
+│   └── engine.py               # Policy Execution Engine with CRN Support
 ├── simulator/                  # Synthetic Environment Engine
 │   ├── config.py               # Domain Enums & Constants
-│   ├── environment.py          # Retry Simulator & Cost Calculator
+│   ├── environment.py          # Retry Simulator with CRN Support
 │   ├── ground_truth.py         # Ground-Truth Recovery Probabilities (Isolated)
 │   └── stream_generator.py     # Synthetic Transaction Generator
-├── tests/                      # Pytest Unit Test Suite (50 Tests)
+├── tests/                      # Pytest Unit Test Suite (63 Tests)
+│   └── test_phase1_evaluation.py
+├── run_phase1_evaluation.py    # Phase 1 Evaluation Hardening CLI Runner
 ├── dashboard.py                # Streamlit Merchant Interactive Dashboard
 ├── requirements.txt            # Runtime Dependencies
 └── README.md                   # Submission Documentation
@@ -142,13 +150,19 @@ pip install -r requirements.txt
 
 ---
 
-## 🧪 Running Tests
+## 🧪 Running Tests & Phase 1 Evaluation
 
-Execute the complete, portable test suite:
+### Execute Pytest Suite (63 Tests)
 ```bash
-pytest -q
+python -m pytest -q
 ```
-*Target Result: All tests pass with 0 failures and 0 collection errors.*
+*Target Result: All 63 tests pass with 0 failures and 0 collection errors.*
+
+### Run Phase 1 Evaluation Benchmark Pipeline
+```bash
+python run_phase1_evaluation.py
+```
+*Generates raw artifacts and `PHASE1_EVALUATION_REPORT.md` in `audit/evaluation_results/phase1/`.*
 
 ---
 
@@ -160,7 +174,7 @@ streamlit run dashboard.py
 ```
 
 The dashboard renders three stacked sections:
-1. **Section 1: Executive Overview**: High-level net revenue metrics, 10-seed bootstrap CIs, and per-segment breakdowns.
+1. **Section 1: Executive Overview**: 5-policy benchmark summary table, 10-seed bootstrap CIs, and metrics cards.
 2. **Section A: Interactive Simulation Mode**: Walkthrough of sample transactions, eligibility check, 5-arm score table, plain-language explanation, and live action execution with online parameter updates.
 3. **Section C: Algorithmic Learning Insights**: Empirical evidence cards pairing quantitative findings with pre-rendered plots (`convergence_plots.png`, `drift_adaptation.png`).
 
@@ -179,10 +193,11 @@ The dashboard renders three stacked sections:
 
 ---
 
-## ⚠️ Known Limitations
+## ⚠️ Known Limitations & Disclaimers
 1. **Synthetic Ground-Truth**: Benchmarks are evaluated within the synthetic simulation environment; production performance depends on real merchant transaction patterns.
-2. **Model-Derived Probability Estimates**: Expected recovery probabilities are derived from learned linear reward estimates ($\hat{\theta}^T \mathbf{x}$), not direct calibrated probability classifiers.
-3. **Interactive Dashboard Mode**: Re-running sample transactions in the dashboard updates an in-memory demonstration policy for educational purposes.
+2. **Oracle Theoretical Upper Bound**: The Oracle policy accesses ground-truth probabilities and is strictly an evaluation upper bound. It is **not deployable** and **not part of production code**.
+3. **Model-Derived Probability Estimates**: Expected recovery probabilities in explainability strings are derived from learned linear reward estimates ($\hat{\theta}^T \mathbf{x}$), not direct calibrated probability classifiers.
+4. **Interactive Dashboard Mode**: Re-running sample transactions in the dashboard updates an in-memory demonstration policy for educational purposes.
 
 ---
 

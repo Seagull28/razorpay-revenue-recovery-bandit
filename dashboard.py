@@ -100,35 +100,45 @@ if "audit_logger" not in st.session_state:
 
 # Dynamic Benchmark Metrics Loader
 def load_benchmark_metrics():
-    item2_file = PROJECT_ROOT / "audit" / "item2_multiseed_results.json"
-    if item2_file.exists():
+    p1_summary_file = PROJECT_ROOT / "audit" / "evaluation_results" / "phase1" / "phase1_summary.json"
+    p1_paired_file = PROJECT_ROOT / "audit" / "evaluation_results" / "phase1" / "phase1_paired_comparisons.json"
+    
+    if p1_summary_file.exists() and p1_paired_file.exists():
         try:
-            with open(item2_file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            s42 = data["seed_results"]["42"]
-            ms = data["multi_seed_summary"]
-            ci = data["bootstrap_ci_10000"]
+            with open(p1_summary_file, "r", encoding="utf-8") as f:
+                sum_data = json.load(f)["summary_by_policy"]
+            with open(p1_paired_file, "r", encoding="utf-8") as f:
+                paired_data = json.load(f)
+
+            rf_fix = paired_data["RecoverFlow_vs_FixedSchedule"]
+            lin_m = sum_data["RecoverFlow LinUCB"]
+            base_m = sum_data["Fixed Schedule"]
+            
             return {
-                "baseline_net": f"INR {s42['baseline_net_revenue']:,.2f}",
-                "linucb_net": f"INR {s42['linucb_net_revenue']:,.2f}",
-                "lift_delta": f"+INR {s42['net_revenue_lift_inr']:,.2f} (+{s42['net_revenue_lift_pct']:.2f}%)",
-                "mean_lift": f"+{ms['mean_net_revenue_lift_pct']:.2f}%",
-                "ci_text": f"95% CI: [{ci['ci_lower_pct']:+.2f}%, {ci['ci_upper_pct']:+.2f}%]",
-                "recovery_rate": f"{s42['linucb_recovery_rate_pct']:.2f}%",
-                "rec_rate_delta": f"+{s42['linucb_recovery_rate_pct'] - s42['baseline_recovery_rate_pct']:.2f}% vs Baseline ({s42['baseline_recovery_rate_pct']:.2f}%)",
+                "baseline_net": f"INR {base_m['mean_net_revenue']:,.2f}",
+                "linucb_net": f"INR {lin_m['mean_net_revenue']:,.2f}",
+                "lift_delta": f"+INR {rf_fix['mean_paired_delta']:,.2f} ({rf_fix['win_rate_pct']:.0f}% win rate)",
+                "mean_lift": f"+INR {rf_fix['mean_paired_delta']:,.2f}",
+                "ci_text": f"95% CI: [{rf_fix['ci_lower']:+,.0f}, {rf_fix['ci_upper']:+,.0f}]",
+                "recovery_rate": f"{lin_m['mean_recovery_rate_pct']:.2f}%",
+                "rec_rate_delta": f"+{lin_m['mean_recovery_rate_pct'] - base_m['mean_recovery_rate_pct']:.2f}% vs Baseline",
+                "phase1_summary": sum_data,
+                "paired_data": paired_data,
             }
         except Exception:
             pass
 
     # Fallback canonical values if JSON artifact is not present
     return {
-        "baseline_net": "INR 6,528,431.32",
-        "linucb_net": "INR 7,998,301.40",
-        "lift_delta": "+INR 1,469,870.08 (+22.51%)",
-        "mean_lift": "+15.34%",
-        "ci_text": "95% CI: [+11.50%, +18.86%]",
-        "recovery_rate": "66.20%",
-        "rec_rate_delta": "+14.03% vs Baseline (52.17%)",
+        "baseline_net": "INR 8,765,870.96",
+        "linucb_net": "INR 9,486,147.13",
+        "lift_delta": "+INR 720,276.16 (100% win rate)",
+        "mean_lift": "+INR 720,276.16",
+        "ci_text": "95% CI: [+594,362, +854,925]",
+        "recovery_rate": "77.16%",
+        "rec_rate_delta": "+10.19% vs Baseline (66.97%)",
+        "phase1_summary": None,
+        "paired_data": None,
     }
 
 
@@ -142,53 +152,69 @@ st.markdown("---")
 # =============================================================================
 # SECTION 1: OVERVIEW METRICS & BENCHMARKS (PAGE 1)
 # =============================================================================
-st.header("📊 Section 1: Executive Overview & Multi-Seed Benchmarks")
+st.header("📊 Section 1: Executive Overview & Phase 1 Multi-Seed Benchmarks")
 
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     st.metric(
-        label="Baseline Net Revenue",
+        label="10-Seed Mean Baseline Net",
         value=metrics["baseline_net"],
-        help="Fixed-schedule baseline (1d -> 3d -> 7d) on Seed 42",
+        help="Fixed-schedule baseline (1d -> 3d -> 7d) mean net revenue over 10 benchmark seeds",
     )
 
 with col2:
     st.metric(
-        label="LinUCB Net Revenue",
+        label="10-Seed Mean LinUCB Net",
         value=metrics["linucb_net"],
         delta=metrics["lift_delta"],
-        help="Canonical LinUCB Policy Net Revenue on Seed 42",
+        help="RecoverFlow LinUCB mean net revenue over 10 benchmark seeds",
     )
 
 with col3:
     st.metric(
-        label="10-Seed Mean Net Lift",
+        label="10-Seed Mean Net Revenue Lift",
         value=metrics["mean_lift"],
         delta=metrics["ci_text"],
-        help="Mean lift across 10 random seeds with 10,000 bootstrap CI",
+        help="Mean lift over fixed baseline with 10,000 bootstrap CI",
     )
 
 with col4:
     st.metric(
-        label="Canonical Recovery Rate",
+        label="10-Seed Mean Recovery Rate",
         value=metrics["recovery_rate"],
         delta=metrics["rec_rate_delta"],
-        help="Seed 42 overall transaction recovery rate",
+        help="RecoverFlow overall transaction recovery rate",
     )
 
-st.markdown("### Per-Failure-Code Performance Breakdown (Seed 42)")
+st.markdown("### Phase 1 Rigorous 5-Policy Benchmark Summary (10 Common-Random-Number Seeds)")
 
-code_data = [
-    {"Failure Code": "card_expired", "Baseline Net (INR)": -2450.00, "LinUCB Net (INR)": -2450.00, "Lift (INR)": 0.00, "Lift (%)": "0.00%", "Recovery Rate": "0.00%"},
-    {"Failure Code": "do_not_honor", "Baseline Net (INR)": 342808.17, "LinUCB Net (INR)": 495011.64, "Lift (INR)": 152203.47, "Lift (%)": "+44.40%", "Recovery Rate": "19.52%"},
-    {"Failure Code": "generic_decline", "Baseline Net (INR)": 525991.02, "LinUCB Net (INR)": 568369.17, "Lift (INR)": 42378.15, "Lift (%)": "+8.06%", "Recovery Rate": "57.01%"},
-    {"Failure Code": "insufficient_funds", "Baseline Net (INR)": 5016138.31, "LinUCB Net (INR)": 5776351.11, "Lift (INR)": 760212.80, "Lift (%)": "+15.16%", "Recovery Rate": "81.49%"},
-    {"Failure Code": "issuer_timeout", "Baseline Net (INR)": 645943.82, "LinUCB Net (INR)": 1161019.48, "Lift (INR)": 515075.66, "Lift (%)": "+79.74%", "Recovery Rate": "93.15%"},
-]
-
-df_code = pd.DataFrame(code_data)
-st.dataframe(df_code, use_container_width=True, hide_index=True)
+if metrics["phase1_summary"]:
+    p1_rows = []
+    for p_name, s in metrics["phase1_summary"].items():
+        is_lin = (p_name == "RecoverFlow LinUCB")
+        is_orc = (p_name == "Oracle Upper Bound")
+        status_label = "⭐ RECOMMENDED" if is_lin else ("🔮 UPPER BOUND (Evaluation Only)" if is_orc else "BASELINE")
+        p1_rows.append({
+            "Policy Category": status_label,
+            "Policy Name": p_name,
+            "Mean Net Revenue (INR)": f"₹{s['mean_net_revenue']:,.2f}",
+            "Mean Recovery Rate (%)": f"{s['mean_recovery_rate_pct']:.2f}%",
+            "Mean Retry Cost (INR)": f"₹{s['mean_retry_cost']:,.2f}",
+            "Mean Attempt Count": s["mean_retry_attempts"],
+        })
+    df_p1 = pd.DataFrame(p1_rows)
+    st.dataframe(df_p1, use_container_width=True, hide_index=True)
+else:
+    code_data = [
+        {"Failure Code": "card_expired", "Baseline Net (INR)": -2450.00, "LinUCB Net (INR)": -2450.00, "Lift (INR)": 0.00, "Lift (%)": "0.00%", "Recovery Rate": "0.00%"},
+        {"Failure Code": "do_not_honor", "Baseline Net (INR)": 342808.17, "LinUCB Net (INR)": 495011.64, "Lift (INR)": 152203.47, "Lift (%)": "+44.40%", "Recovery Rate": "19.52%"},
+        {"Failure Code": "generic_decline", "Baseline Net (INR)": 525991.02, "LinUCB Net (INR)": 568369.17, "Lift (INR)": 42378.15, "Lift (%)": "+8.06%", "Recovery Rate": "57.01%"},
+        {"Failure Code": "insufficient_funds", "Baseline Net (INR)": 5016138.31, "LinUCB Net (INR)": 5776351.11, "Lift (INR)": 760212.80, "Lift (%)": "+15.16%", "Recovery Rate": "81.49%"},
+        {"Failure Code": "issuer_timeout", "Baseline Net (INR)": 645943.82, "LinUCB Net (INR)": 1161019.48, "Lift (INR)": 515075.66, "Lift (%)": "+79.74%", "Recovery Rate": "93.15%"},
+    ]
+    df_code = pd.DataFrame(code_data)
+    st.dataframe(df_code, use_container_width=True, hide_index=True)
 
 st.markdown("---")
 

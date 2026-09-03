@@ -1,0 +1,35 @@
+{
+  "summary_by_policy": {
+    "Fixed Schedule": {
+      "mean_net_revenue": 8765870.96,
+      "mean_recovery_rate_pct": 66.97,
+      "mean_retry_cost": 76379.0,
+      "mean_retry_attempts": 7637.9
+    },
+    "Best Static Arm": {
+      "mean_net_revenue": 9273734.06,
+      "mean_recovery_rate_pct": 70.06,
+      "mean_retry_cost": 72027.0,
+      "mean_retry_attempts": 7202.7
+    },
+    "Contextual Heuristic": {
+      "mean_net_revenue": 9302752.33,
+      "mean_recovery_rate_pct": 76.43,
+      "mean_retry_cost": 64034.0,
+      "mean_retry_attempts": 6403.4
+    },
+    "RecoverFlow LinUCB": {
+      "mean_net_revenue": 9486147.13,
+      "mean_recovery_rate_pct": 77.16,
+      "mean_retry_cost": 62504.0,
+      "mean_retry_attempts": 6250.4
+    },
+    "Oracle Upper Bound": {
+      "mean_net_revenue": 9853890.23,
+      "mean_recovery_rate_pct": 86.92,
+      "mean_retry_cost": 57457.0,
+      "mean_retry_attempts": 5745.7
+    }
+  },
+  "config_hash": "0580358a30ba"
+}

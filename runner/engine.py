@@ -75,6 +75,8 @@ class PolicyExecutionEngine:
         initial_context: Dict[str, Any],
         policy: BasePolicy,
         logger: AuditLogger,
+        evaluation_seed: Optional[int] = None,
+        use_crn: bool = False,
     ) -> bool:
         """
         Processes a single failed transaction through the policy's multi-attempt lifecycle.
@@ -102,7 +104,13 @@ class PolicyExecutionEngine:
             arm = decision.arm_chosen
 
             # Simulate retry attempt
-            success, amount_recovered = self.simulator.simulate_retry(current_ctx, arm)
+            success, amount_recovered = self.simulator.simulate_retry(
+                current_ctx,
+                arm,
+                attempt_number=attempt_number,
+                evaluation_seed=evaluation_seed,
+                use_crn=use_crn,
+            )
 
             # Compute net reward: (amount_recovered if success else 0) - retry_cost
             reward = (amount_recovered if success else 0.0) - self.retry_cost
@@ -138,11 +146,19 @@ class PolicyExecutionEngine:
         transactions: List[Dict[str, Any]],
         policy: BasePolicy,
         logger: Optional[AuditLogger] = None,
+        evaluation_seed: Optional[int] = None,
+        use_crn: bool = False,
     ) -> AuditLogger:
         """
         Runs the policy over the full stream of failed transactions.
         """
         audit_logger = logger or AuditLogger()
         for tx in transactions:
-            self.process_transaction(tx, policy, audit_logger)
+            self.process_transaction(
+                tx,
+                policy,
+                audit_logger,
+                evaluation_seed=evaluation_seed,
+                use_crn=use_crn,
+            )
         return audit_logger
