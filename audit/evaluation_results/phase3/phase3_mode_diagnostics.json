@@ -30,7 +30,7 @@
   },
   "mode_shift_rates": {
     "balanced": 0.012,
-    "conservative": 0.038
+    "conservative": 0.034
   },
   "arm_distribution": {
     "MAXIMIZE_RECOVERY": {
@@ -49,10 +49,10 @@
     },
     "CONSERVATIVE": {
       "1d": 165,
-      "7d": 158,
-      "1hr": 146,
+      "7d": 159,
+      "1hr": 147,
       "3d": 18,
-      "6hr": 13
+      "6hr": 11
     }
   },
   "first_10_transactions_detail": [

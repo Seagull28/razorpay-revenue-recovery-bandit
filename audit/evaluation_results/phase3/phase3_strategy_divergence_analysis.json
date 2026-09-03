@@ -1,0 +1,187 @@
+{
+  "scenario_a_clear_winner": {
+    "scenario_name": "Scenario A: Clear Dominant Winner (High Confidence)",
+    "description": "Large score separation between top candidate arm and alternatives.",
+    "confidence_score": 1.0,
+    "raw_policy_arm": "3d",
+    "maximize_recovery": {
+      "selected_arm": "3d",
+      "adjusted_scores": {
+        "3d": 1500.0,
+        "1d": 900.0,
+        "6hr": 600.0,
+        "1hr": 400.0,
+        "7d": 300.0
+      }
+    },
+    "balanced": {
+      "selected_arm": "3d",
+      "adjusted_scores": {
+        "3d": 1500.0,
+        "1d": 900.0,
+        "6hr": 600.0,
+        "1hr": 400.0,
+        "7d": 300.0
+      }
+    },
+    "conservative": {
+      "selected_arm": "3d",
+      "adjusted_scores": {
+        "3d": 1500.0,
+        "1d": 900.0,
+        "6hr": 600.0,
+        "1hr": 400.0,
+        "7d": 300.0
+      }
+    },
+    "mode_divergence": false
+  },
+  "scenario_b_close_competition": {
+    "scenario_name": "Scenario B: Close Competition with Uncertainty",
+    "description": "Narrow score gap across all candidate arms, high uncertainty.",
+    "confidence_score": 0.04,
+    "raw_policy_arm": "1hr",
+    "maximize_recovery": {
+      "selected_arm": "1hr",
+      "adjusted_scores": {
+        "1hr": 1000.0,
+        "6hr": 990.0,
+        "1d": 980.0,
+        "3d": 970.0,
+        "7d": 960.0
+      }
+    },
+    "balanced": {
+      "selected_arm": "3d",
+      "adjusted_scores": {
+        "1hr": 798.4,
+        "6hr": 861.696,
+        "1d": 909.44,
+        "3d": 942.064,
+        "7d": 724.992
+      }
+    },
+    "conservative": {
+      "selected_arm": "3d",
+      "adjusted_scores": {
+        "1hr": 361.6,
+        "6hr": 690.624,
+        "1d": 815.36,
+        "3d": 904.816,
+        "7d": 227.328
+      }
+    },
+    "mode_divergence": true
+  },
+  "scenario_c_extreme_vs_safer": {
+    "scenario_name": "Scenario C: High-Risk Extreme Arm vs Safer Arm",
+    "description": "1hr arm slightly leads raw score, but patient 3d arm is close with much lower timing friction.",
+    "confidence_score": 0.1143,
+    "raw_policy_arm": "1hr",
+    "maximize_recovery": {
+      "selected_arm": "1hr",
+      "adjusted_scores": {
+        "1hr": 1050.0,
+        "3d": 1020.0,
+        "1d": 1000.0,
+        "6hr": 900.0,
+        "7d": 800.0
+      }
+    },
+    "balanced": {
+      "selected_arm": "3d",
+      "adjusted_scores": {
+        "1hr": 854.7032,
+        "3d": 992.8976,
+        "1d": 933.5725,
+        "6hr": 792.3874,
+        "7d": 619.3172
+      }
+    },
+    "conservative": {
+      "selected_arm": "3d",
+      "adjusted_scores": {
+        "1hr": 431.56,
+        "3d": 956.761,
+        "1d": 845.0025,
+        "6hr": 648.904,
+        "7d": 236.6948
+      }
+    },
+    "mode_divergence": true
+  },
+  "scenario_d_low_confidence_tied": {
+    "scenario_name": "Scenario D: Low Confidence / Nearly Tied Scores",
+    "description": "7d extended arm barely leads 1hr/6hr/1d/3d with tight score distribution.",
+    "confidence_score": 0.016,
+    "raw_policy_arm": "7d",
+    "maximize_recovery": {
+      "selected_arm": "7d",
+      "adjusted_scores": {
+        "7d": 500.0,
+        "1hr": 498.0,
+        "6hr": 496.0,
+        "1d": 494.0,
+        "3d": 492.0
+      }
+    },
+    "balanced": {
+      "selected_arm": "3d",
+      "adjusted_scores": {
+        "7d": 374.54,
+        "1hr": 395.0933,
+        "6hr": 430.1114,
+        "1d": 457.5428,
+        "3d": 477.4762
+      }
+    },
+    "conservative": {
+      "selected_arm": "3d",
+      "adjusted_scores": {
+        "7d": 108.86,
+        "1hr": 172.1287,
+        "6hr": 342.2598,
+        "1d": 408.9332,
+        "3d": 458.111
+      }
+    },
+    "mode_divergence": true
+  },
+  "scenario_e_dominant_patient": {
+    "scenario_name": "Scenario E: Dominant Patient Arm (Perfect Confidence)",
+    "description": "3d arm has 25%+ relative separation, yielding 1.0 confidence. Risk penalties decay to zero.",
+    "confidence_score": 1.0,
+    "raw_policy_arm": "3d",
+    "maximize_recovery": {
+      "selected_arm": "3d",
+      "adjusted_scores": {
+        "3d": 2500.0,
+        "1d": 1200.0,
+        "6hr": 800.0,
+        "1hr": 500.0,
+        "7d": 300.0
+      }
+    },
+    "balanced": {
+      "selected_arm": "3d",
+      "adjusted_scores": {
+        "3d": 2500.0,
+        "1d": 1200.0,
+        "6hr": 800.0,
+        "1hr": 500.0,
+        "7d": 300.0
+      }
+    },
+    "conservative": {
+      "selected_arm": "3d",
+      "adjusted_scores": {
+        "3d": 2500.0,
+        "1d": 1200.0,
+        "6hr": 800.0,
+        "1hr": 500.0,
+        "7d": 300.0
+      }
+    },
+    "mode_divergence": false
+  }
+}

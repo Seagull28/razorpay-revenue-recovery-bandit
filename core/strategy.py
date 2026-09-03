@@ -8,6 +8,13 @@ and ranks alternative retry strategies.
 
 from enum import Enum
 from typing import Any, Dict, List, Tuple
+from bandit_retry_scheduler.core.config import (
+    MIN_CONFIDENCE_SCALE,
+    CONFIDENCE_GAP_NORM_FACTOR,
+    STABLE_CONFIDENCE_THRESHOLD,
+    MODERATE_CONFIDENCE_THRESHOLD,
+    DETERMINISTIC_ARM_ORDER,
+)
 
 class StrategyCategory(str, Enum):
     IMMEDIATE_RECOVERY = "IMMEDIATE_RECOVERY"
@@ -25,9 +32,6 @@ RETRY_ARM_TO_STRATEGY: Dict[str, StrategyCategory] = {
     "3d": StrategyCategory.PATIENT_RECOVERY,
     "7d": StrategyCategory.LAST_CHANCE_RECOVERY,
 }
-
-# Deterministic default arm preference ordering for explicit tie-breaking
-DETERMINISTIC_ARM_ORDER: List[str] = ["3d", "1d", "6hr", "1hr", "7d"]
 
 STRATEGY_METADATA: Dict[StrategyCategory, Dict[str, str]] = {
     StrategyCategory.IMMEDIATE_RECOVERY: {
@@ -52,10 +56,6 @@ STRATEGY_METADATA: Dict[StrategyCategory, Dict[str, str]] = {
     },
 }
 
-# Scale-Aware Stability Threshold Constants (confidence score bounds 0.0 to 1.0)
-STABLE_CONFIDENCE_THRESHOLD: float = 0.50
-MODERATE_CONFIDENCE_THRESHOLD: float = 0.20
-
 
 def get_strategy_category(retry_delay: str) -> StrategyCategory:
     """Returns the StrategyCategory for a given retry delay arm."""
@@ -74,8 +74,9 @@ def get_strategy_metadata(retry_delay: str) -> Dict[str, str]:
 def calculate_decision_confidence(arm_scores: Dict[str, Any]) -> Tuple[float, str]:
     """
     Calculates scale-aware decision confidence from relative score gap between top two candidate arms.
-    Confidence represents relative score separation between candidate retry windows (0.0 to 1.0),
-    NOT guaranteed payment recovery probability. Non-biased across transaction amount scales.
+    Confidence is scale-aware for normal decision magnitudes and uses a stability floor (50.0 INR)
+    for low-magnitude scores to prevent unstable normalization near zero.
+    Confidence represents relative score separation (0.0 to 1.0), NOT guaranteed payment recovery probability.
     """
     if not arm_scores:
         return 0.50, "Relative separation between leading retry candidates"
@@ -101,12 +102,12 @@ def calculate_decision_confidence(arm_scores: Dict[str, Any]) -> Tuple[float, st
     # Raw score gap calculation
     raw_gap = top_score - second_score
     
-    # Scale-aware relative gap: relative to top score magnitude or cost floor (50.0 INR)
-    scale = max(abs(top_score), 50.0)
+    # Scale-aware relative gap: relative to top score magnitude with stability floor
+    scale = max(abs(top_score), MIN_CONFIDENCE_SCALE)
     relative_gap = raw_gap / scale
 
     # Normalize: 25% relative gap yields 100% confidence
-    confidence = min(1.0, max(0.0, relative_gap / 0.25))
+    confidence = min(1.0, max(0.0, relative_gap / CONFIDENCE_GAP_NORM_FACTOR))
     confidence_rounded = round(float(confidence), 4)
     
     interpretation = "Relative separation between leading retry candidates"
@@ -115,7 +116,7 @@ def calculate_decision_confidence(arm_scores: Dict[str, Any]) -> Tuple[float, st
 
 def classify_decision_stability(confidence_score: float, score_gap: float = None) -> str:
     """
-    Classifies decision stability based on confidence score or relative score gap.
+    Classifies decision stability based on confidence score.
     Returns: 'STABLE', 'MODERATELY_STABLE', or 'UNSTABLE'.
     """
     if confidence_score >= STABLE_CONFIDENCE_THRESHOLD:

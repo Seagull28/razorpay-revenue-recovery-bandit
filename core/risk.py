@@ -9,10 +9,22 @@ Does NOT modify LinUCBPolicy, ContextEncoder, or simulator ground_truth.
 from enum import Enum
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Tuple
+from bandit_retry_scheduler.core.config import (
+    MIN_CONFIDENCE_SCALE,
+    ARM_RISK_PROFILE,
+    EXTREME_ARM_FRICTION,
+    BALANCED_RISK_WEIGHT,
+    CONSERVATIVE_RISK_WEIGHT,
+    CONSERVATIVE_EXTREME_WEIGHT,
+    ATTEMPT_RISK_STEP,
+    MAX_ATTEMPT_RISK,
+    HIGH_RISK_FAILURE_PENALTY,
+    MEDIUM_RISK_FAILURE_PENALTY,
+    DETERMINISTIC_ARM_ORDER,
+)
 from bandit_retry_scheduler.core.strategy import (
     calculate_decision_confidence,
     classify_decision_stability,
-    DETERMINISTIC_ARM_ORDER,
 )
 
 
@@ -47,15 +59,6 @@ class RiskProfile:
 HIGH_RISK_FAILURE_CODES = {"do_not_honor", "card_expired"}
 MEDIUM_RISK_FAILURE_CODES = {"insufficient_funds", "generic_decline"}
 
-# Normalized dimensionless arm timing friction profile R_a in [0.0, 1.0]
-ARM_RISK_PROFILE: Dict[str, float] = {
-    "3d": 0.10,  # Patient replenish window — lowest timing friction
-    "1d": 0.25,  # Balanced daily processing window
-    "6hr": 0.45, # Intraday retry — moderate congestion/timing friction
-    "1hr": 0.70, # Immediate retry — high risk of retrying before bank/customer state changes
-    "7d": 0.85,  # Extended 7-day window — high opportunity-cost & customer churn risk
-}
-
 
 def compute_risk_profile(
     transaction: Dict[str, Any],
@@ -71,7 +74,7 @@ def compute_risk_profile(
     risk_factors = []
 
     # 1. Base risk from attempt decay
-    attempt_risk = min(0.40, (attempt_number - 1) * 0.15)
+    attempt_risk = min(MAX_ATTEMPT_RISK, (attempt_number - 1) * ATTEMPT_RISK_STEP)
     if attempt_number > 1:
         risk_factors.append(f"Repeated retry attempt (Attempt #{attempt_number})")
 
@@ -84,10 +87,10 @@ def compute_risk_profile(
     failure_code = transaction.get("failure_code", "").lower()
     code_risk = 0.0
     if failure_code in HIGH_RISK_FAILURE_CODES:
-        code_risk = 0.25
+        code_risk = HIGH_RISK_FAILURE_PENALTY
         risk_factors.append(f"High-risk decline category ({failure_code})")
     elif failure_code in MEDIUM_RISK_FAILURE_CODES:
-        code_risk = 0.15
+        code_risk = MEDIUM_RISK_FAILURE_PENALTY
         risk_factors.append(f"Medium-risk decline category ({failure_code})")
 
     # Total risk score bounded in [0.0, 1.0]
@@ -120,8 +123,10 @@ def evaluate_risk_aware_recommendation(
     
     Modes & Objective Utility Functions:
     - MAXIMIZE_RECOVERY: U_a = UCB_a (Pure LinUCB bandit utility maximization).
-    - BALANCED: U_a = UCB_a - 0.30 * (1 - C) * R_a * max(|UCB_a|, 50.0) (Trade off expected net revenue vs uncertainty-weighted risk).
-    - CONSERVATIVE: U_a = UCB_a - 0.70 * (1 - C) * R_a * max(|UCB_a|, 50.0) - (25.0 if arm in ('1hr', '7d') else 0.0).
+    - BALANCED: U_a = UCB_a - lambda_bal * (1 - C) * R_a * max(|UCB_a|, MIN_CONFIDENCE_SCALE).
+    - CONSERVATIVE: U_a = UCB_a - (lambda_cons * R_a + mu_extreme * E_a) * (1 - C) * max(|UCB_a|, MIN_CONFIDENCE_SCALE).
+    
+    Zero fixed INR penalties used. All penalties are dimensionless, scale-aware, and transaction-value independent.
     
     Uses explicit deterministic tie-breaking:
     1. Adjusted Score (rounded to 2 decimal places)
@@ -153,22 +158,24 @@ def evaluate_risk_aware_recommendation(
     adjusted_scores: Dict[str, float] = {}
     for arm, ev in raw_ucb_scores.items():
         arm_risk = ARM_RISK_PROFILE.get(arm, 0.25)
-        score_scale = max(abs(ev), 50.0)
+        score_scale = max(abs(ev), MIN_CONFIDENCE_SCALE)
 
         if mode == StrategyMode.BALANCED.value:
-            # Balanced mode: 0.30 multiplier on uncertainty-weighted arm risk
-            adj = ev - (0.30 * uncertainty_penalty * arm_risk * score_scale)
+            # Balanced mode: lambda_bal * R_a * uncertainty * score_scale
+            penalty = BALANCED_RISK_WEIGHT * arm_risk * uncertainty_penalty * score_scale
+            adj = ev - penalty
         elif mode == StrategyMode.CONSERVATIVE.value:
-            # Conservative mode: 0.70 multiplier + fixed extreme window penalty (25 INR)
-            extreme_penalty = 25.0 if arm in ("1hr", "7d") else 0.0
-            adj = ev - (0.70 * uncertainty_penalty * arm_risk * score_scale) - extreme_penalty
+            # Conservative mode: (lambda_cons * R_a + mu_extreme * E_a) * uncertainty * score_scale
+            extreme_friction = EXTREME_ARM_FRICTION.get(arm, 0.0)
+            combined_friction = (CONSERVATIVE_RISK_WEIGHT * arm_risk) + (CONSERVATIVE_EXTREME_WEIGHT * extreme_friction)
+            penalty = combined_friction * uncertainty_penalty * score_scale
+            adj = ev - penalty
         else:
             adj = ev
 
         adjusted_scores[arm] = round(adj, 4)
 
     # Explicit deterministic tie-breaking key:
-    # (adjusted_score_round2, raw_ucb_score_round2, -deterministic_arm_index)
     def get_sort_key(arm_name: str) -> Tuple[float, float, int]:
         adj = round(adjusted_scores[arm_name], 2)
         raw = round(raw_ucb_scores.get(arm_name, 0.0), 2)
@@ -177,7 +184,6 @@ def evaluate_risk_aware_recommendation(
 
     best_arm = max(adjusted_scores.keys(), key=get_sort_key)
 
-    # Check if a tie-break was triggered among top candidate scores
     top_adj_scores = sorted([round(v, 2) for v in adjusted_scores.values()], reverse=True)
     tie_broken = (len(top_adj_scores) >= 2 and top_adj_scores[0] == top_adj_scores[1])
 

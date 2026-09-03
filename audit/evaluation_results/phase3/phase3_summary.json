@@ -53,10 +53,10 @@
       "top_strategy_arm": "1d",
       "strategy_distribution": {
         "1d": 165,
-        "7d": 158,
-        "1hr": 146,
+        "7d": 159,
+        "1hr": 147,
         "3d": 18,
-        "6hr": 13
+        "6hr": 11
       },
       "stability_distribution": {
         "STABLE": 466,
@@ -67,7 +67,7 @@
         "LOW": 463,
         "MEDIUM": 37
       },
-      "mode_shift_rate_vs_raw": 0.038
+      "mode_shift_rate_vs_raw": 0.034
     }
   },
   "merchant_insights": {
