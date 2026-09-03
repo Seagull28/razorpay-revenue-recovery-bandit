@@ -1,0 +1,81 @@
+{
+  "evaluation_phase": "Phase 4B Robustness Evaluation",
+  "seeds": [
+    42,
+    101,
+    2026
+  ],
+  "seed_count": 3,
+  "scope_notes": "3 seeds evaluated across 2 policies (LinUCB vs Fixed Schedule). Regret metric omitted by design.",
+  "scenarios": {
+    "baseline": {
+      "description": "Reference environment \u2014 identical to existing Phase 1 simulation (multipliers = 1.0, no weight overrides). Used to prove the wrapper introduces zero behavioral change when neutral.",
+      "policies": {
+        "RecoverFlow LinUCB": {
+          "mean_recovery_rate_pct": 77.1,
+          "mean_net_revenue_inr": 9449394.27,
+          "mean_gross_revenue_inr": 9511614.27,
+          "mean_retry_cost_inr": 62220.0,
+          "mean_average_attempts": 2.074
+        },
+        "Fixed Schedule": {
+          "mean_recovery_rate_pct": 66.99,
+          "mean_net_revenue_inr": 8777219.44,
+          "mean_gross_revenue_inr": 8853626.1,
+          "mean_retry_cost_inr": 76406.67,
+          "mean_average_attempts": 2.5469
+        }
+      },
+      "lift_vs_fixed_schedule": {
+        "net_revenue_lift_inr": 672174.83,
+        "recovery_rate_lift_pct": 10.11
+      }
+    },
+    "high_insufficient_funds": {
+      "description": "Insufficient-funds failures increased from 38% to 60% baseline share; remaining share redistributed proportionally across other failure codes.",
+      "policies": {
+        "RecoverFlow LinUCB": {
+          "mean_recovery_rate_pct": 86.0,
+          "mean_net_revenue_inr": 12846170.64,
+          "mean_gross_revenue_inr": 12905443.97,
+          "mean_retry_cost_inr": 59273.33,
+          "mean_average_attempts": 1.9758
+        },
+        "Fixed Schedule": {
+          "mean_recovery_rate_pct": 76.9,
+          "mean_net_revenue_inr": 12001514.61,
+          "mean_gross_revenue_inr": 12078044.61,
+          "mean_retry_cost_inr": 76530.0,
+          "mean_average_attempts": 2.551
+        }
+      },
+      "lift_vs_fixed_schedule": {
+        "net_revenue_lift_inr": 844656.03,
+        "recovery_rate_lift_pct": 9.1
+      }
+    },
+    "distribution_shift": {
+      "description": "Failure-code mix inverted relative to baseline (issuer_timeout becomes dominant instead of insufficient_funds) combined with a 30% reduction in overall recovery probability, simulating a harsher, structurally different production environment than the one policies were tuned on.",
+      "policies": {
+        "RecoverFlow LinUCB": {
+          "mean_recovery_rate_pct": 68.67,
+          "mean_net_revenue_inr": 5695591.9,
+          "mean_gross_revenue_inr": 5763865.24,
+          "mean_retry_cost_inr": 68273.33,
+          "mean_average_attempts": 2.2758
+        },
+        "Fixed Schedule": {
+          "mean_recovery_rate_pct": 45.18,
+          "mean_net_revenue_inr": 4317641.81,
+          "mean_gross_revenue_inr": 4406148.48,
+          "mean_retry_cost_inr": 88506.67,
+          "mean_average_attempts": 2.9502
+        }
+      },
+      "lift_vs_fixed_schedule": {
+        "net_revenue_lift_inr": 1377950.09,
+        "recovery_rate_lift_pct": 23.49
+      }
+    }
+  }
+}

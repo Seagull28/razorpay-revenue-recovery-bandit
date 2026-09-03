@@ -1,0 +1,380 @@
+[
+  {
+    "scenario_name": "baseline",
+    "scenario_description": "Reference environment \u2014 identical to existing Phase 1 simulation (multipliers = 1.0, no weight overrides). Used to prove the wrapper introduces zero behavioral change when neutral.",
+    "seed": 42,
+    "policy_name": "RecoverFlow LinUCB",
+    "transactions_total": 3000,
+    "recovered_transactions": 2309,
+    "recovery_rate_pct": 76.97,
+    "total_attempts": 6388,
+    "average_attempts_per_transaction": 2.1293,
+    "gross_recovered_revenue": 9402444.07,
+    "total_retry_cost": 63880.0,
+    "net_revenue": 9338564.07,
+    "arm_counts": {
+      "1hr": 233,
+      "6hr": 2934,
+      "1d": 60,
+      "3d": 170,
+      "7d": 2991
+    }
+  },
+  {
+    "scenario_name": "baseline",
+    "scenario_description": "Reference environment \u2014 identical to existing Phase 1 simulation (multipliers = 1.0, no weight overrides). Used to prove the wrapper introduces zero behavioral change when neutral.",
+    "seed": 42,
+    "policy_name": "Fixed Schedule",
+    "transactions_total": 3000,
+    "recovered_transactions": 2028,
+    "recovery_rate_pct": 67.6,
+    "total_attempts": 7609,
+    "average_attempts_per_transaction": 2.5363,
+    "gross_recovered_revenue": 8783979.33,
+    "total_retry_cost": 76090.0,
+    "net_revenue": 8707889.33,
+    "arm_counts": {
+      "1hr": 0,
+      "6hr": 0,
+      "1d": 3000,
+      "3d": 2064,
+      "7d": 2545
+    }
+  },
+  {
+    "scenario_name": "baseline",
+    "scenario_description": "Reference environment \u2014 identical to existing Phase 1 simulation (multipliers = 1.0, no weight overrides). Used to prove the wrapper introduces zero behavioral change when neutral.",
+    "seed": 101,
+    "policy_name": "RecoverFlow LinUCB",
+    "transactions_total": 3000,
+    "recovered_transactions": 2341,
+    "recovery_rate_pct": 78.03,
+    "total_attempts": 6215,
+    "average_attempts_per_transaction": 2.0717,
+    "gross_recovered_revenue": 9523064.58,
+    "total_retry_cost": 62150.0,
+    "net_revenue": 9460914.58,
+    "arm_counts": {
+      "1hr": 567,
+      "6hr": 1495,
+      "1d": 1353,
+      "3d": 1822,
+      "7d": 978
+    }
+  },
+  {
+    "scenario_name": "baseline",
+    "scenario_description": "Reference environment \u2014 identical to existing Phase 1 simulation (multipliers = 1.0, no weight overrides). Used to prove the wrapper introduces zero behavioral change when neutral.",
+    "seed": 101,
+    "policy_name": "Fixed Schedule",
+    "transactions_total": 3000,
+    "recovered_transactions": 1996,
+    "recovery_rate_pct": 66.53,
+    "total_attempts": 7656,
+    "average_attempts_per_transaction": 2.552,
+    "gross_recovered_revenue": 8738590.31,
+    "total_retry_cost": 76560.0,
+    "net_revenue": 8662030.31,
+    "arm_counts": {
+      "1hr": 0,
+      "6hr": 0,
+      "1d": 3000,
+      "3d": 2078,
+      "7d": 2578
+    }
+  },
+  {
+    "scenario_name": "baseline",
+    "scenario_description": "Reference environment \u2014 identical to existing Phase 1 simulation (multipliers = 1.0, no weight overrides). Used to prove the wrapper introduces zero behavioral change when neutral.",
+    "seed": 2026,
+    "policy_name": "RecoverFlow LinUCB",
+    "transactions_total": 3000,
+    "recovered_transactions": 2289,
+    "recovery_rate_pct": 76.3,
+    "total_attempts": 6063,
+    "average_attempts_per_transaction": 2.021,
+    "gross_recovered_revenue": 9609334.15,
+    "total_retry_cost": 60630.0,
+    "net_revenue": 9548704.15,
+    "arm_counts": {
+      "1hr": 772,
+      "6hr": 2201,
+      "1d": 486,
+      "3d": 2431,
+      "7d": 173
+    }
+  },
+  {
+    "scenario_name": "baseline",
+    "scenario_description": "Reference environment \u2014 identical to existing Phase 1 simulation (multipliers = 1.0, no weight overrides). Used to prove the wrapper introduces zero behavioral change when neutral.",
+    "seed": 2026,
+    "policy_name": "Fixed Schedule",
+    "transactions_total": 3000,
+    "recovered_transactions": 2005,
+    "recovery_rate_pct": 66.83,
+    "total_attempts": 7657,
+    "average_attempts_per_transaction": 2.5523,
+    "gross_recovered_revenue": 9038308.67,
+    "total_retry_cost": 76570.0,
+    "net_revenue": 8961738.67,
+    "arm_counts": {
+      "1hr": 0,
+      "6hr": 0,
+      "1d": 3000,
+      "3d": 2083,
+      "7d": 2574
+    }
+  },
+  {
+    "scenario_name": "high_insufficient_funds",
+    "scenario_description": "Insufficient-funds failures increased from 38% to 60% baseline share; remaining share redistributed proportionally across other failure codes.",
+    "seed": 42,
+    "policy_name": "RecoverFlow LinUCB",
+    "transactions_total": 3000,
+    "recovered_transactions": 2588,
+    "recovery_rate_pct": 86.27,
+    "total_attempts": 5864,
+    "average_attempts_per_transaction": 1.9547,
+    "gross_recovered_revenue": 12754865.92,
+    "total_retry_cost": 58640.0,
+    "net_revenue": 12696225.92,
+    "arm_counts": {
+      "1hr": 500,
+      "6hr": 925,
+      "1d": 401,
+      "3d": 3507,
+      "7d": 531
+    }
+  },
+  {
+    "scenario_name": "high_insufficient_funds",
+    "scenario_description": "Insufficient-funds failures increased from 38% to 60% baseline share; remaining share redistributed proportionally across other failure codes.",
+    "seed": 42,
+    "policy_name": "Fixed Schedule",
+    "transactions_total": 3000,
+    "recovered_transactions": 2310,
+    "recovery_rate_pct": 77.0,
+    "total_attempts": 7666,
+    "average_attempts_per_transaction": 2.5553,
+    "gross_recovered_revenue": 11927102.49,
+    "total_retry_cost": 76660.0,
+    "net_revenue": 11850442.49,
+    "arm_counts": {
+      "1hr": 0,
+      "6hr": 0,
+      "1d": 3000,
+      "3d": 2192,
+      "7d": 2474
+    }
+  },
+  {
+    "scenario_name": "high_insufficient_funds",
+    "scenario_description": "Insufficient-funds failures increased from 38% to 60% baseline share; remaining share redistributed proportionally across other failure codes.",
+    "seed": 101,
+    "policy_name": "RecoverFlow LinUCB",
+    "transactions_total": 3000,
+    "recovered_transactions": 2581,
+    "recovery_rate_pct": 86.03,
+    "total_attempts": 5873,
+    "average_attempts_per_transaction": 1.9577,
+    "gross_recovered_revenue": 13140351.39,
+    "total_retry_cost": 58730.0,
+    "net_revenue": 13081621.39,
+    "arm_counts": {
+      "1hr": 1177,
+      "6hr": 183,
+      "1d": 529,
+      "3d": 3659,
+      "7d": 325
+    }
+  },
+  {
+    "scenario_name": "high_insufficient_funds",
+    "scenario_description": "Insufficient-funds failures increased from 38% to 60% baseline share; remaining share redistributed proportionally across other failure codes.",
+    "seed": 101,
+    "policy_name": "Fixed Schedule",
+    "transactions_total": 3000,
+    "recovered_transactions": 2313,
+    "recovery_rate_pct": 77.1,
+    "total_attempts": 7679,
+    "average_attempts_per_transaction": 2.5597,
+    "gross_recovered_revenue": 12287623.69,
+    "total_retry_cost": 76790.0,
+    "net_revenue": 12210833.69,
+    "arm_counts": {
+      "1hr": 0,
+      "6hr": 0,
+      "1d": 3000,
+      "3d": 2207,
+      "7d": 2472
+    }
+  },
+  {
+    "scenario_name": "high_insufficient_funds",
+    "scenario_description": "Insufficient-funds failures increased from 38% to 60% baseline share; remaining share redistributed proportionally across other failure codes.",
+    "seed": 2026,
+    "policy_name": "RecoverFlow LinUCB",
+    "transactions_total": 3000,
+    "recovered_transactions": 2571,
+    "recovery_rate_pct": 85.7,
+    "total_attempts": 6045,
+    "average_attempts_per_transaction": 2.015,
+    "gross_recovered_revenue": 12821114.61,
+    "total_retry_cost": 60450.0,
+    "net_revenue": 12760664.61,
+    "arm_counts": {
+      "1hr": 863,
+      "6hr": 485,
+      "1d": 609,
+      "3d": 2845,
+      "7d": 1243
+    }
+  },
+  {
+    "scenario_name": "high_insufficient_funds",
+    "scenario_description": "Insufficient-funds failures increased from 38% to 60% baseline share; remaining share redistributed proportionally across other failure codes.",
+    "seed": 2026,
+    "policy_name": "Fixed Schedule",
+    "transactions_total": 3000,
+    "recovered_transactions": 2298,
+    "recovery_rate_pct": 76.6,
+    "total_attempts": 7614,
+    "average_attempts_per_transaction": 2.538,
+    "gross_recovered_revenue": 12019407.64,
+    "total_retry_cost": 76140.0,
+    "net_revenue": 11943267.64,
+    "arm_counts": {
+      "1hr": 0,
+      "6hr": 0,
+      "1d": 3000,
+      "3d": 2180,
+      "7d": 2434
+    }
+  },
+  {
+    "scenario_name": "distribution_shift",
+    "scenario_description": "Failure-code mix inverted relative to baseline (issuer_timeout becomes dominant instead of insufficient_funds) combined with a 30% reduction in overall recovery probability, simulating a harsher, structurally different production environment than the one policies were tuned on.",
+    "seed": 42,
+    "policy_name": "RecoverFlow LinUCB",
+    "transactions_total": 3000,
+    "recovered_transactions": 2092,
+    "recovery_rate_pct": 69.73,
+    "total_attempts": 6720,
+    "average_attempts_per_transaction": 2.24,
+    "gross_recovered_revenue": 5916673.69,
+    "total_retry_cost": 67200.0,
+    "net_revenue": 5849473.69,
+    "arm_counts": {
+      "1hr": 2931,
+      "6hr": 1158,
+      "1d": 725,
+      "3d": 1305,
+      "7d": 601
+    }
+  },
+  {
+    "scenario_name": "distribution_shift",
+    "scenario_description": "Failure-code mix inverted relative to baseline (issuer_timeout becomes dominant instead of insufficient_funds) combined with a 30% reduction in overall recovery probability, simulating a harsher, structurally different production environment than the one policies were tuned on.",
+    "seed": 42,
+    "policy_name": "Fixed Schedule",
+    "transactions_total": 3000,
+    "recovered_transactions": 1379,
+    "recovery_rate_pct": 45.97,
+    "total_attempts": 8779,
+    "average_attempts_per_transaction": 2.9263,
+    "gross_recovered_revenue": 4470373.98,
+    "total_retry_cost": 87790.0,
+    "net_revenue": 4382583.98,
+    "arm_counts": {
+      "1hr": 0,
+      "6hr": 0,
+      "1d": 3000,
+      "3d": 2257,
+      "7d": 3522
+    }
+  },
+  {
+    "scenario_name": "distribution_shift",
+    "scenario_description": "Failure-code mix inverted relative to baseline (issuer_timeout becomes dominant instead of insufficient_funds) combined with a 30% reduction in overall recovery probability, simulating a harsher, structurally different production environment than the one policies were tuned on.",
+    "seed": 101,
+    "policy_name": "RecoverFlow LinUCB",
+    "transactions_total": 3000,
+    "recovered_transactions": 2148,
+    "recovery_rate_pct": 71.6,
+    "total_attempts": 6458,
+    "average_attempts_per_transaction": 2.1527,
+    "gross_recovered_revenue": 6166521.96,
+    "total_retry_cost": 64580.0,
+    "net_revenue": 6101941.96,
+    "arm_counts": {
+      "1hr": 2506,
+      "6hr": 108,
+      "1d": 1599,
+      "3d": 1885,
+      "7d": 360
+    }
+  },
+  {
+    "scenario_name": "distribution_shift",
+    "scenario_description": "Failure-code mix inverted relative to baseline (issuer_timeout becomes dominant instead of insufficient_funds) combined with a 30% reduction in overall recovery probability, simulating a harsher, structurally different production environment than the one policies were tuned on.",
+    "seed": 101,
+    "policy_name": "Fixed Schedule",
+    "transactions_total": 3000,
+    "recovered_transactions": 1345,
+    "recovery_rate_pct": 44.83,
+    "total_attempts": 8920,
+    "average_attempts_per_transaction": 2.9733,
+    "gross_recovered_revenue": 4338680.75,
+    "total_retry_cost": 89200.0,
+    "net_revenue": 4249480.75,
+    "arm_counts": {
+      "1hr": 0,
+      "6hr": 0,
+      "1d": 3000,
+      "3d": 2306,
+      "7d": 3614
+    }
+  },
+  {
+    "scenario_name": "distribution_shift",
+    "scenario_description": "Failure-code mix inverted relative to baseline (issuer_timeout becomes dominant instead of insufficient_funds) combined with a 30% reduction in overall recovery probability, simulating a harsher, structurally different production environment than the one policies were tuned on.",
+    "seed": 2026,
+    "policy_name": "RecoverFlow LinUCB",
+    "transactions_total": 3000,
+    "recovered_transactions": 1940,
+    "recovery_rate_pct": 64.67,
+    "total_attempts": 7304,
+    "average_attempts_per_transaction": 2.4347,
+    "gross_recovered_revenue": 5208400.06,
+    "total_retry_cost": 73040.0,
+    "net_revenue": 5135360.06,
+    "arm_counts": {
+      "1hr": 3000,
+      "6hr": 1802,
+      "1d": 474,
+      "3d": 278,
+      "7d": 1750
+    }
+  },
+  {
+    "scenario_name": "distribution_shift",
+    "scenario_description": "Failure-code mix inverted relative to baseline (issuer_timeout becomes dominant instead of insufficient_funds) combined with a 30% reduction in overall recovery probability, simulating a harsher, structurally different production environment than the one policies were tuned on.",
+    "seed": 2026,
+    "policy_name": "Fixed Schedule",
+    "transactions_total": 3000,
+    "recovered_transactions": 1342,
+    "recovery_rate_pct": 44.73,
+    "total_attempts": 8853,
+    "average_attempts_per_transaction": 2.951,
+    "gross_recovered_revenue": 4409390.71,
+    "total_retry_cost": 88530.0,
+    "net_revenue": 4320860.71,
+    "arm_counts": {
+      "1hr": 0,
+      "6hr": 0,
+      "1d": 3000,
+      "3d": 2271,
+      "7d": 3582
+    }
+  }
+]

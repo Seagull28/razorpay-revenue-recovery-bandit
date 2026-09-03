@@ -103,6 +103,12 @@ RecoverFlow includes three major merchant-facing intelligence capabilities:
 
 ---
 
+## 🌊 Phase 4B: Robustness Under Environment Shift
+
+RecoverFlow's contextual bandit policy was evaluated across 3 environmental scenarios to test adaptability under non-stationary distributions (`simulator/scenario_environment.py`). When insufficient-funds failures rise from 38% to 60% of the transaction stream (`high_insufficient_funds`), LinUCB's net revenue advantage over Fixed Schedule **expands from +INR 760,942.09 to +INR 1,044,658.52** (+37.28% lift growth) by learning to defer NSF retries to optimal salary-cycle windows. Under an inverted failure distribution combined with a 30% reduction in overall recovery probability (`distribution_shift`), LinUCB maintains a strong **+INR 751,325.34 net revenue lift** while reducing retry attempt overhead by 32.7%. For full methodology, configuration details, and 3-seed benchmark results, see [`audit/PHASE4B_ROBUSTNESS_REPORT.md`](audit/PHASE4B_ROBUSTNESS_REPORT.md).
+
+---
+
 ## 📂 Project Structure
 
 ```text
@@ -114,6 +120,8 @@ bandit_retry_scheduler/
 ├── verify_submission.py        # Single-Command Submission Verification Runner
 ├── run_phase1_evaluation.py    # Phase 1 Evaluation CLI Harness
 ├── run_phase3_evaluation.py    # Phase 3 Product Intelligence CLI Harness
+├── run_phase4_strategy_diagnostics.py # Phase 4A Strategy Intelligence Diagnostics Harness
+├── run_phase4b_robustness.py   # Phase 4B Robustness Evaluation CLI Harness
 ├── dashboard.py                # Streamlit Merchant Control Center Dashboard
 ├── create_project_zip.py       # Submission Packaging Utility
 ├── conftest.py                 # Pytest Root Package Resolver
@@ -123,7 +131,8 @@ bandit_retry_scheduler/
 ├── audit/                      # Evaluation Reports & Plot Artifacts
 │   ├── evaluation_results/phase1/  # Canonical Phase 1 Artifacts
 │   ├── evaluation_results/phase3/  # Phase 3 Intelligence Evaluation Artifacts
-│   └── evaluation_results/phase4_strategy_diagnostics/ # Phase 4A Diagnostic Artifacts
+│   ├── evaluation_results/phase4_strategy_diagnostics/ # Phase 4A Diagnostic Artifacts
+│   └── evaluation_results/phase4b_robustness/ # Phase 4B Robustness Evaluation Artifacts
 ├── core/                       # Recovery Strategy & Risk Intelligence Engines
 │   ├── config.py               # Centralized Strategy & Risk Constants
 │   ├── strategy.py             # Strategy Classification & Confidence Engine
@@ -132,7 +141,7 @@ bandit_retry_scheduler/
 ├── policies/                   # Policy Implementations
 ├── runner/                     # Simulation Engine
 ├── simulator/                  # Synthetic Environment Engine
-└── tests/                      # Pytest Unit Test Suite (110 Tests)
+└── tests/                      # Pytest Unit Test Suite (114 Tests)
 ```
 
 ---
