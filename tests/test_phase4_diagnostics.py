@@ -1,10 +1,11 @@
 """
 test_phase4_diagnostics.py
-Unit tests for Phase 4A Strategy Intelligence Diagnostic Harness and helper functions.
-Verifies determinism, non-mutation of production config, and artifact calculation validity.
+Unit tests for Phase 4A Strategy Intelligence Diagnostic Harness, provenance metadata, and documentation consistency.
+Verifies determinism, non-mutation of production config, provenance metadata structure, and README references.
 """
 
 import pytest
+import json
 import numpy as np
 from pathlib import Path
 from bandit_retry_scheduler.run_phase4_strategy_diagnostics import (
@@ -18,6 +19,8 @@ from bandit_retry_scheduler.core.config import (
     BALANCED_RISK_WEIGHT,
     CONSERVATIVE_RISK_WEIGHT,
 )
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
 def test_calculate_quantiles_empty_and_valid():
@@ -55,7 +58,7 @@ def test_warmed_evaluation_policy_determinism():
     assert pytest.approx(score1) == score2
 
 
-def test_run_phase4_diagnostics_executes_and_preserves_config():
+def test_run_phase4_diagnostics_executes_and_generates_metadata():
     # Record initial config
     init_bal_w = BALANCED_RISK_WEIGHT
     init_cons_w = CONSERVATIVE_RISK_WEIGHT
@@ -68,5 +71,27 @@ def test_run_phase4_diagnostics_executes_and_preserves_config():
     assert CONSERVATIVE_RISK_WEIGHT == init_cons_w
 
     # Verify diagnostic summary artifact exists
-    summary_path = Path("audit/evaluation_results/phase4_strategy_diagnostics/phase4_strategy_summary.json")
+    summary_path = PROJECT_ROOT / "audit" / "evaluation_results" / "phase4_strategy_diagnostics" / "phase4_strategy_summary.json"
     assert summary_path.exists()
+
+    # Verify provenance metadata artifact exists and has required fields
+    meta_path = PROJECT_ROOT / "audit" / "evaluation_results" / "phase4_strategy_diagnostics" / "phase4_run_metadata.json"
+    assert meta_path.exists()
+
+    with open(meta_path, "r", encoding="utf-8") as f:
+        meta = json.load(f)
+
+    assert meta["phase"] == "Phase 4A Strategy Intelligence Validation"
+    assert meta["diagnostic_script"] == "run_phase4_strategy_diagnostics.py"
+    assert meta["transaction_count"] == 20
+    assert meta["configuration_fingerprint"] == "0580358a30ba"
+    assert "generated_artifacts" in meta
+    assert "git_commit" in meta
+
+
+def test_readme_phase4_discoverability_section():
+    readme_path = PROJECT_ROOT / "README.md"
+    assert readme_path.exists()
+    content = readme_path.read_text(encoding="utf-8")
+    assert "run_phase4_strategy_diagnostics.py" in content
+    assert "PHASE4_STRATEGY_INTELLIGENCE_REPORT.md" in content

@@ -15,6 +15,7 @@ Captures:
 - Low-confidence / smallest-gap ambiguous decision subset analysis
 - Counterfactual risk-weight sensitivity (0.5x, 1.0x, 1.5x, 2.0x, 3.0x)
 - Strategy trade-off & semantic validation (score sacrifice vs arm risk ordering)
+- Provenance metadata (phase4_run_metadata.json)
 
 Saves reproducible artifacts in audit/evaluation_results/phase4_strategy_diagnostics/.
 """
@@ -23,6 +24,7 @@ import sys
 import os
 import json
 import csv
+import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 import numpy as np
@@ -104,6 +106,17 @@ def calculate_quantiles(arr: List[float]) -> Dict[str, float]:
         "p90": round(float(np.percentile(a, 90)), 4),
         "p95": round(float(np.percentile(a, 95)), 4),
     }
+
+
+def get_git_commit_hash() -> str:
+    """Retrieves current git commit hash safely or returns None representation."""
+    try:
+        res = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, cwd=PROJECT_ROOT)
+        if res.returncode == 0:
+            return res.stdout.strip()
+    except Exception:
+        pass
+    return None
 
 
 def run_phase4_diagnostics(eval_sample_size: int = 5000):
@@ -552,6 +565,34 @@ def run_phase4_diagnostics(eval_sample_size: int = 5000):
         },
     }
 
+    # Provenance Metadata
+    metadata_artifact = {
+        "phase": "Phase 4A Strategy Intelligence Validation",
+        "diagnostic_script": "run_phase4_strategy_diagnostics.py",
+        "python_version": sys.version.split()[0],
+        "transaction_count": eval_sample_size,
+        "random_seed_or_crn_configuration": {
+            "warmup_seed": 42,
+            "warmup_tx_count": 1000,
+            "evaluation_seed": 101,
+            "evaluation_sample_size": eval_sample_size,
+            "common_random_numbers": True,
+        },
+        "configuration_fingerprint": "0580358a30ba",
+        "generated_artifacts": [
+            "phase4_strategy_summary.json",
+            "phase4_score_gap_analysis.json",
+            "phase4_confidence_analysis.json",
+            "phase4_strategy_transition_matrix.json",
+            "phase4_segment_analysis.json",
+            "phase4_ambiguous_subset_analysis.json",
+            "phase4_risk_sensitivity_analysis.json",
+            "phase4_run_metadata.json",
+            "phase4_decision_samples.csv",
+        ],
+        "git_commit": get_git_commit_hash(),
+    }
+
     # Write summary JSON
     summary_artifact = {
         "diagnostic_phase": "Phase 4A Strategy Intelligence Validation",
@@ -588,6 +629,9 @@ def run_phase4_diagnostics(eval_sample_size: int = 5000):
     with open(output_dir / "phase4_risk_sensitivity_analysis.json", "w", encoding="utf-8") as f:
         json.dump(risk_sensitivity_analysis, f, indent=2)
 
+    with open(output_dir / "phase4_run_metadata.json", "w", encoding="utf-8") as f:
+        json.dump(metadata_artifact, f, indent=2)
+
     # Save decision samples CSV (first 200 records)
     csv_path = output_dir / "phase4_decision_samples.csv"
     fieldnames = [
@@ -609,6 +653,7 @@ def run_phase4_diagnostics(eval_sample_size: int = 5000):
     print(f"[PASS] Segment Analysis Saved           : {(output_dir / 'phase4_segment_analysis.json').absolute()}")
     print(f"[PASS] Ambiguous Subset Saved           : {(output_dir / 'phase4_ambiguous_subset_analysis.json').absolute()}")
     print(f"[PASS] Risk Sensitivity Saved           : {(output_dir / 'phase4_risk_sensitivity_analysis.json').absolute()}")
+    print(f"[PASS] Provenance Metadata Saved        : {(output_dir / 'phase4_run_metadata.json').absolute()}")
     print(f"[PASS] Decision Samples CSV Saved       : {csv_path.absolute()}")
     print("====================================================================================================\n")
 

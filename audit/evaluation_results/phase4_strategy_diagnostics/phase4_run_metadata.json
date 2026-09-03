@@ -1,0 +1,26 @@
+{
+  "phase": "Phase 4A Strategy Intelligence Validation",
+  "diagnostic_script": "run_phase4_strategy_diagnostics.py",
+  "python_version": "3.11.9",
+  "transaction_count": 20,
+  "random_seed_or_crn_configuration": {
+    "warmup_seed": 42,
+    "warmup_tx_count": 1000,
+    "evaluation_seed": 101,
+    "evaluation_sample_size": 20,
+    "common_random_numbers": true
+  },
+  "configuration_fingerprint": "0580358a30ba",
+  "generated_artifacts": [
+    "phase4_strategy_summary.json",
+    "phase4_score_gap_analysis.json",
+    "phase4_confidence_analysis.json",
+    "phase4_strategy_transition_matrix.json",
+    "phase4_segment_analysis.json",
+    "phase4_ambiguous_subset_analysis.json",
+    "phase4_risk_sensitivity_analysis.json",
+    "phase4_run_metadata.json",
+    "phase4_decision_samples.csv"
+  ],
+  "git_commit": "5541ecd"
+}

@@ -2,7 +2,7 @@
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Build Status](https://img.shields.io/badge/tests-97%20passed-brightgreen.svg)](tests/)
+[![Build Status](https://img.shields.io/badge/tests-101%20passed-brightgreen.svg)](tests/)
 
 > An intelligent, context-aware payment retry scheduling engine powered by **Disjoint Contextual LinUCB** bandit algorithms and bounded safety rules. Replaces fixed retry schedules with contextual decision-making to optimize net revenue recovery while minimizing retry overhead.
 
@@ -123,7 +123,8 @@ bandit_retry_scheduler/
 │   └── intelligence_service.py # Phase 3 Recovery Intelligence API
 ├── audit/                      # Evaluation Reports & Plot Artifacts
 │   ├── evaluation_results/phase1/  # Canonical Phase 1 Artifacts
-│   └── evaluation_results/phase3/  # Phase 3 Intelligence Evaluation Artifacts
+│   ├── evaluation_results/phase3/  # Phase 3 Intelligence Evaluation Artifacts
+│   └── evaluation_results/phase4_strategy_diagnostics/ # Phase 4A Diagnostic Artifacts
 ├── core/                       # Recovery Strategy & Risk Intelligence Engines
 │   ├── config.py               # Centralized Strategy & Risk Constants
 │   ├── strategy.py             # Strategy Classification & Confidence Engine
@@ -132,7 +133,7 @@ bandit_retry_scheduler/
 ├── policies/                   # Policy Implementations
 ├── runner/                     # Simulation Engine
 ├── simulator/                  # Synthetic Environment Engine
-└── tests/                      # Pytest Unit Test Suite (93 Tests)
+└── tests/                      # Pytest Unit Test Suite (101 Tests)
 ```
 
 ---
@@ -181,6 +182,16 @@ python run_phase1_evaluation.py
 ```bash
 streamlit run dashboard.py
 ```
+
+### 7. Run Phase 4A Strategy Intelligence Diagnostics
+```bash
+python run_phase4_strategy_diagnostics.py
+```
+*Evaluates 5,000 deterministic CRN transactions across `MAXIMIZE_RECOVERY`, `BALANCED`, and `CONSERVATIVE` strategy modes over a warmed LinUCB policy state.*
+
+- **What it evaluates**: Policy confidence, score gaps, ambiguity tier distributions, transition matrices, failure code & transaction amount segmentations, low-confidence decision subsets, and counterfactual risk-weight sensitivity.
+- **Key Empirical Finding**: Low global strategy divergence (2.32%) is **intended and healthy product behavior**. High policy confidence ($C \ge 0.50$, 94.16% of transactions) naturally decays risk adjustments to preserve optimal net revenue recovery. When decision confidence is low / score gap is narrow (the 10% ambiguous decision subset), strategy modes activate aggressively with a **22.97% disagreement rate** and a **35.84% CONSERVATIVE override rate**.
+- **Reports & Provenance Artifacts**: See [`audit/PHASE4_STRATEGY_INTELLIGENCE_REPORT.md`](audit/PHASE4_STRATEGY_INTELLIGENCE_REPORT.md) and [`audit/evaluation_results/phase4_strategy_diagnostics/`](audit/evaluation_results/phase4_strategy_diagnostics/).
 
 ---
 

@@ -19,11 +19,12 @@ This diagnostic investigation evaluates 5,000 synthetic simulation transactions 
 Execution baseline prior to Phase 4A diagnostic evaluation:
 
 ```text
-Git Branch    : main (Commit 15d4a5a)
-Git Status    : On branch main, working tree clean
-Pytest Suite  : 93 collected / 93 passed in 20.35s (0 failures, 0 warnings)
-Phase 1 Hash  : 0580358a30ba (100% Intact)
-Locked Files  : UNTOUCHED (policies/linucb.py, policies/encoder.py, simulator/ground_truth.py)
+Git Branch          : main (Commit 5541ecd)
+Git Status          : On branch main, working tree clean
+Historical Baseline : 93 collected / 93 passed (Phase 3 final baseline)
+Current Pytest Suite: 97 collected / 97 passed in 20.24s (Includes 4 Phase 4A diagnostic tests)
+Phase 1 Hash        : 0580358a30ba (100% Intact)
+Locked Core Files   : UNTOUCHED (policies/linucb.py, policies/encoder.py, simulator/ground_truth.py)
 ```
 
 ---
@@ -202,6 +203,7 @@ Evaluating counterfactual scaled risk weight multipliers without mutating produc
 - `audit/evaluation_results/phase4_strategy_diagnostics/phase4_segment_analysis.json`
 - `audit/evaluation_results/phase4_strategy_diagnostics/phase4_ambiguous_subset_analysis.json`
 - `audit/evaluation_results/phase4_strategy_diagnostics/phase4_risk_sensitivity_analysis.json`
+- `audit/evaluation_results/phase4_strategy_diagnostics/phase4_run_metadata.json`
 - `audit/evaluation_results/phase4_strategy_diagnostics/phase4_decision_samples.csv`
 
 ---
