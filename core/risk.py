@@ -13,9 +13,13 @@ from bandit_retry_scheduler.core.config import (
     MIN_CONFIDENCE_SCALE,
     ARM_RISK_PROFILE,
     EXTREME_ARM_FRICTION,
+    DEFAULT_ARM_RISK,
     BALANCED_RISK_WEIGHT,
     CONSERVATIVE_RISK_WEIGHT,
     CONSERVATIVE_EXTREME_WEIGHT,
+    UNCERTAINTY_RISK_WEIGHT,
+    LOW_RISK_THRESHOLD,
+    MEDIUM_RISK_THRESHOLD,
     ATTEMPT_RISK_STEP,
     MAX_ATTEMPT_RISK,
     HIGH_RISK_FAILURE_PENALTY,
@@ -79,7 +83,7 @@ def compute_risk_profile(
         risk_factors.append(f"Repeated retry attempt (Attempt #{attempt_number})")
 
     # 2. Risk from decision separation / uncertainty
-    uncertainty_risk = (1.0 - confidence_score) * 0.35
+    uncertainty_risk = (1.0 - confidence_score) * UNCERTAINTY_RISK_WEIGHT
     if stability in ("UNSTABLE", "MODERATELY_STABLE"):
         risk_factors.append(f"Low score separation between top retry candidates ({stability})")
 
@@ -96,9 +100,9 @@ def compute_risk_profile(
     # Total risk score bounded in [0.0, 1.0]
     total_risk = min(1.0, max(0.0, attempt_risk + uncertainty_risk + code_risk))
 
-    if total_risk < 0.30:
+    if total_risk < LOW_RISK_THRESHOLD:
         level = RiskLevel.LOW.value
-    elif total_risk < 0.60:
+    elif total_risk < MEDIUM_RISK_THRESHOLD:
         level = RiskLevel.MEDIUM.value
     else:
         level = RiskLevel.HIGH.value
@@ -126,7 +130,9 @@ def evaluate_risk_aware_recommendation(
     - BALANCED: U_a = UCB_a - lambda_bal * (1 - C) * R_a * max(|UCB_a|, MIN_CONFIDENCE_SCALE).
     - CONSERVATIVE: U_a = UCB_a - (lambda_cons * R_a + mu_extreme * E_a) * (1 - C) * max(|UCB_a|, MIN_CONFIDENCE_SCALE).
     
-    Zero fixed INR penalties used. All penalties are dimensionless, scale-aware, and transaction-value independent.
+    No fixed INR arm-selection penalty is used in Phase 3 strategy utility functions.
+    Risk adjustments are expressed using dimensionless profiles (R_a, E_a in [0.0, 1.0])
+    and are scaled relative to decision magnitude.
     
     Uses explicit deterministic tie-breaking:
     1. Adjusted Score (rounded to 2 decimal places)
@@ -157,7 +163,7 @@ def evaluate_risk_aware_recommendation(
 
     adjusted_scores: Dict[str, float] = {}
     for arm, ev in raw_ucb_scores.items():
-        arm_risk = ARM_RISK_PROFILE.get(arm, 0.25)
+        arm_risk = ARM_RISK_PROFILE.get(arm, DEFAULT_ARM_RISK)
         score_scale = max(abs(ev), MIN_CONFIDENCE_SCALE)
 
         if mode == StrategyMode.BALANCED.value:

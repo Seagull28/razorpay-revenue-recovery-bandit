@@ -3,7 +3,8 @@ run_phase3_evaluation.py
 Phase 3 Evaluation CLI Harness for RecoverFlow Product Differentiation & Intelligence.
 Evaluates strategy modes (MAXIMIZE_RECOVERY, BALANCED, CONSERVATIVE), decision stability,
 risk distributions, per-arm simulator statistics, actual strategy mode performance,
-and targeted strategy mode divergence scenarios under score gap uncertainty.
+targeted strategy mode divergence scenarios, arm selection distributions, strategy override rates,
+and deterministic parameter sensitivity analysis under score gap uncertainty.
 Generates evaluation artifacts in audit/evaluation_results/phase3/.
 """
 
@@ -34,6 +35,13 @@ from bandit_retry_scheduler.api.intelligence_service import get_recovery_intelli
 from bandit_retry_scheduler.analytics.recovery_insights import generate_merchant_recovery_insights
 from bandit_retry_scheduler.core.risk import evaluate_risk_aware_recommendation
 from bandit_retry_scheduler.core.strategy import calculate_decision_confidence
+from bandit_retry_scheduler.core.config import (
+    ARM_RISK_PROFILE,
+    EXTREME_ARM_FRICTION,
+    BALANCED_RISK_WEIGHT,
+    CONSERVATIVE_RISK_WEIGHT,
+    MIN_CONFIDENCE_SCALE,
+)
 from bandit_retry_scheduler.runner.engine import PolicyExecutionEngine
 from bandit_retry_scheduler.audit.logger import AuditLogger
 
@@ -177,6 +185,89 @@ def run_strategy_divergence_scenarios() -> Dict[str, Any]:
     return results
 
 
+def run_parameter_sensitivity_analysis(transactions: List[Dict[str, Any]], warmed_policy: LinUCBPolicy) -> Dict[str, Any]:
+    """
+    Performs deterministic parameter sensitivity analysis across balanced and conservative risk weights.
+    Measures strategy override rates and arm distributions without modifying global configuration.
+    """
+    balanced_weights = [0.20, 0.30, 0.40]
+    conservative_weights = [0.60, 0.70, 0.80]
+
+    sensitivity_results = {
+        "canonical_defaults": {
+            "balanced_risk_weight": BALANCED_RISK_WEIGHT,
+            "conservative_risk_weight": CONSERVATIVE_RISK_WEIGHT,
+        },
+        "balanced_sensitivity": {},
+        "conservative_sensitivity": {},
+    }
+
+    dummy_tx = {"failure_code": "insufficient_funds", "amount": 2500.0}
+
+    for bw in balanced_weights:
+        overrides = 0
+        arm_counts = {}
+        for tx in transactions:
+            intel_max = get_recovery_intelligence(tx, "MAXIMIZE_RECOVERY", policy=warmed_policy)
+            raw_arm = intel_max["raw_decision"]["recommended_delay"]
+            scores = intel_max["raw_decision"].get("arm_scores", {})
+            conf, _ = calculate_decision_confidence(scores)
+            uncertainty = (1.0 - conf)
+
+            adj_scores = {}
+            for arm, details in scores.items():
+                ev = float(details.get("score", details.get("ucb_score", 0.0)))
+                risk = ARM_RISK_PROFILE.get(arm, 0.25)
+                scale = max(abs(ev), MIN_CONFIDENCE_SCALE)
+                adj_scores[arm] = ev - (bw * risk * uncertainty * scale)
+
+            best_arm = max(adj_scores.keys(), key=lambda a: (round(adj_scores[a], 2), round(scores[a].get("score", 0.0), 2)))
+            if best_arm != raw_arm:
+                overrides += 1
+            arm_counts[best_arm] = arm_counts.get(best_arm, 0) + 1
+
+        override_rate = round((overrides / len(transactions)) * 100.0, 2) if transactions else 0.0
+        sensitivity_results["balanced_sensitivity"][f"weight_{bw}"] = {
+            "balanced_risk_weight": bw,
+            "strategy_override_count": overrides,
+            "strategy_override_rate_pct": override_rate,
+            "arm_distribution": arm_counts,
+        }
+
+    for cw in conservative_weights:
+        overrides = 0
+        arm_counts = {}
+        for tx in transactions:
+            intel_max = get_recovery_intelligence(tx, "MAXIMIZE_RECOVERY", policy=warmed_policy)
+            raw_arm = intel_max["raw_decision"]["recommended_delay"]
+            scores = intel_max["raw_decision"].get("arm_scores", {})
+            conf, _ = calculate_decision_confidence(scores)
+            uncertainty = (1.0 - conf)
+
+            adj_scores = {}
+            for arm, details in scores.items():
+                ev = float(details.get("score", details.get("ucb_score", 0.0)))
+                risk = ARM_RISK_PROFILE.get(arm, 0.25)
+                ext = EXTREME_ARM_FRICTION.get(arm, 0.0)
+                scale = max(abs(ev), MIN_CONFIDENCE_SCALE)
+                adj_scores[arm] = ev - ((cw * risk + 0.50 * ext) * uncertainty * scale)
+
+            best_arm = max(adj_scores.keys(), key=lambda a: (round(adj_scores[a], 2), round(scores[a].get("score", 0.0), 2)))
+            if best_arm != raw_arm:
+                overrides += 1
+            arm_counts[best_arm] = arm_counts.get(best_arm, 0) + 1
+
+        override_rate = round((overrides / len(transactions)) * 100.0, 2) if transactions else 0.0
+        sensitivity_results["conservative_sensitivity"][f"weight_{cw}"] = {
+            "conservative_risk_weight": cw,
+            "strategy_override_count": overrides,
+            "strategy_override_rate_pct": override_rate,
+            "arm_distribution": arm_counts,
+        }
+
+    return sensitivity_results
+
+
 def run_phase3_evaluation():
     output_dir = PROJECT_ROOT / "audit" / "evaluation_results" / "phase3"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -226,14 +317,21 @@ def run_phase3_evaluation():
     for mode, results in mode_results.items():
         retry_results = [r for r in results if r.get("should_retry", False)]
 
-        # Strategy distribution
-        strat_counts: Dict[str, int] = {}
-        for r in retry_results:
-            arm = r["recommendation"]["retry_delay"]
-            if arm:
-                strat_counts[arm] = strat_counts.get(arm, 0) + 1
+        # Detailed arm selection distribution with counts and percentages
+        all_arms = ["1hr", "6hr", "1d", "3d", "7d"]
+        arm_counts: Dict[str, Dict[str, Any]] = {}
+        total_evals = len(transactions)
+        
+        for arm in all_arms:
+            c = sum(1 for r in retry_results if r["recommendation"]["retry_delay"] == arm)
+            pct = round((c / total_evals) * 100.0, 2) if total_evals > 0 else 0.0
+            arm_counts[arm] = {"count": c, "percentage": pct}
 
-        top_arm = max(strat_counts.items(), key=lambda x: x[1])[0] if strat_counts else "None"
+        # Assert sum of arm counts equals total evaluated transactions
+        assert sum(v["count"] for v in arm_counts.values()) == total_evals, f"Sum of arm counts for {mode} must equal total transactions!"
+
+        # Top strategy arm
+        top_arm = max(arm_counts.items(), key=lambda x: x[1]["count"])[0]
 
         # Stability distribution
         stab_counts: Dict[str, int] = {}
@@ -247,17 +345,20 @@ def run_phase3_evaluation():
             level = r.get("risk_profile", {}).get("risk_level", "LOW")
             risk_counts[level] = risk_counts.get(level, 0) + 1
 
+        # Strategy override count & rate compared to raw LinUCB policy recommendation
         raw_arms = [r["raw_decision"]["recommended_delay"] for r in mode_results["MAXIMIZE_RECOVERY"] if r.get("should_retry", False)]
         mode_arms = [r["recommendation"]["retry_delay"] for r in retry_results]
-        shifts = sum(1 for a, b in zip(raw_arms, mode_arms) if a != b)
-        shift_rate = round(shifts / len(raw_arms), 4) if raw_arms else 0.0
+        overrides = sum(1 for a, b in zip(raw_arms, mode_arms) if a != b)
+        override_rate_pct = round((overrides / len(raw_arms)) * 100.0, 2) if raw_arms else 0.0
 
         summary["metrics"][mode] = {
             "top_strategy_arm": top_arm,
-            "strategy_distribution": strat_counts,
+            "total_transactions_evaluated": total_evals,
+            "strategy_override_count": overrides,
+            "strategy_override_rate_pct": override_rate_pct,
+            "arm_selection_distribution": arm_counts,
             "stability_distribution": stab_counts,
             "risk_distribution": risk_counts,
-            "mode_shift_rate_vs_raw": shift_rate,
         }
 
         if mode == "MAXIMIZE_RECOVERY":
@@ -321,11 +422,60 @@ def run_phase3_evaluation():
     with open(perf_path, "w", encoding="utf-8") as f:
         json.dump(mode_performance, f, indent=2)
 
-    # Perform Targeted Strategy Divergence Analysis (Issue 3)
+    # Perform Targeted Strategy Divergence Analysis (Issue 3 / Issue 9)
     divergence_data = run_strategy_divergence_scenarios()
     divergence_path = output_dir / "phase3_strategy_divergence_analysis.json"
     with open(divergence_path, "w", encoding="utf-8") as f:
         json.dump(divergence_data, f, indent=2)
+
+    # Perform Parameter Sensitivity Analysis (Issue 10)
+    sensitivity_data = run_parameter_sensitivity_analysis(transactions, warmed_policy)
+    sensitivity_path = output_dir / "phase3_parameter_sensitivity.json"
+    with open(sensitivity_path, "w", encoding="utf-8") as f:
+        json.dump(sensitivity_data, f, indent=2)
+
+    # Generate Parameter Sensitivity Markdown Report
+    sens_report_path = PROJECT_ROOT / "audit" / "PHASE3_PARAMETER_SENSITIVITY_REPORT.md"
+    sens_bal_rows = []
+    for k, v in sensitivity_data["balanced_sensitivity"].items():
+        w = v["balanced_risk_weight"]
+        ov_cnt = v["strategy_override_count"]
+        ov_rate = f"{v['strategy_override_rate_pct']:.2f}%"
+        dist_str = ", ".join([f"{arm}: {cnt}" for arm, cnt in v["arm_distribution"].items()])
+        sens_bal_rows.append(f"| `{w:.2f}` | `{ov_cnt}` | `{ov_rate}` | {dist_str} |")
+
+    sens_cons_rows = []
+    for k, v in sensitivity_data["conservative_sensitivity"].items():
+        w = v["conservative_risk_weight"]
+        ov_cnt = v["strategy_override_count"]
+        ov_rate = f"{v['strategy_override_rate_pct']:.2f}%"
+        dist_str = ", ".join([f"{arm}: {cnt}" for arm, cnt in v["arm_distribution"].items()])
+        sens_cons_rows.append(f"| `{w:.2f}` | `{ov_cnt}` | `{ov_rate}` | {dist_str} |")
+
+    sens_bal_body = "\n".join(sens_bal_rows)
+    sens_cons_body = "\n".join(sens_cons_rows)
+
+    sens_report_content = (
+        f"# 🔬 RecoverFlow Phase 3 Parameter Sensitivity & Calibration Report\n\n"
+        f"> **Deterministic Parameter Sensitivity & Policy Assumption Calibration Analysis**\n\n"
+        f"---\n\n"
+        f"## 📌 Executive Summary\n"
+        f"This report documents the sensitivity of RecoverFlow strategy mode recommendations across variations in risk weight parameters (lambda_bal, lambda_cons).\n\n"
+        f"---\n\n"
+        f"## 📊 Balanced Mode Risk Weight Sensitivity (lambda_bal)\n\n"
+        f"| Risk Weight (lambda_bal) | Strategy Overrides | Override Rate (%) | Arm Distribution |\n"
+        f"| :---: | :---: | :---: | :--- |\n"
+        f"{sens_bal_body}\n\n"
+        f"---\n\n"
+        f"## 📊 Conservative Mode Risk Weight Sensitivity (lambda_cons)\n\n"
+        f"| Risk Weight (lambda_cons) | Strategy Overrides | Override Rate (%) | Arm Distribution |\n"
+        f"| :---: | :---: | :---: | :--- |\n"
+        f"{sens_cons_body}\n\n"
+        f"---\n\n"
+        f"## 🔒 Policy Parameter Calibration Disclosure\n"
+        f"Phase 3 strategy parameters are explicit product-policy design assumptions used to represent merchant risk preferences. They are **not learned from real merchant payment data**. In a production deployment, these parameters would be calibrated using historical retry outcomes, merchant preference profiles, recovery economics, and controlled experimentation.\n"
+    )
+    sens_report_path.write_text(sens_report_content, encoding="utf-8")
 
     # Generate Strategy Divergence Markdown Report
     div_report_path = output_dir / "PHASE3_STRATEGY_DIVERGENCE_REPORT.md"
@@ -363,7 +513,7 @@ This report presents targeted empirical validation proving that RecoverFlow stra
 
 ## 💡 Key Empirical Findings
 - **High Confidence Scenarios (A & E)**: Zero mode divergence (`Max = Bal = Cons = 3d`). Risk adjustments decay naturally as confidence approaches 1.0.
-- **Uncertain / Narrow Gap Scenarios (B, C & D)**: Modes diverge legitimately. `MAXIMIZE_RECOVERY` selects the raw highest score (`1hr` or `7d`), `BALANCED` shifts to `1d`, and `CONSERVATIVE` shifts to `3d` (lowest timing friction).
+- **Uncertain / Narrow Gap Scenarios (B, C & D)**: Modes diverge legitimately. `MAXIMIZE_RECOVERY` selects the raw highest score (`1hr` or `7d`), `BALANCED` shifts to `3d`, and `CONSERVATIVE` shifts to `3d` (lowest timing friction).
 """
     div_report_path.write_text(div_report_content, encoding="utf-8")
 
@@ -373,7 +523,8 @@ This report presents targeted empirical validation proving that RecoverFlow stra
     for mode in summary["strategy_modes_evaluated"]:
         m_data = summary["metrics"][mode]
         top_arm = m_data["top_strategy_arm"]
-        shift_pct = f"{m_data['mode_shift_rate_vs_raw'] * 100:.1f}%"
+        override_rate_pct = m_data["strategy_override_rate_pct"]
+        shift_pct = f"{override_rate_pct:.2f}%"
         stab_str = ", ".join([f"{k}: {v}" for k, v in m_data["stability_distribution"].items()])
         table_rows.append(f"| **{mode}** | `{shift_pct}` | `{top_arm}` | {stab_str} |")
 
@@ -443,13 +594,13 @@ Phase 3 introduces **Recovery Strategy Intelligence**, **Risk-Aware Decision Mod
         },
         "stability_distribution": summary["metrics"]["MAXIMIZE_RECOVERY"]["stability_distribution"],
         "mode_shift_rates": {
-            "balanced": summary["metrics"]["BALANCED"]["mode_shift_rate_vs_raw"],
-            "conservative": summary["metrics"]["CONSERVATIVE"]["mode_shift_rate_vs_raw"],
+            "balanced": summary["metrics"]["BALANCED"]["strategy_override_rate_pct"],
+            "conservative": summary["metrics"]["CONSERVATIVE"]["strategy_override_rate_pct"],
         },
         "arm_distribution": {
-            "MAXIMIZE_RECOVERY": summary["metrics"]["MAXIMIZE_RECOVERY"]["strategy_distribution"],
-            "BALANCED": summary["metrics"]["BALANCED"]["strategy_distribution"],
-            "CONSERVATIVE": summary["metrics"]["CONSERVATIVE"]["strategy_distribution"],
+            "MAXIMIZE_RECOVERY": summary["metrics"]["MAXIMIZE_RECOVERY"]["arm_selection_distribution"],
+            "BALANCED": summary["metrics"]["BALANCED"]["arm_selection_distribution"],
+            "CONSERVATIVE": summary["metrics"]["CONSERVATIVE"]["arm_selection_distribution"],
         },
         "first_10_transactions_detail": [
             {
@@ -477,6 +628,8 @@ Phase 3 introduces **Recovery Strategy Intelligence**, **Risk-Aware Decision Mod
     print(f"[PASS] Strategy Perf Saved       : {perf_path.absolute()}")
     print(f"[PASS] Strategy Divergence Saved : {divergence_path.absolute()}")
     print(f"[PASS] Divergence Report Saved   : {div_report_path.absolute()}")
+    print(f"[PASS] Sensitivity Saved         : {sensitivity_path.absolute()}")
+    print(f"[PASS] Sensitivity Report Saved  : {sens_report_path.absolute()}")
     print("====================================================================================================\n")
 
 if __name__ == "__main__":

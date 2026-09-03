@@ -1,0 +1,82 @@
+{
+  "canonical_defaults": {
+    "balanced_risk_weight": 0.3,
+    "conservative_risk_weight": 0.7
+  },
+  "balanced_sensitivity": {
+    "weight_0.2": {
+      "balanced_risk_weight": 0.2,
+      "strategy_override_count": 0,
+      "strategy_override_rate_pct": 0.0,
+      "arm_distribution": {
+        "1d": 153,
+        "7d": 166,
+        "1hr": 155,
+        "3d": 15,
+        "6hr": 11
+      }
+    },
+    "weight_0.3": {
+      "balanced_risk_weight": 0.3,
+      "strategy_override_count": 6,
+      "strategy_override_rate_pct": 1.2,
+      "arm_distribution": {
+        "1d": 155,
+        "7d": 162,
+        "1hr": 155,
+        "3d": 17,
+        "6hr": 11
+      }
+    },
+    "weight_0.4": {
+      "balanced_risk_weight": 0.4,
+      "strategy_override_count": 9,
+      "strategy_override_rate_pct": 1.8,
+      "arm_distribution": {
+        "1d": 158,
+        "7d": 162,
+        "1hr": 152,
+        "3d": 17,
+        "6hr": 11
+      }
+    }
+  },
+  "conservative_sensitivity": {
+    "weight_0.6": {
+      "conservative_risk_weight": 0.6,
+      "strategy_override_count": 17,
+      "strategy_override_rate_pct": 3.4,
+      "arm_distribution": {
+        "1d": 165,
+        "7d": 159,
+        "1hr": 147,
+        "3d": 18,
+        "6hr": 11
+      }
+    },
+    "weight_0.7": {
+      "conservative_risk_weight": 0.7,
+      "strategy_override_count": 17,
+      "strategy_override_rate_pct": 3.4,
+      "arm_distribution": {
+        "1d": 165,
+        "7d": 159,
+        "1hr": 147,
+        "3d": 18,
+        "6hr": 11
+      }
+    },
+    "weight_0.8": {
+      "conservative_risk_weight": 0.8,
+      "strategy_override_count": 18,
+      "strategy_override_rate_pct": 3.6,
+      "arm_distribution": {
+        "1d": 166,
+        "7d": 158,
+        "1hr": 147,
+        "3d": 18,
+        "6hr": 11
+      }
+    }
+  }
+}

@@ -201,7 +201,8 @@ def test_phase3_report_json_consistency():
     for mode in summary["strategy_modes_evaluated"]:
         m_data = summary["metrics"][mode]
         top_arm = m_data["top_strategy_arm"]
-        shift_pct = f"{m_data['mode_shift_rate_vs_raw'] * 100:.1f}%"
+        override_rate_pct = m_data.get("strategy_override_rate_pct", m_data.get("mode_shift_rate_vs_raw", 0.0) * 100.0)
+        shift_pct = f"{override_rate_pct:.2f}%"
         
         assert top_arm in report, f"Top arm {top_arm} for {mode} not found in report!"
         assert shift_pct in report, f"Shift pct {shift_pct} for {mode} not found in report!"

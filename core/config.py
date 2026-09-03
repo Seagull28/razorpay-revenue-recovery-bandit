@@ -76,6 +76,12 @@ Classification: Domain assumption.
 Purpose: Additional dimensionless friction values E_a for extreme delay windows (1hr, 7d) used in Conservative mode.
 """
 
+DEFAULT_ARM_RISK: float = 0.25
+"""
+Classification: Fallback default.
+Purpose: Fallback dimensionless timing friction value for unmapped retry delay arms.
+"""
+
 # ==============================================================================
 # 4. STRATEGY MODE RISK WEIGHTS (DESIGN PARAMETERS)
 # ==============================================================================
@@ -105,6 +111,25 @@ Valid Range: 0.0 to 1.0 (default: 0.50)
 # 5. CONTEXTUAL RISK PROFILE COMPONENTS
 # ==============================================================================
 
+UNCERTAINTY_RISK_WEIGHT: float = 0.35
+"""
+Classification: Design parameter.
+Purpose: Multiplier controlling the contribution of decision score gap uncertainty (1 - C) to the context risk score.
+Valid Range: 0.0 to 1.0 (default: 0.35)
+"""
+
+LOW_RISK_THRESHOLD: float = 0.30
+"""
+Classification: Risk threshold.
+Purpose: Upper bound risk score threshold for LOW risk classification.
+"""
+
+MEDIUM_RISK_THRESHOLD: float = 0.60
+"""
+Classification: Risk threshold.
+Purpose: Upper bound risk score threshold for MEDIUM risk classification. Scores >= 0.60 are classified as HIGH risk.
+"""
+
 ATTEMPT_RISK_STEP: float = 0.15
 """
 Classification: Domain assumption.
@@ -127,6 +152,22 @@ MEDIUM_RISK_FAILURE_PENALTY: float = 0.15
 """
 Classification: Domain assumption.
 Purpose: Base risk score addition for medium-friction failure codes ('insufficient_funds', 'generic_decline').
+"""
+
+# ==============================================================================
+# 6. EXPLAINABILITY & HEURISTIC THRESHOLDS
+# ==============================================================================
+
+MARGINAL_THETA_THRESHOLD: float = 25.0
+"""
+Classification: Design parameter.
+Purpose: Expected net revenue threshold in INR below which a recommended retry decision is flagged as marginal.
+"""
+
+MARGINAL_IMPLIED_PROBABILITY_THRESHOLD: float = 3.0
+"""
+Classification: Design parameter.
+Purpose: Model-implied recovery probability percentage below which a recommended retry decision is flagged as marginal.
 """
 
 DETERMINISTIC_ARM_ORDER: List[str] = ["3d", "1d", "6hr", "1hr", "7d"]

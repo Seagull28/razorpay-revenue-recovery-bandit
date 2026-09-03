@@ -25,4 +25,4 @@ This report presents targeted empirical validation proving that RecoverFlow stra
 
 ## 💡 Key Empirical Findings
 - **High Confidence Scenarios (A & E)**: Zero mode divergence (`Max = Bal = Cons = 3d`). Risk adjustments decay naturally as confidence approaches 1.0.
-- **Uncertain / Narrow Gap Scenarios (B, C & D)**: Modes diverge legitimately. `MAXIMIZE_RECOVERY` selects the raw highest score (`1hr` or `7d`), `BALANCED` shifts to `1d`, and `CONSERVATIVE` shifts to `3d` (lowest timing friction).
+- **Uncertain / Narrow Gap Scenarios (B, C & D)**: Modes diverge legitimately. `MAXIMIZE_RECOVERY` selects the raw highest score (`1hr` or `7d`), `BALANCED` shifts to `3d`, and `CONSERVATIVE` shifts to `3d` (lowest timing friction).

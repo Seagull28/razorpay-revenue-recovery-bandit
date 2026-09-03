@@ -29,30 +29,75 @@
     "UNSTABLE": 9
   },
   "mode_shift_rates": {
-    "balanced": 0.012,
-    "conservative": 0.034
+    "balanced": 1.2,
+    "conservative": 3.4
   },
   "arm_distribution": {
     "MAXIMIZE_RECOVERY": {
-      "1d": 153,
-      "7d": 166,
-      "1hr": 155,
-      "3d": 15,
-      "6hr": 11
+      "1hr": {
+        "count": 155,
+        "percentage": 31.0
+      },
+      "6hr": {
+        "count": 11,
+        "percentage": 2.2
+      },
+      "1d": {
+        "count": 153,
+        "percentage": 30.6
+      },
+      "3d": {
+        "count": 15,
+        "percentage": 3.0
+      },
+      "7d": {
+        "count": 166,
+        "percentage": 33.2
+      }
     },
     "BALANCED": {
-      "1d": 155,
-      "7d": 162,
-      "1hr": 155,
-      "3d": 17,
-      "6hr": 11
+      "1hr": {
+        "count": 155,
+        "percentage": 31.0
+      },
+      "6hr": {
+        "count": 11,
+        "percentage": 2.2
+      },
+      "1d": {
+        "count": 155,
+        "percentage": 31.0
+      },
+      "3d": {
+        "count": 17,
+        "percentage": 3.4
+      },
+      "7d": {
+        "count": 162,
+        "percentage": 32.4
+      }
     },
     "CONSERVATIVE": {
-      "1d": 165,
-      "7d": 159,
-      "1hr": 147,
-      "3d": 18,
-      "6hr": 11
+      "1hr": {
+        "count": 147,
+        "percentage": 29.4
+      },
+      "6hr": {
+        "count": 11,
+        "percentage": 2.2
+      },
+      "1d": {
+        "count": 165,
+        "percentage": 33.0
+      },
+      "3d": {
+        "count": 18,
+        "percentage": 3.6
+      },
+      "7d": {
+        "count": 159,
+        "percentage": 31.8
+      }
     }
   },
   "first_10_transactions_detail": [

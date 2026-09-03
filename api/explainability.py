@@ -6,6 +6,10 @@ into clear, human-readable business explanations.
 """
 
 from typing import Any, Dict, Optional
+from bandit_retry_scheduler.core.config import (
+    MARGINAL_THETA_THRESHOLD,
+    MARGINAL_IMPLIED_PROBABILITY_THRESHOLD,
+)
 
 
 def generate_decision_explanation(
@@ -74,7 +78,7 @@ def generate_decision_explanation(
     alt_text = ", ".join(alt_parts)
 
     # Check if this is a marginal case (very low expected net value or near-zero recovery probability)
-    is_marginal = (theta_dot_x <= 25.0 or implied_prob_pct <= 3.0)
+    is_marginal = (theta_dot_x <= MARGINAL_THETA_THRESHOLD or implied_prob_pct <= MARGINAL_IMPLIED_PROBABILITY_THRESHOLD)
     marginal_prefix = "Marginal case: model believes this retry is barely worth attempting — " if is_marginal else ""
 
     explanation = (
