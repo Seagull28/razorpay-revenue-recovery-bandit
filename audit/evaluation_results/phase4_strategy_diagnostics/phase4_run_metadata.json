@@ -24,9 +24,10 @@
     "phase4_segment_analysis.json",
     "phase4_ambiguous_subset_analysis.json",
     "phase4_risk_sensitivity_analysis.json",
+    "phase4_strategy_differentiation_analysis.json",
     "phase4_run_metadata.json",
     "phase4_decision_samples.csv"
   ],
-  "git_commit": "28afd3d",
+  "git_commit": "139e541",
   "git_metadata_available": true
 }

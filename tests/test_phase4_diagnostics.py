@@ -234,3 +234,64 @@ def test_run_mode_describes_sample_configuration_not_output_destination(tmp_path
 
     assert orig_meta_content == after_meta_content
 
+
+def test_pairwise_divergence_bounds(tmp_path):
+    """Test 1: Asserts pairwise divergence rates are bounded between 0.0% and 100.0%."""
+    run_phase4_diagnostics(eval_sample_size=100, output_dir=tmp_path)
+    diff_file = tmp_path / "phase4_strategy_differentiation_analysis.json"
+    assert diff_file.exists()
+
+    with open(diff_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    for pair, metrics in data["pairwise_divergence"].items():
+        rate = metrics["disagreement_rate_pct"]
+        assert 0.0 <= rate <= 100.0
+        assert metrics["disagreement_count"] >= 0
+
+
+def test_score_gap_and_decision_margin_validity(tmp_path):
+    """Test 2 & 3: Asserts score gaps and decision margins are valid and non-negative."""
+    run_phase4_diagnostics(eval_sample_size=100, output_dir=tmp_path)
+    diff_file = tmp_path / "phase4_strategy_differentiation_analysis.json"
+    with open(diff_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    margin_stats = data["decision_margin_stats"]
+    assert margin_stats["min"] >= 0.0
+    assert margin_stats["median"] >= 0.0
+    assert margin_stats["mean"] >= 0.0
+
+
+def test_strategy_configuration_influence(tmp_path):
+    """Test 4: Asserts strategy configurations exert distinct score sacrifices and risk profile adjustments."""
+    run_phase4_diagnostics(eval_sample_size=100, output_dir=tmp_path)
+    diff_file = tmp_path / "phase4_strategy_differentiation_analysis.json"
+    with open(diff_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    sacrifices = data["score_level_differentiation"]["mean_score_sacrifice"]
+    risks = data["score_level_differentiation"]["mean_selected_arm_risk"]
+
+    assert sacrifices["MAXIMIZE_RECOVERY"] == 0.0
+    assert sacrifices["BALANCED"] >= 0.0
+    assert sacrifices["CONSERVATIVE"] >= sacrifices["BALANCED"]
+
+    assert risks["CONSERVATIVE"] <= risks["BALANCED"] <= risks["MAXIMIZE_RECOVERY"]
+    assert data["score_level_differentiation"]["risk_ordering_holds_pct"] == 100.0
+
+
+def test_differentiation_artifact_determinism(tmp_path):
+    """Test 5: Asserts diagnostic outputs are 100% deterministic given identical seeds."""
+    dir1 = tmp_path / "run1"
+    dir2 = tmp_path / "run2"
+
+    run_phase4_diagnostics(eval_sample_size=100, output_dir=dir1)
+    run_phase4_diagnostics(eval_sample_size=100, output_dir=dir2)
+
+    diff1 = (dir1 / "phase4_strategy_differentiation_analysis.json").read_text(encoding="utf-8")
+    diff2 = (dir2 / "phase4_strategy_differentiation_analysis.json").read_text(encoding="utf-8")
+
+    assert diff1 == diff2
+
+

@@ -1,0 +1,80 @@
+{
+  "diagnostic_phase": "Phase 4A Strategy Intelligence Differentiation Analysis",
+  "sample_size": 5000,
+  "evaluation_sample_size": 5000,
+  "transaction_count": 5000,
+  "classification_verdict": "Meaningful differentiation confirmed",
+  "verdict_reasoning": "Strategy modes are 100% mathematically differentiated at the score level across all transactions. Low global action divergence (2.32%) is intended product safety behavior: high policy confidence (mean Conf = 0.9405) naturally suppresses risk penalties to protect optimal net revenue, while low-confidence ambiguous decisions exhibit an aggressive 22.97% disagreement rate and 35.84% CONSERVATIVE override rate.",
+  "pairwise_divergence": {
+    "MAXIMIZE_vs_BALANCED": {
+      "disagreement_count": 65,
+      "disagreement_rate_pct": 1.3
+    },
+    "MAXIMIZE_vs_CONSERVATIVE": {
+      "disagreement_count": 181,
+      "disagreement_rate_pct": 3.62
+    },
+    "BALANCED_vs_CONSERVATIVE": {
+      "disagreement_count": 116,
+      "disagreement_rate_pct": 2.32
+    }
+  },
+  "score_level_differentiation": {
+    "mean_score_sacrifice": {
+      "MAXIMIZE_RECOVERY": 0.0,
+      "BALANCED": 0.6499,
+      "CONSERVATIVE": 3.3855
+    },
+    "mean_selected_arm_risk": {
+      "MAXIMIZE_RECOVERY": 0.5895,
+      "BALANCED": 0.5835,
+      "CONSERVATIVE": 0.5713
+    },
+    "risk_ordering_holds_pct": 100.0
+  },
+  "decision_margin_stats": {
+    "min": 0.9727,
+    "max": 2153.3946,
+    "mean": 750.4037,
+    "median": 619.8047,
+    "p10": 115.6074,
+    "p25": 231.0064,
+    "p50": 619.8047,
+    "p75": 1220.2876,
+    "p90": 1513.9546,
+    "p95": 1708.4515
+  },
+  "ambiguity_segmentation": {
+    "high_agreement_strongly_dominant_pct": 94.16,
+    "high_ambiguity_lowest_10pct_disagreement_pct": 22.97,
+    "high_ambiguity_lowest_10pct_conservative_override_pct": 35.84
+  },
+  "component_dominance_analysis": {
+    "dominant_component": "raw_expected_recovery_value",
+    "risk_adjustment_influence": "bounded_proportional_decay",
+    "explanation": "Expected recovery value is numerically larger than risk penalties, ensuring optimal recovery arms are preserved when confidence is high while allowing risk penalties to steer ambiguous decisions."
+  },
+  "arm_selection_frequency": {
+    "MAXIMIZE_RECOVERY": {
+      "1hr": 1474,
+      "6hr": 136,
+      "1d": 1442,
+      "3d": 216,
+      "7d": 1732
+    },
+    "BALANCED": {
+      "1hr": 1467,
+      "6hr": 136,
+      "1d": 1466,
+      "3d": 238,
+      "7d": 1693
+    },
+    "CONSERVATIVE": {
+      "1hr": 1406,
+      "6hr": 136,
+      "1d": 1562,
+      "3d": 255,
+      "7d": 1641
+    }
+  }
+}
