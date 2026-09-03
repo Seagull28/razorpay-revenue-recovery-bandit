@@ -248,7 +248,7 @@ class TestExpectedValueStoppingRule:
         Comparative Assertion: Under the new EV rule, do_not_honor's net revenue
         must be >= its net revenue under the old tau-decay rule over identical 3,000 transactions.
         """
-        from bandit_retry_scheduler.run_stopping_comparison import analyze_policy_audit
+        from bandit_retry_scheduler.evaluation.metrics import analyze_policy_audit
 
         generator = TransactionStreamGenerator(seed=42)
         transactions = generator.generate_stream(num_days=30, transactions_per_day=100)

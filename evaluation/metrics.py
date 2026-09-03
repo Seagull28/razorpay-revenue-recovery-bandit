@@ -368,3 +368,44 @@ def compute_drift_adaptation_metrics(
         "arms": arms,
         "sample_count": n,
     }
+
+
+def analyze_policy_audit(records: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+    """
+    Analyzes an audit record list to group metrics by failure code.
+    Returns dictionary mapping failure code to total_tx, recovered_tx, rec_rate_pct, gross_revenue, retry_cost, net_revenue, attempts.
+    """
+    by_code = defaultdict(lambda: {
+        "gross_revenue": 0.0,
+        "retry_cost": 0.0,
+        "attempts": 0,
+        "tx_ids": set(),
+        "recovered_ids": set(),
+    })
+    for r in records:
+        ctx = r["context_vector"] if isinstance(r, dict) else r.context_vector
+        code = ctx["failure_code"]
+        tx_id = r["transaction_id"] if isinstance(r, dict) else r.transaction_id
+        actual_outcome = r["actual_outcome"] if isinstance(r, dict) else r.actual_outcome
+        amount_recovered = r["amount_recovered"] if isinstance(r, dict) else r.amount_recovered
+
+        by_code[code]["tx_ids"].add(tx_id)
+        by_code[code]["attempts"] += 1
+        by_code[code]["retry_cost"] += 10.0
+        if actual_outcome == 1:
+            by_code[code]["recovered_ids"].add(tx_id)
+            by_code[code]["gross_revenue"] += amount_recovered
+
+    res = {}
+    for code, d in by_code.items():
+        res[code] = {
+            "total_tx": len(d["tx_ids"]),
+            "recovered_tx": len(d["recovered_ids"]),
+            "rec_rate_pct": len(d["recovered_ids"]) / len(d["tx_ids"]) * 100.0 if d["tx_ids"] else 0.0,
+            "gross_revenue": d["gross_revenue"],
+            "retry_cost": d["retry_cost"],
+            "net_revenue": d["gross_revenue"] - d["retry_cost"],
+            "attempts": d["attempts"],
+        }
+    return res
+
