@@ -11,7 +11,7 @@ from pathlib import Path
 
 def main():
     project_dir = Path(__file__).resolve().parent
-    output_zip = project_dir.parent / "bandit_retry_scheduler_phase5_tier3_final.zip"
+    output_zip = project_dir.parent / "bandit_retry_scheduler_submission_final.zip"
 
     ignore_dirs = {".git", "__pycache__", ".pytest_cache", ".streamlit", ".venv", "venv", "env", "tmp_extract", "scratch"}
     ignore_extensions = {".pyc", ".pyo", ".zip", ".tmp", ".log"}

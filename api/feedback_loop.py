@@ -1,6 +1,6 @@
 """
 feedback_loop.py
-Online Feedback Loop for RecoverFlow (Phase 5 Tier 2).
+Online Feedback Loop for RecoverFlow.
 Wires outcome results from execute_retry_action() back into the policy's update() method
 and logs completed transaction records in AuditLogger.
 """

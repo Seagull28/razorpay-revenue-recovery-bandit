@@ -1,6 +1,6 @@
 """
 decision_service.py
-Core Recovery Decision API for RecoverFlow (Phase 5 Tier 1).
+Core Recovery Decision API for RecoverFlow.
 Provides get_retry_decision() which integrates eligibility pre-checks,
 LinUCB policy evaluation, explainability engine, and audit logging.
 """

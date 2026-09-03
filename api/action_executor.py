@@ -1,6 +1,6 @@
 """
 action_executor.py
-Bounded Action Execution engine for RecoverFlow (Phase 5 Tier 2).
+Bounded Action Execution engine for RecoverFlow.
 Executes retry recommendations from get_retry_decision() against the simulator.
 Enforces safety boundaries so stopped decisions can NEVER trigger retry actions.
 """

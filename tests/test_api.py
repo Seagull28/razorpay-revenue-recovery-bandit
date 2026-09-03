@@ -1,6 +1,6 @@
 """
 test_api.py
-Unit tests for Phase 5 Tier 1 RecoverFlow Product API layer.
+Unit tests for RecoverFlow API layer.
 Verifies faithful delegation to existing policies, eligibility gate semantics,
 explainability generation, and audit logging integration.
 """

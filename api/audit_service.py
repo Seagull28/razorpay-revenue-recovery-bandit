@@ -1,6 +1,6 @@
 """
 audit_service.py
-Audit Trail API service for RecoverFlow (Phase 5 Tier 1).
+Audit Trail API service for RecoverFlow.
 Exposes the existing AuditLogger to query decision history and audit trails.
 """
 

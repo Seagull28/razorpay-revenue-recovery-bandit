@@ -1,5 +1,5 @@
 """
-RecoverFlow API package (Phase 5 Tier 1 Product Layer).
+RecoverFlow API package.
 Exposes eligibility checks, decision service, explainability generator, and audit trail.
 """
 

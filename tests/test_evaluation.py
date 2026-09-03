@@ -1,6 +1,6 @@
 """
 test_evaluation.py
-Unit and integration tests for Phase 4 evaluation harness, metrics, and visualization modules.
+Unit and integration tests for RecoverFlow evaluation harness, metrics, and visualization modules.
 """
 
 from pathlib import Path

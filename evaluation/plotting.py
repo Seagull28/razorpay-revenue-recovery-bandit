@@ -1,6 +1,6 @@
 """
 plotting.py
-Matplotlib visualization routines for Phase 4 Evaluation.
+Matplotlib visualization routines for RecoverFlow evaluation framework.
 Saves high-resolution PNG plots for report inclusion.
 """
 

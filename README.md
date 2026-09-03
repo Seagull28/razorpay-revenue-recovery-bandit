@@ -2,7 +2,7 @@
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Build Status](https://img.shields.io/badge/tests-65%20passed-brightgreen.svg)](tests/)
+[![Build Status](https://img.shields.io/badge/tests-70%20passed-brightgreen.svg)](tests/)
 
 > An intelligent, context-aware payment retry scheduling engine powered by **Disjoint Contextual LinUCB** bandit algorithms and bounded safety rules. Replaces fixed retry schedules with contextual decision-making to optimize net revenue recovery while minimizing retry overhead.
 
@@ -28,9 +28,9 @@ All benchmark comparisons are evaluated under **Common Random Numbers (CRN)** an
 
 ---
 
-## 🛡️ Phase 1 Evaluation Benchmark Policies
+## 🛡️ Benchmark Evaluation Policies
 
-The Phase 1 evaluation framework benchmark compares 5 distinct policies under strictly matched conditions:
+The evaluation framework benchmark compares 5 distinct policies under strictly matched conditions:
 
 1. **Fixed Schedule Baseline (`FixedSchedulePolicy`)**: Naive sequence (Attempt 1 $\to$ `1d`, Attempt 2 $\to$ `3d`, Attempt 3 $\to$ `7d`).
 2. **Best Static Arm Baseline (`BestStaticArmPolicy`)**: Frozen `Always 3d` arm selected via 5 held-out validation seeds (`[1001, 1002, 1003, 1004, 1005]`).
@@ -104,14 +104,7 @@ bandit_retry_scheduler/
 ├── policies/                   # Policy Implementations
 ├── runner/                     # Simulation Engine
 ├── simulator/                  # Synthetic Environment Engine
-│   └── stream_generator.py     # Synthetic Transaction Generator
-├── tests/                      # Pytest Unit Test Suite (70 Tests)
-│   └── test_no_ground_truth_leakage.py  # AST-Based Isolation Test
-├── verify_submission.py        # Single-Command Submission Verification Runner
-├── run_phase1_evaluation.py    # Phase 1 Evaluation CLI Harness
-├── dashboard.py                # Streamlit Merchant Interactive Dashboard
-├── requirements.txt            # Runtime Dependencies
-└── README.md                   # Submission Documentation
+└── tests/                      # Pytest Unit Test Suite (70 Tests)
 ```
 
 ---
@@ -119,7 +112,7 @@ bandit_retry_scheduler/
 ## ⚡ Quick Start & Evaluator Workflow
 
 ### Environment Compatibility
-- **Tested Python Version**: **Python 3.11.9** (Compatible with Python 3.9+)
+- **Tested Python Version**: **Python 3.11.9** (Intended compatibility: Python 3.9+)
 - **Operating Systems**: Windows, macOS, Linux
 
 ### 1. Clone & Enter Directory
@@ -144,7 +137,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Run Single-Command Submission Verification (Task 12)
+### 4. Run Single-Command Submission Verification
 ```bash
 python verify_submission.py
 ```
