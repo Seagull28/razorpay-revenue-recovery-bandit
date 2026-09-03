@@ -88,42 +88,24 @@ The Phase 1 evaluation framework benchmark compares 5 distinct policies under st
 
 ```text
 bandit_retry_scheduler/
+├── LICENSE                     # MIT License File
+├── pyproject.toml              # Python Package Configuration
+├── requirements.txt            # Runtime Dependencies
+├── README.md                   # Submission Documentation
+├── verify_submission.py        # Single-Command Submission Verification Runner
+├── run_phase1_evaluation.py    # Phase 1 Evaluation CLI Harness
+├── dashboard.py                # Streamlit Merchant Interactive Dashboard
+├── create_project_zip.py       # Submission Packaging Utility
+├── conftest.py                 # Pytest Root Package Resolver
 ├── api/                        # Production API Layer (Zero Ground-Truth Leakage)
-│   ├── eligibility.py          # Eligibility Gate & Safety Rule Check
-│   ├── decision_service.py     # Bandit Decision & Scoring Pipeline
-│   ├── explainability.py       # Business Explanation Generator
-│   ├── action_executor.py      # Bounded Execution & Safety Gate
-│   ├── feedback_loop.py        # Online Policy Parameter Updater
-│   └── audit_service.py        # Audit Trail & Logging Service
 ├── audit/                      # Evaluation Reports & Plot Artifacts
-│   └── evaluation_results/phase1/
-│       ├── phase1_static_arm_validation.json
-│       ├── phase1_per_seed_results.json
-│       ├── phase1_per_seed_results.csv
-│       ├── phase1_summary.json
-│       ├── phase1_paired_comparisons.json
-│       └── PHASE1_EVALUATION_REPORT.md
 ├── core/                       # Neutral Context Utilities
-│   └── context_utils.py        # Deterministic Bucket Transformers
 ├── evaluation/                 # Formal Evaluation Suite & Oracle
-│   ├── harness.py              # Base Evaluation Harness
-│   ├── metrics.py              # Performance & Regret Metrics
-│   ├── plotting.py             # Plot Rendering Module
-│   └── oracle.py               # Isolated Evaluation Oracle Policy
 ├── policies/                   # Policy Implementations
-│   ├── base.py                 # Abstract Base Policy Interface
-│   ├── fixed_schedule.py       # Baseline (1d -> 3d -> 7d)
-│   ├── linucb.py               # Disjoint LinUCB Policy Implementation
-│   ├── static_arm.py           # Static Arm & Best Static Arm Policies
-│   └── heuristic.py            # Contextual Heuristic Policy
 ├── runner/                     # Simulation Engine
-│   └── engine.py               # Policy Execution Engine with CRN Support
 ├── simulator/                  # Synthetic Environment Engine
-│   ├── config.py               # Domain Enums & Constants
-│   ├── environment.py          # Retry Simulator with CRN Support
-│   ├── ground_truth.py         # Ground-Truth Recovery Probabilities (Isolated)
 │   └── stream_generator.py     # Synthetic Transaction Generator
-├── tests/                      # Pytest Unit Test Suite (65 Tests)
+├── tests/                      # Pytest Unit Test Suite (70 Tests)
 │   └── test_no_ground_truth_leakage.py  # AST-Based Isolation Test
 ├── verify_submission.py        # Single-Command Submission Verification Runner
 ├── run_phase1_evaluation.py    # Phase 1 Evaluation CLI Harness

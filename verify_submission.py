@@ -15,9 +15,18 @@ import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
+import types
+
 PROJECT_ROOT = Path(__file__).resolve().parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 if str(PROJECT_ROOT.parent) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT.parent))
+
+if "bandit_retry_scheduler" not in sys.modules:
+    mod = types.ModuleType("bandit_retry_scheduler")
+    mod.__path__ = [str(PROJECT_ROOT)]
+    sys.modules["bandit_retry_scheduler"] = mod
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -32,14 +41,16 @@ def run_check_environment() -> Tuple[bool, str]:
     v = sys.version_info
     if v < (3, 9):
         return False, f"Python version {v.major}.{v.minor} is below minimum required 3.9!"
-    return True, f"Python {v.major}.{v.minor}.{v.micro} verified (Supported: Python 3.9+)."
+    return True, f"Python {v.major}.{v.minor}.{v.micro} verified (Tested on Python 3.11.9, Intended compatibility: Python 3.9+)."
 
 
 def run_check_repository_structure() -> Tuple[bool, str]:
     """Stage 2: Verify all required production files and directories exist."""
     required_files = [
         "README.md",
+        "LICENSE",
         "requirements.txt",
+        "pyproject.toml",
         "dashboard.py",
         "run_phase1_evaluation.py",
         "create_project_zip.py",
@@ -110,7 +121,11 @@ def run_check_full_test_suite() -> Tuple[bool, str]:
     res = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True, env=_get_env())
     if res.returncode != 0:
         return False, f"Pytest suite failed!\nOutput:\n{res.stdout}\n{res.stderr}"
-    return True, "Full regression test suite passed cleanly with 0 failures."
+    
+    # Parse actual test count dynamically
+    summary_line = [line for line in res.stdout.splitlines() if "passed" in line]
+    passed_msg = summary_line[-1].strip() if summary_line else "All tests passed"
+    return True, f"Full regression test suite passed cleanly ({passed_msg})."
 
 
 def run_check_benchmark_execution() -> Tuple[bool, str]:

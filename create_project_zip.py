@@ -1,7 +1,7 @@
 """
 create_project_zip.py
-Exports a clean zip archive of the complete bandit_retry_scheduler codebase
-including dashboard.py, evaluation reports, plots, and tests.
+Exports a clean, portable ZIP archive of the complete bandit_retry_scheduler codebase.
+Archives all project files under a single top-level `bandit_retry_scheduler/` directory.
 Includes built-in ZIP member validation asserting 0 forbidden cache/git files.
 """
 
@@ -13,11 +13,11 @@ def main():
     project_dir = Path(__file__).resolve().parent
     output_zip = project_dir.parent / "bandit_retry_scheduler_phase5_tier3_final.zip"
 
-    ignore_dirs = {".git", "__pycache__", ".pytest_cache", ".streamlit", ".venv", "venv", "env"}
+    ignore_dirs = {".git", "__pycache__", ".pytest_cache", ".streamlit", ".venv", "venv", "env", "tmp_extract", "scratch"}
     ignore_extensions = {".pyc", ".pyo", ".zip", ".tmp", ".log"}
 
     print("====================================================================================================")
-    print("CREATING PROJECT ZIP ARCHIVE FOR INDEPENDENT VERIFICATION")
+    print("CREATING PORTABLE SUBMISSION ZIP ARCHIVE FOR INDEPENDENT VERIFICATION")
     print("====================================================================================================\n")
 
     file_count = 0
@@ -31,25 +31,36 @@ def main():
                 if file_path == output_zip or file_path.name.endswith(".zip"):
                     continue
                 rel_path = file_path.relative_to(project_dir)
-                zf.write(file_path, arcname=str(rel_path))
+                arcname = str(Path("bandit_retry_scheduler") / rel_path)
+                zf.write(file_path, arcname=arcname)
                 file_count += 1
 
     # ZIP Member Validation
     forbidden_terms = [".git", "__pycache__", ".pytest_cache", ".pyc", ".venv", "venv"]
     invalid_members = []
+    has_top_level = True
+
     with zipfile.ZipFile(output_zip, "r") as zf:
-        for member in zf.namelist():
+        members = zf.namelist()
+        for member in members:
+            # Verify single top-level directory
+            if not member.startswith("bandit_retry_scheduler/"):
+                has_top_level = False
+                invalid_members.append(f"Non-top-level entry: {member}")
+            
+            # Verify forbidden items
+            parts = member.split("/")
             for term in forbidden_terms:
-                if term in member.split("/") or member.endswith(".pyc") or member.endswith(".zip"):
+                if term in parts or member.endswith(".pyc") or member.endswith(".zip"):
                     invalid_members.append(member)
 
-    if invalid_members:
-        print(f"[FAIL] ZIP VALIDATION FAILED! Found {len(invalid_members)} forbidden files in archive:")
+    if invalid_members or not has_top_level:
+        print(f"[FAIL] ZIP VALIDATION FAILED! Found {len(invalid_members)} validation errors:")
         for m in invalid_members[:10]:
             print(f"   - {m}")
         raise ValueError("ZIP Validation Failed!")
     else:
-        print("[PASS] ZIP VALIDATION PASSED (0 forbidden git/cache/zip entries found)")
+        print("[PASS] ZIP VALIDATION PASSED (Single top-level 'bandit_retry_scheduler/' folder, 0 forbidden git/cache/zip entries)")
 
     stat = output_zip.stat()
     print(f"Archive Created : {output_zip.absolute()}")
