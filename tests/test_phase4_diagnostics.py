@@ -1,13 +1,14 @@
 """
 test_phase4_diagnostics.py
-Unit tests for Phase 4A Strategy Intelligence Diagnostic Harness, provenance metadata, experimental isolation, and documentation consistency.
-Verifies determinism, non-mutation of production config, provenance metadata structure, experimental directory safety, git fallback behavior, and README references.
+Unit tests for Phase 4A Strategy Intelligence Diagnostic Harness, provenance metadata, experimental isolation, dynamic runtime validation, and documentation consistency.
+Verifies determinism, non-mutation of production config, provenance metadata structure, experimental directory safety, git fallback behavior, and cross-Python reproducibility.
 """
 
 import pytest
 import json
 import sys
 import shutil
+import re
 import numpy as np
 from pathlib import Path
 from bandit_retry_scheduler.run_phase4_strategy_diagnostics import (
@@ -62,38 +63,92 @@ def test_warmed_evaluation_policy_determinism():
     assert pytest.approx(score1) == score2
 
 
-def test_test_a_canonical_default_execution():
-    """Test A: Canonical default uses 5000 transactions and canonical output paths."""
+def test_historical_artifact_provenance():
+    """Test A: Validates checked-in historical canonical metadata artifact schema without binding to active pytest Python version."""
     canonical_dir = PROJECT_ROOT / "audit" / "evaluation_results" / "phase4_strategy_diagnostics"
     meta_path = canonical_dir / "phase4_run_metadata.json"
     summary_path = canonical_dir / "phase4_strategy_summary.json"
 
-    # Verify canonical files exist
     assert summary_path.exists()
     assert meta_path.exists()
 
     with open(meta_path, "r", encoding="utf-8") as f:
         meta = json.load(f)
 
+    assert meta["phase"] == "Phase 4A Strategy Intelligence Validation"
+    assert meta["run_mode"] == "canonical"
+    assert meta["diagnostic_script"] == "run_phase4_strategy_diagnostics.py"
     assert meta["transaction_count"] == CANONICAL_PHASE4_SAMPLE_SIZE
     assert meta["evaluation_sample_size"] == CANONICAL_PHASE4_SAMPLE_SIZE
     assert meta["sample_size"] == CANONICAL_PHASE4_SAMPLE_SIZE
-    assert meta["run_mode"] == "canonical"
+    assert meta["configuration_fingerprint"] == "0580358a30ba"
+    assert meta["primary_validation_environment"] == "Python 3.11.9"
+    assert meta["intended_compatibility"] == "Python 3.9+"
+
+    # Historical provenance must contain a valid version string format (e.g. 3.x.y)
+    assert "python_version" in meta
+    assert isinstance(meta["python_version"], str)
+    assert re.match(r"^\d+\.\d+\.\d+", meta["python_version"]) is not None
+
+    assert "git_commit" in meta
+    assert meta["git_commit"] is not None
+    assert "git_metadata_available" in meta
 
 
-def test_test_b_experimental_isolation():
-    """Test B: Non-canonical sample size (20) writes to experimental directory and DOES NOT overwrite canonical summary."""
-    canonical_summary = PROJECT_ROOT / "audit" / "evaluation_results" / "phase4_strategy_diagnostics" / "phase4_strategy_summary.json"
+def test_dynamic_runtime_metadata_validation(tmp_path):
+    """Test B: Generates fresh metadata in a temp directory and asserts that metadata dynamically captures active pytest Python interpreter."""
+    run_phase4_diagnostics(eval_sample_size=100, output_dir=tmp_path)
+
+    meta_file = tmp_path / "phase4_run_metadata.json"
+    assert meta_file.exists()
+
+    with open(meta_file, "r", encoding="utf-8") as f:
+        meta = json.load(f)
+
+    expected_py = sys.version.split()[0]
+    assert meta["python_version"] == expected_py
+    assert meta["primary_validation_environment"] == "Python 3.11.9"
+    assert meta["intended_compatibility"] == "Python 3.9+"
+    assert meta["transaction_count"] == 100
+    assert meta["run_mode"] == "experimental"
+
+
+def test_canonical_artifact_immutability_during_pytest(tmp_path):
+    """Test C: Asserts that executing diagnostics with isolated output_dir does NOT alter checked-in canonical artifacts."""
+    meta_path = PROJECT_ROOT / "audit" / "evaluation_results" / "phase4_strategy_diagnostics" / "phase4_run_metadata.json"
+    summary_path = PROJECT_ROOT / "audit" / "evaluation_results" / "phase4_strategy_diagnostics" / "phase4_strategy_summary.json"
+
+    with open(meta_path, "r", encoding="utf-8") as f:
+        orig_meta_content = f.read()
+    with open(summary_path, "r", encoding="utf-8") as f:
+        orig_summary_content = f.read()
+
+    # Execute diagnostic harness targeting temp directory
+    run_phase4_diagnostics(eval_sample_size=5000, output_dir=tmp_path)
+
+    # Assert canonical files in audit/ remain 100% identical
+    with open(meta_path, "r", encoding="utf-8") as f:
+        after_meta_content = f.read()
+    with open(summary_path, "r", encoding="utf-8") as f:
+        after_summary_content = f.read()
+
+    assert orig_meta_content == after_meta_content
+    assert orig_summary_content == after_summary_content
+
+
+def test_experimental_isolation_safety():
+    """Test D: Non-canonical sample size (20) writes to experimental directory and DOES NOT overwrite canonical summary."""
+    canonical_dir = PROJECT_ROOT / "audit" / "evaluation_results" / "phase4_strategy_diagnostics"
+    canonical_summary = canonical_dir / "phase4_strategy_summary.json"
     assert canonical_summary.exists()
 
     with open(canonical_summary, "r", encoding="utf-8") as f:
         orig_data = json.load(f)
 
-    orig_sample_size = orig_data["sample_size"]
-    assert orig_sample_size == CANONICAL_PHASE4_SAMPLE_SIZE
+    assert orig_data["sample_size"] == CANONICAL_PHASE4_SAMPLE_SIZE
 
     # Run non-canonical experimental run with sample size 20
-    exp_dir = PROJECT_ROOT / "audit" / "evaluation_results" / "phase4_strategy_diagnostics" / "experimental" / "sample_size_20"
+    exp_dir = canonical_dir / "experimental" / "sample_size_20"
     if exp_dir.exists():
         shutil.rmtree(exp_dir)
 
@@ -117,29 +172,13 @@ def test_test_b_experimental_isolation():
     assert canonical_after["sample_size"] == CANONICAL_PHASE4_SAMPLE_SIZE
     assert canonical_after["run_mode"] == "canonical"
 
-
-def test_test_c_canonical_metadata_structure():
-    """Test C: Canonical metadata contains transaction_count = 5000, run_mode = canonical."""
-    meta_path = PROJECT_ROOT / "audit" / "evaluation_results" / "phase4_strategy_diagnostics" / "phase4_run_metadata.json"
-    assert meta_path.exists()
-
-    with open(meta_path, "r", encoding="utf-8") as f:
-        meta = json.load(f)
-
-    assert meta["phase"] == "Phase 4A Strategy Intelligence Validation"
-    assert meta["run_mode"] == "canonical"
-    assert meta["diagnostic_script"] == "run_phase4_strategy_diagnostics.py"
-    assert meta["transaction_count"] == 5000
-    assert meta["evaluation_sample_size"] == 5000
-    assert meta["sample_size"] == 5000
-    assert meta["configuration_fingerprint"] == "0580358a30ba"
-    assert "git_commit" in meta
-    assert meta["git_commit"] is not None
-    assert "git_metadata_available" in meta
+    # Assert ValueError when trying to overwrite canonical directory with sample_size != 5000
+    with pytest.raises(ValueError, match="strictly forbidden"):
+        run_phase4_diagnostics(eval_sample_size=20, output_dir=canonical_dir)
 
 
-def test_test_d_git_fallback_behavior():
-    """Test D: Git fallback returns unavailable_in_source_archive and git_metadata_available == False when git fails."""
+def test_git_fallback_behavior():
+    """Test E: Git fallback returns unavailable_in_source_archive and git_metadata_available == False when git fails."""
     commit_hash, git_avail = get_git_commit_info()
     assert commit_hash is not None
     assert isinstance(git_avail, bool)
@@ -149,20 +188,8 @@ def test_test_d_git_fallback_behavior():
         assert git_avail is False
 
 
-def test_test_e_runtime_python_version_dynamic():
-    """Test E: Metadata captures actual executing interpreter version dynamically."""
-    meta_path = PROJECT_ROOT / "audit" / "evaluation_results" / "phase4_strategy_diagnostics" / "phase4_run_metadata.json"
-    with open(meta_path, "r", encoding="utf-8") as f:
-        meta = json.load(f)
-
-    expected_py = sys.version.split()[0]
-    assert meta["python_version"] == expected_py
-    assert meta["primary_validation_environment"] == "Python 3.11.9"
-    assert meta["intended_compatibility"] == "Python 3.9+"
-
-
-def test_test_f_readme_and_report_discoverability():
-    """Test F: README and canonical reports contain valid discoverability and test count assertions."""
+def test_readme_and_report_discoverability():
+    """Test F: README and canonical reports contain valid discoverability references."""
     readme_path = PROJECT_ROOT / "README.md"
     assert readme_path.exists()
     content = readme_path.read_text(encoding="utf-8")

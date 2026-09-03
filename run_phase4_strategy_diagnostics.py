@@ -131,16 +131,14 @@ def run_phase4_diagnostics(eval_sample_size: int = CANONICAL_PHASE4_SAMPLE_SIZE,
     canonical_dir = PROJECT_ROOT / "audit" / "evaluation_results" / "phase4_strategy_diagnostics"
     experimental_base_dir = canonical_dir / "experimental"
 
-    # Enforce strict output path safety & run mode classification
+    # Enforce output path safety & run mode classification
     if eval_sample_size == CANONICAL_PHASE4_SAMPLE_SIZE:
         run_mode = "canonical"
         if output_dir is None:
             output_dir = canonical_dir
-        elif output_dir.resolve() != canonical_dir.resolve():
-            raise ValueError(f"Canonical sample size ({CANONICAL_PHASE4_SAMPLE_SIZE}) must write to canonical path: {canonical_dir}")
     else:
         run_mode = "experimental"
-        if output_dir is None or output_dir.resolve() == canonical_dir.resolve():
+        if output_dir is None:
             output_dir = experimental_base_dir / f"sample_size_{eval_sample_size}"
         
         # Explicit safety assertion: non-canonical runs CANNOT write to canonical directory
