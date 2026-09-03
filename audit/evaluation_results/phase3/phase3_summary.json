@@ -1,0 +1,50 @@
+{
+  "evaluation_phase": "Phase 3 Product Differentiation & Intelligence",
+  "sample_size": 500,
+  "strategy_modes_evaluated": [
+    "MAXIMIZE_RECOVERY",
+    "BALANCED",
+    "CONSERVATIVE"
+  ],
+  "metrics": {
+    "MAXIMIZE_RECOVERY": {
+      "strategy_distribution": {
+        "1hr": 500
+      },
+      "stability_distribution": {
+        "UNSTABLE": 500
+      },
+      "risk_distribution": {
+        "MEDIUM": 426,
+        "HIGH": 74
+      },
+      "mode_shift_rate_vs_raw": 0.0
+    },
+    "BALANCED": {
+      "strategy_distribution": {
+        "1hr": 500
+      },
+      "stability_distribution": {
+        "UNSTABLE": 500
+      },
+      "risk_distribution": {
+        "MEDIUM": 426,
+        "HIGH": 74
+      },
+      "mode_shift_rate_vs_raw": 0.0
+    },
+    "CONSERVATIVE": {
+      "strategy_distribution": {
+        "6hr": 500
+      },
+      "stability_distribution": {
+        "UNSTABLE": 500
+      },
+      "risk_distribution": {
+        "MEDIUM": 426,
+        "HIGH": 74
+      },
+      "mode_shift_rate_vs_raw": 1.0
+    }
+  }
+}

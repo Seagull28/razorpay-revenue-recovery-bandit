@@ -1,0 +1,157 @@
+"""
+strategy.py
+Recovery Strategy Intelligence Engine for RecoverFlow.
+Maps raw retry arm choices into human-readable recovery strategies, calculates
+decision confidence based on score separation, classifies decision stability,
+and ranks alternative retry strategies.
+"""
+
+from enum import Enum
+from typing import Any, Dict, List, Tuple
+
+class StrategyCategory(str, Enum):
+    IMMEDIATE_RECOVERY = "IMMEDIATE_RECOVERY"
+    FAST_RETRY = "FAST_RETRY"
+    BALANCED_RETRY = "BALANCED_RETRY"
+    PATIENT_RECOVERY = "PATIENT_RECOVERY"
+    LAST_CHANCE_RECOVERY = "LAST_CHANCE_RECOVERY"
+
+
+# Configurable mapping from retry delay arms to strategy categories
+RETRY_ARM_TO_STRATEGY: Dict[str, StrategyCategory] = {
+    "1hr": StrategyCategory.IMMEDIATE_RECOVERY,
+    "6hr": StrategyCategory.FAST_RETRY,
+    "1d": StrategyCategory.BALANCED_RETRY,
+    "3d": StrategyCategory.PATIENT_RECOVERY,
+    "7d": StrategyCategory.LAST_CHANCE_RECOVERY,
+}
+
+STRATEGY_METADATA: Dict[StrategyCategory, Dict[str, str]] = {
+    StrategyCategory.IMMEDIATE_RECOVERY: {
+        "title": "Immediate Recovery",
+        "description": "Retries quickly within 1 hour to capture transient gateway timeouts while customer intent is high.",
+    },
+    StrategyCategory.FAST_RETRY: {
+        "title": "Fast Retry",
+        "description": "Retries within 6 hours to allow short-term bank network congestion or temporary system holds to clear.",
+    },
+    StrategyCategory.BALANCED_RETRY: {
+        "title": "Balanced Retry",
+        "description": "Retries after 1 day to balance recovery odds against customer account updates and daily processing cycles.",
+    },
+    StrategyCategory.PATIENT_RECOVERY: {
+        "title": "Patient Recovery",
+        "description": "Allows 3 days for customer funds or salary credit cycles to replenish before retrying.",
+    },
+    StrategyCategory.LAST_CHANCE_RECOVERY: {
+        "title": "Last Chance Recovery",
+        "description": "Waits 7 days as a final extended window for high-friction decline codes before exhausting retries.",
+    },
+}
+
+# Stability Threshold Constants
+STABLE_THRESHOLD: float = 0.15
+MODERATE_THRESHOLD: float = 0.05
+
+
+def get_strategy_category(retry_delay: str) -> StrategyCategory:
+    """Returns the StrategyCategory for a given retry delay arm."""
+    return RETRY_ARM_TO_STRATEGY.get(retry_delay, StrategyCategory.BALANCED_RETRY)
+
+
+def get_strategy_metadata(retry_delay: str) -> Dict[str, str]:
+    """Returns human-readable title and description for a retry delay arm."""
+    category = get_strategy_category(retry_delay)
+    meta = STRATEGY_METADATA.get(category, {}).copy()
+    meta["strategy"] = category.value
+    meta["retry_delay"] = retry_delay
+    return meta
+
+
+def calculate_decision_confidence(arm_scores: Dict[str, Any]) -> Tuple[float, str]:
+    """
+    Calculates decision confidence from score gap between top two candidate arms.
+    Confidence represents relative score separation between candidate retry windows (0.0 to 1.0),
+    NOT guaranteed payment recovery probability.
+    """
+    if not arm_scores:
+        return 0.50, "Relative separation between leading retry candidates"
+
+    # Extract score values
+    scores = []
+    for arm, details in arm_scores.items():
+        if isinstance(details, dict):
+            val = details.get("score", details.get("ucb_score", 0.0))
+        elif isinstance(details, (int, float)):
+            val = float(details)
+        else:
+            val = 0.0
+        scores.append(val)
+
+    if len(scores) < 2:
+        return 1.0, "Single candidate arm evaluated"
+
+    scores.sort(reverse=True)
+    top_score = scores[0]
+    second_score = scores[1]
+
+    # Score gap calculation
+    raw_gap = top_score - second_score
+    # Normalize gap using standard scaling factor (0.30 gap yields max confidence 1.0)
+    confidence = min(1.0, max(0.0, raw_gap / 0.30))
+    confidence_rounded = round(float(confidence), 2)
+    
+    interpretation = "Relative separation between leading retry candidates"
+    return confidence_rounded, interpretation
+
+
+def classify_decision_stability(confidence_score: float, score_gap: float = None) -> str:
+    """
+    Classifies decision stability based on score gap or confidence score.
+    Returns: 'STABLE', 'MODERATELY_STABLE', or 'UNSTABLE'.
+    """
+    gap = score_gap if score_gap is not None else (confidence_score * 0.30)
+    if gap >= STABLE_THRESHOLD:
+        return "STABLE"
+    elif gap >= MODERATE_THRESHOLD:
+        return "MODERATELY_STABLE"
+    else:
+        return "UNSTABLE"
+
+
+def get_alternative_strategies(arm_scores: Dict[str, Any], selected_arm: str) -> List[Dict[str, Any]]:
+    """
+    Returns ranked alternative candidate retry strategies sorted by policy score.
+    The selected arm will be rank 1.
+    """
+    if not arm_scores:
+        return []
+
+    parsed = []
+    for arm, details in arm_scores.items():
+        if isinstance(details, dict):
+            score = float(details.get("score", details.get("ucb_score", 0.0)))
+        elif isinstance(details, (int, float)):
+            score = float(details)
+        else:
+            score = 0.0
+        
+        category = get_strategy_category(arm)
+        meta = STRATEGY_METADATA.get(category, {})
+        parsed.append({
+            "retry_delay": arm,
+            "strategy": category.value,
+            "title": meta.get("title", arm),
+            "score": round(score, 4),
+            "is_selected": (arm == selected_arm),
+        })
+
+    # Sort descending by score
+    parsed.sort(key=lambda x: x["score"], reverse=True)
+
+    ranked = []
+    for idx, item in enumerate(parsed, start=1):
+        item["rank"] = idx
+        ranked.append(item)
+
+    return ranked

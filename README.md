@@ -2,7 +2,7 @@
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Build Status](https://img.shields.io/badge/tests-70%20passed-brightgreen.svg)](tests/)
+[![Build Status](https://img.shields.io/badge/tests-83%20passed-brightgreen.svg)](tests/)
 
 > An intelligent, context-aware payment retry scheduling engine powered by **Disjoint Contextual LinUCB** bandit algorithms and bounded safety rules. Replaces fixed retry schedules with contextual decision-making to optimize net revenue recovery while minimizing retry overhead.
 
@@ -84,6 +84,26 @@ The evaluation framework benchmark compares 5 distinct policies under strictly m
 
 ---
 
+## 🧠 Phase 3: Product Differentiation & Intelligence Layer
+
+RecoverFlow includes three major merchant-facing intelligence capabilities:
+
+1. **Recovery Strategy Intelligence (`core/strategy.py`)**:
+   - Maps raw retry arm choices (`1hr`, `6hr`, `1d`, `3d`, `7d`) into human-readable strategy categories (`IMMEDIATE_RECOVERY`, `FAST_RETRY`, `BALANCED_RETRY`, `PATIENT_RECOVERY`, `LAST_CHANCE_RECOVERY`).
+   - Calculates **Decision Separation Confidence (0.0 to 1.0)** based on score gap between top candidate retry windows.
+   - Classifies **Decision Stability** (`STABLE`, `MODERATELY_STABLE`, `UNSTABLE`) with deterministic thresholding.
+   - Ranks alternative retry strategies with relative policy scores.
+
+2. **Risk-Aware Recovery Intelligence (`core/risk.py`)**:
+   - Implements merchant **Strategy Modes** (`MAXIMIZE_RECOVERY`, `BALANCED`, `CONSERVATIVE`) without altering the underlying LinUCB policy.
+   - Computes structured **Risk Profiles** (`risk_score`, `risk_level`, `risk_factors`) using strictly observable context.
+
+3. **Merchant Recovery Insights & Opportunity Scoring (`analytics/recovery_insights.py`)**:
+   - Aggregates transaction outcomes across observable context dimensions (`failure_code`, `amount_bucket`, `bank`, `day_of_month_bucket`).
+   - Computes a normalized **Recovery Opportunity Score (0 to 100)** to identify high-value prioritization targets.
+
+---
+
 ## 📂 Project Structure
 
 ```text
@@ -94,17 +114,24 @@ bandit_retry_scheduler/
 ├── README.md                   # Submission Documentation
 ├── verify_submission.py        # Single-Command Submission Verification Runner
 ├── run_phase1_evaluation.py    # Phase 1 Evaluation CLI Harness
-├── dashboard.py                # Streamlit Merchant Interactive Dashboard
+├── run_phase3_evaluation.py    # Phase 3 Product Intelligence CLI Harness
+├── dashboard.py                # Streamlit Merchant Control Center Dashboard
 ├── create_project_zip.py       # Submission Packaging Utility
 ├── conftest.py                 # Pytest Root Package Resolver
+├── analytics/                  # Merchant Recovery Insights & Opportunity Scoring Engine
 ├── api/                        # Production API Layer (Zero Ground-Truth Leakage)
+│   └── intelligence_service.py # Phase 3 Recovery Intelligence API
 ├── audit/                      # Evaluation Reports & Plot Artifacts
-├── core/                       # Neutral Context Utilities
+│   ├── evaluation_results/phase1/  # Canonical Phase 1 Artifacts
+│   └── evaluation_results/phase3/  # Phase 3 Intelligence Evaluation Artifacts
+├── core/                       # Recovery Strategy & Risk Intelligence Engines
+│   ├── strategy.py             # Strategy Classification & Confidence Engine
+│   └── risk.py                 # Risk Profiling & Strategy Mode Engine
 ├── evaluation/                 # Formal Evaluation Suite & Oracle
 ├── policies/                   # Policy Implementations
 ├── runner/                     # Simulation Engine
 ├── simulator/                  # Synthetic Environment Engine
-└── tests/                      # Pytest Unit Test Suite (70 Tests)
+└── tests/                      # Pytest Unit Test Suite (83 Tests)
 ```
 
 ---
