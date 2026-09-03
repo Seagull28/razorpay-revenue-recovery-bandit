@@ -1,441 +1,160 @@
 {
   "sample_size": 500,
-  "summary_statistics": {
-    "score_gap_stats": {
-      "min": 0.0,
-      "max": 0.0,
-      "mean": 0.0,
-      "median": 0.0,
-      "p25": 0.0,
-      "p50": 0.0,
-      "p75": 0.0,
-      "p90": 0.0,
-      "p95": 0.0
+  "policy_warmed": true,
+  "score_gap_stats": {
+    "min": 3.32,
+    "max": 2111.19,
+    "mean": 743.92,
+    "median": 593.14,
+    "p25": 230.21,
+    "p50": 593.14,
+    "p75": 1231.38,
+    "p90": 1533.9,
+    "p95": 1697.23
+  },
+  "confidence_stats": {
+    "min": 0.0221,
+    "max": 1.0,
+    "mean": 0.9282,
+    "median": 1.0,
+    "p25": 1.0,
+    "p50": 1.0,
+    "p75": 1.0,
+    "p90": 1.0,
+    "p95": 1.0
+  },
+  "stability_distribution": {
+    "STABLE": 458,
+    "MODERATELY_STABLE": 26,
+    "UNSTABLE": 16
+  },
+  "mode_shift_rates": {
+    "balanced": 0.012,
+    "conservative": 0.03
+  },
+  "arm_distribution": {
+    "MAXIMIZE_RECOVERY": {
+      "1d": 153,
+      "7d": 166,
+      "1hr": 155,
+      "3d": 15,
+      "6hr": 11
     },
-    "confidence_stats": {
-      "min": 0.0,
-      "max": 0.0,
-      "mean": 0.0,
-      "median": 0.0,
-      "p25": 0.0,
-      "p50": 0.0,
-      "p75": 0.0,
-      "p90": 0.0,
-      "p95": 0.0
+    "BALANCED": {
+      "1d": 151,
+      "7d": 165,
+      "1hr": 154,
+      "3d": 20,
+      "6hr": 10
     },
-    "balanced_shift_rate": 0.0,
-    "conservative_shift_rate": 1.0
+    "CONSERVATIVE": {
+      "1d": 158,
+      "7d": 165,
+      "1hr": 145,
+      "3d": 20,
+      "6hr": 12
+    }
   },
   "first_10_transactions_detail": [
     {
       "transaction_index": 0,
-      "transaction_id": "tx_eb819333b5",
-      "failure_code": "generic_decline",
-      "raw_scores": {
-        "1hr": 2.2913,
-        "6hr": 2.2913,
-        "1d": 2.2913,
-        "3d": 2.2913,
-        "7d": 2.2913
-      },
-      "sorted_ranking": [
-        "1hr",
-        "6hr",
-        "1d",
-        "3d",
-        "7d"
-      ],
-      "top_score": 2.2913,
-      "second_score": 2.2913,
-      "raw_score_gap": 0.0,
-      "confidence": 0.0,
-      "stability": "UNSTABLE",
-      "raw_selected_arm": "1hr",
-      "balanced_selected_arm": "1hr",
-      "balanced_adjusted_scores": {
-        "1hr": 2.0622,
-        "6hr": 2.0622,
-        "1d": 2.0622,
-        "3d": 2.0622,
-        "7d": 2.0622
-      },
-      "conservative_selected_arm": "6hr",
-      "conservative_adjusted_scores": {
-        "1hr": 1.5685,
-        "6hr": 1.7185,
-        "1d": 1.7185,
-        "3d": 1.7185,
-        "7d": 1.5685
-      }
+      "transaction_id": "tx_25459a9ed8",
+      "failure_code": "card_expired",
+      "raw_selected_arm": "1d",
+      "balanced_selected_arm": "1d",
+      "conservative_selected_arm": "1d",
+      "confidence": 1.0,
+      "decision_stability": "STABLE"
     },
     {
       "transaction_index": 1,
-      "transaction_id": "tx_2f0ddac2af",
-      "failure_code": "generic_decline",
-      "raw_scores": {
-        "1hr": 2.2913,
-        "6hr": 2.2913,
-        "1d": 2.2913,
-        "3d": 2.2913,
-        "7d": 2.2913
-      },
-      "sorted_ranking": [
-        "1hr",
-        "6hr",
-        "1d",
-        "3d",
-        "7d"
-      ],
-      "top_score": 2.2913,
-      "second_score": 2.2913,
-      "raw_score_gap": 0.0,
-      "confidence": 0.0,
-      "stability": "UNSTABLE",
-      "raw_selected_arm": "1hr",
-      "balanced_selected_arm": "1hr",
-      "balanced_adjusted_scores": {
-        "1hr": 2.0622,
-        "6hr": 2.0622,
-        "1d": 2.0622,
-        "3d": 2.0622,
-        "7d": 2.0622
-      },
-      "conservative_selected_arm": "6hr",
-      "conservative_adjusted_scores": {
-        "1hr": 1.5685,
-        "6hr": 1.7185,
-        "1d": 1.7185,
-        "3d": 1.7185,
-        "7d": 1.5685
-      }
+      "transaction_id": "tx_19838cdecd",
+      "failure_code": "insufficient_funds",
+      "raw_selected_arm": "7d",
+      "balanced_selected_arm": "7d",
+      "conservative_selected_arm": "7d",
+      "confidence": 0.9562,
+      "decision_stability": "STABLE"
     },
     {
       "transaction_index": 2,
-      "transaction_id": "tx_afbf4ce3e3",
-      "failure_code": "do_not_honor",
-      "raw_scores": {
-        "1hr": 2.2913,
-        "6hr": 2.2913,
-        "1d": 2.2913,
-        "3d": 2.2913,
-        "7d": 2.2913
-      },
-      "sorted_ranking": [
-        "1hr",
-        "6hr",
-        "1d",
-        "3d",
-        "7d"
-      ],
-      "top_score": 2.2913,
-      "second_score": 2.2913,
-      "raw_score_gap": 0.0,
-      "confidence": 0.0,
-      "stability": "UNSTABLE",
-      "raw_selected_arm": "1hr",
-      "balanced_selected_arm": "1hr",
-      "balanced_adjusted_scores": {
-        "1hr": 2.0622,
-        "6hr": 2.0622,
-        "1d": 2.0622,
-        "3d": 2.0622,
-        "7d": 2.0622
-      },
-      "conservative_selected_arm": "6hr",
-      "conservative_adjusted_scores": {
-        "1hr": 1.5685,
-        "6hr": 1.7185,
-        "1d": 1.7185,
-        "3d": 1.7185,
-        "7d": 1.5685
-      }
+      "transaction_id": "tx_b9be2e6ad1",
+      "failure_code": "insufficient_funds",
+      "raw_selected_arm": "7d",
+      "balanced_selected_arm": "7d",
+      "conservative_selected_arm": "7d",
+      "confidence": 1.0,
+      "decision_stability": "STABLE"
     },
     {
       "transaction_index": 3,
-      "transaction_id": "tx_10c2b4a1b0",
-      "failure_code": "generic_decline",
-      "raw_scores": {
-        "1hr": 2.4495,
-        "6hr": 2.4495,
-        "1d": 2.4495,
-        "3d": 2.4495,
-        "7d": 2.4495
-      },
-      "sorted_ranking": [
-        "1hr",
-        "6hr",
-        "1d",
-        "3d",
-        "7d"
-      ],
-      "top_score": 2.4495,
-      "second_score": 2.4495,
-      "raw_score_gap": 0.0,
-      "confidence": 0.0,
-      "stability": "UNSTABLE",
+      "transaction_id": "tx_d6dad658b6",
+      "failure_code": "issuer_timeout",
       "raw_selected_arm": "1hr",
       "balanced_selected_arm": "1hr",
-      "balanced_adjusted_scores": {
-        "1hr": 2.2045,
-        "6hr": 2.2045,
-        "1d": 2.2045,
-        "3d": 2.2045,
-        "7d": 2.2045
-      },
-      "conservative_selected_arm": "6hr",
-      "conservative_adjusted_scores": {
-        "1hr": 1.6871,
-        "6hr": 1.8371,
-        "1d": 1.8371,
-        "3d": 1.8371,
-        "7d": 1.6871
-      }
+      "conservative_selected_arm": "1hr",
+      "confidence": 1.0,
+      "decision_stability": "STABLE"
     },
     {
       "transaction_index": 4,
-      "transaction_id": "tx_d4c82aec8e",
-      "failure_code": "issuer_timeout",
-      "raw_scores": {
-        "1hr": 2.2913,
-        "6hr": 2.2913,
-        "1d": 2.2913,
-        "3d": 2.2913,
-        "7d": 2.2913
-      },
-      "sorted_ranking": [
-        "1hr",
-        "6hr",
-        "1d",
-        "3d",
-        "7d"
-      ],
-      "top_score": 2.2913,
-      "second_score": 2.2913,
-      "raw_score_gap": 0.0,
-      "confidence": 0.0,
-      "stability": "UNSTABLE",
-      "raw_selected_arm": "1hr",
-      "balanced_selected_arm": "1hr",
-      "balanced_adjusted_scores": {
-        "1hr": 2.0622,
-        "6hr": 2.0622,
-        "1d": 2.0622,
-        "3d": 2.0622,
-        "7d": 2.0622
-      },
-      "conservative_selected_arm": "6hr",
-      "conservative_adjusted_scores": {
-        "1hr": 1.5685,
-        "6hr": 1.7185,
-        "1d": 1.7185,
-        "3d": 1.7185,
-        "7d": 1.5685
-      }
+      "transaction_id": "tx_9931d465bb",
+      "failure_code": "generic_decline",
+      "raw_selected_arm": "1d",
+      "balanced_selected_arm": "1d",
+      "conservative_selected_arm": "1d",
+      "confidence": 1.0,
+      "decision_stability": "STABLE"
     },
     {
       "transaction_index": 5,
-      "transaction_id": "tx_694a695339",
-      "failure_code": "insufficient_funds",
-      "raw_scores": {
-        "1hr": 2.2361,
-        "6hr": 2.2361,
-        "1d": 2.2361,
-        "3d": 2.2361,
-        "7d": 2.2361
-      },
-      "sorted_ranking": [
-        "1hr",
-        "6hr",
-        "1d",
-        "3d",
-        "7d"
-      ],
-      "top_score": 2.2361,
-      "second_score": 2.2361,
-      "raw_score_gap": 0.0,
-      "confidence": 0.0,
-      "stability": "UNSTABLE",
-      "raw_selected_arm": "1hr",
-      "balanced_selected_arm": "1hr",
-      "balanced_adjusted_scores": {
-        "1hr": 2.0125,
-        "6hr": 2.0125,
-        "1d": 2.0125,
-        "3d": 2.0125,
-        "7d": 2.0125
-      },
-      "conservative_selected_arm": "6hr",
-      "conservative_adjusted_scores": {
-        "1hr": 1.5271,
-        "6hr": 1.6771,
-        "1d": 1.6771,
-        "3d": 1.6771,
-        "7d": 1.5271
-      }
+      "transaction_id": "tx_8f38b9f497",
+      "failure_code": "generic_decline",
+      "raw_selected_arm": "1d",
+      "balanced_selected_arm": "1d",
+      "conservative_selected_arm": "1d",
+      "confidence": 1.0,
+      "decision_stability": "STABLE"
     },
     {
       "transaction_index": 6,
-      "transaction_id": "tx_3fd8e3189d",
-      "failure_code": "generic_decline",
-      "raw_scores": {
-        "1hr": 2.4495,
-        "6hr": 2.4495,
-        "1d": 2.4495,
-        "3d": 2.4495,
-        "7d": 2.4495
-      },
-      "sorted_ranking": [
-        "1hr",
-        "6hr",
-        "1d",
-        "3d",
-        "7d"
-      ],
-      "top_score": 2.4495,
-      "second_score": 2.4495,
-      "raw_score_gap": 0.0,
-      "confidence": 0.0,
-      "stability": "UNSTABLE",
+      "transaction_id": "tx_a98e18a5aa",
+      "failure_code": "issuer_timeout",
       "raw_selected_arm": "1hr",
       "balanced_selected_arm": "1hr",
-      "balanced_adjusted_scores": {
-        "1hr": 2.2045,
-        "6hr": 2.2045,
-        "1d": 2.2045,
-        "3d": 2.2045,
-        "7d": 2.2045
-      },
-      "conservative_selected_arm": "6hr",
-      "conservative_adjusted_scores": {
-        "1hr": 1.6871,
-        "6hr": 1.8371,
-        "1d": 1.8371,
-        "3d": 1.8371,
-        "7d": 1.6871
-      }
+      "conservative_selected_arm": "1hr",
+      "confidence": 1.0,
+      "decision_stability": "STABLE"
     },
     {
       "transaction_index": 7,
-      "transaction_id": "tx_740905ce45",
-      "failure_code": "issuer_timeout",
-      "raw_scores": {
-        "1hr": 2.2361,
-        "6hr": 2.2361,
-        "1d": 2.2361,
-        "3d": 2.2361,
-        "7d": 2.2361
-      },
-      "sorted_ranking": [
-        "1hr",
-        "6hr",
-        "1d",
-        "3d",
-        "7d"
-      ],
-      "top_score": 2.2361,
-      "second_score": 2.2361,
-      "raw_score_gap": 0.0,
-      "confidence": 0.0,
-      "stability": "UNSTABLE",
-      "raw_selected_arm": "1hr",
-      "balanced_selected_arm": "1hr",
-      "balanced_adjusted_scores": {
-        "1hr": 2.0125,
-        "6hr": 2.0125,
-        "1d": 2.0125,
-        "3d": 2.0125,
-        "7d": 2.0125
-      },
-      "conservative_selected_arm": "6hr",
-      "conservative_adjusted_scores": {
-        "1hr": 1.5271,
-        "6hr": 1.6771,
-        "1d": 1.6771,
-        "3d": 1.6771,
-        "7d": 1.5271
-      }
+      "transaction_id": "tx_edea5d17a2",
+      "failure_code": "insufficient_funds",
+      "raw_selected_arm": "7d",
+      "balanced_selected_arm": "7d",
+      "conservative_selected_arm": "7d",
+      "confidence": 1.0,
+      "decision_stability": "STABLE"
     },
     {
       "transaction_index": 8,
-      "transaction_id": "tx_15e13e8e17",
-      "failure_code": "generic_decline",
-      "raw_scores": {
-        "1hr": 2.4495,
-        "6hr": 2.4495,
-        "1d": 2.4495,
-        "3d": 2.4495,
-        "7d": 2.4495
-      },
-      "sorted_ranking": [
-        "1hr",
-        "6hr",
-        "1d",
-        "3d",
-        "7d"
-      ],
-      "top_score": 2.4495,
-      "second_score": 2.4495,
-      "raw_score_gap": 0.0,
-      "confidence": 0.0,
-      "stability": "UNSTABLE",
+      "transaction_id": "tx_683ba56cb3",
+      "failure_code": "issuer_timeout",
       "raw_selected_arm": "1hr",
       "balanced_selected_arm": "1hr",
-      "balanced_adjusted_scores": {
-        "1hr": 2.2045,
-        "6hr": 2.2045,
-        "1d": 2.2045,
-        "3d": 2.2045,
-        "7d": 2.2045
-      },
-      "conservative_selected_arm": "6hr",
-      "conservative_adjusted_scores": {
-        "1hr": 1.6871,
-        "6hr": 1.8371,
-        "1d": 1.8371,
-        "3d": 1.8371,
-        "7d": 1.6871
-      }
+      "conservative_selected_arm": "1hr",
+      "confidence": 1.0,
+      "decision_stability": "STABLE"
     },
     {
       "transaction_index": 9,
-      "transaction_id": "tx_6fbcc923f3",
+      "transaction_id": "tx_1abd5be83a",
       "failure_code": "insufficient_funds",
-      "raw_scores": {
-        "1hr": 2.2913,
-        "6hr": 2.2913,
-        "1d": 2.2913,
-        "3d": 2.2913,
-        "7d": 2.2913
-      },
-      "sorted_ranking": [
-        "1hr",
-        "6hr",
-        "1d",
-        "3d",
-        "7d"
-      ],
-      "top_score": 2.2913,
-      "second_score": 2.2913,
-      "raw_score_gap": 0.0,
-      "confidence": 0.0,
-      "stability": "UNSTABLE",
-      "raw_selected_arm": "1hr",
-      "balanced_selected_arm": "1hr",
-      "balanced_adjusted_scores": {
-        "1hr": 2.0622,
-        "6hr": 2.0622,
-        "1d": 2.0622,
-        "3d": 2.0622,
-        "7d": 2.0622
-      },
-      "conservative_selected_arm": "6hr",
-      "conservative_adjusted_scores": {
-        "1hr": 1.5685,
-        "6hr": 1.7185,
-        "1d": 1.7185,
-        "3d": 1.7185,
-        "7d": 1.5685
-      }
+      "raw_selected_arm": "7d",
+      "balanced_selected_arm": "7d",
+      "conservative_selected_arm": "7d",
+      "confidence": 1.0,
+      "decision_stability": "STABLE"
     }
   ]
 }

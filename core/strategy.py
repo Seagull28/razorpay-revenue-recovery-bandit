@@ -26,6 +26,9 @@ RETRY_ARM_TO_STRATEGY: Dict[str, StrategyCategory] = {
     "7d": StrategyCategory.LAST_CHANCE_RECOVERY,
 }
 
+# Deterministic default arm preference ordering for explicit tie-breaking
+DETERMINISTIC_ARM_ORDER: List[str] = ["3d", "1d", "6hr", "1hr", "7d"]
+
 STRATEGY_METADATA: Dict[StrategyCategory, Dict[str, str]] = {
     StrategyCategory.IMMEDIATE_RECOVERY: {
         "title": "Immediate Recovery",
@@ -49,9 +52,10 @@ STRATEGY_METADATA: Dict[StrategyCategory, Dict[str, str]] = {
     },
 }
 
-# Stability Threshold Constants
-STABLE_THRESHOLD: float = 0.15
-MODERATE_THRESHOLD: float = 0.05
+# Stability Threshold Constants (denominated in currency/net-revenue score gap INR)
+STABLE_GAP_THRESHOLD: float = 75.0
+MODERATE_GAP_THRESHOLD: float = 25.0
+GAP_SCALING_FACTOR: float = 150.0
 
 
 def get_strategy_category(retry_delay: str) -> StrategyCategory:
@@ -81,7 +85,7 @@ def calculate_decision_confidence(arm_scores: Dict[str, Any]) -> Tuple[float, st
     scores = []
     for arm, details in arm_scores.items():
         if isinstance(details, dict):
-            val = details.get("score", details.get("ucb_score", 0.0))
+            val = float(details.get("score", details.get("ucb_score", 0.0)))
         elif isinstance(details, (int, float)):
             val = float(details)
         else:
@@ -97,9 +101,9 @@ def calculate_decision_confidence(arm_scores: Dict[str, Any]) -> Tuple[float, st
 
     # Score gap calculation
     raw_gap = top_score - second_score
-    # Normalize gap using standard scaling factor (0.30 gap yields max confidence 1.0)
-    confidence = min(1.0, max(0.0, raw_gap / 0.30))
-    confidence_rounded = round(float(confidence), 2)
+    # Normalize gap using standard scaling factor (150 INR gap yields max confidence 1.0)
+    confidence = min(1.0, max(0.0, raw_gap / GAP_SCALING_FACTOR))
+    confidence_rounded = round(float(confidence), 4)
     
     interpretation = "Relative separation between leading retry candidates"
     return confidence_rounded, interpretation
@@ -110,10 +114,10 @@ def classify_decision_stability(confidence_score: float, score_gap: float = None
     Classifies decision stability based on score gap or confidence score.
     Returns: 'STABLE', 'MODERATELY_STABLE', or 'UNSTABLE'.
     """
-    gap = score_gap if score_gap is not None else (confidence_score * 0.30)
-    if gap >= STABLE_THRESHOLD:
+    gap = score_gap if score_gap is not None else (confidence_score * GAP_SCALING_FACTOR)
+    if gap >= STABLE_GAP_THRESHOLD:
         return "STABLE"
-    elif gap >= MODERATE_THRESHOLD:
+    elif gap >= MODERATE_GAP_THRESHOLD:
         return "MODERATELY_STABLE"
     else:
         return "UNSTABLE"
@@ -122,7 +126,7 @@ def classify_decision_stability(confidence_score: float, score_gap: float = None
 def get_alternative_strategies(arm_scores: Dict[str, Any], selected_arm: str) -> List[Dict[str, Any]]:
     """
     Returns ranked alternative candidate retry strategies sorted by policy score.
-    The selected arm will be rank 1.
+    The selected arm will be rank 1. Deterministic tie-breaking applied.
     """
     if not arm_scores:
         return []
@@ -138,20 +142,26 @@ def get_alternative_strategies(arm_scores: Dict[str, Any], selected_arm: str) ->
         
         category = get_strategy_category(arm)
         meta = STRATEGY_METADATA.get(category, {})
+        
+        # Deterministic sorting key
+        arm_idx = DETERMINISTIC_ARM_ORDER.index(arm) if arm in DETERMINISTIC_ARM_ORDER else 99
         parsed.append({
             "retry_delay": arm,
             "strategy": category.value,
             "title": meta.get("title", arm),
             "score": round(score, 4),
             "is_selected": (arm == selected_arm),
+            "_sort_key": (round(score, 2), -arm_idx),
         })
 
-    # Sort descending by score
-    parsed.sort(key=lambda x: x["score"], reverse=True)
+    # Sort descending by score, tie-broken by deterministic arm preference order
+    parsed.sort(key=lambda x: x["_sort_key"], reverse=True)
 
     ranked = []
     for idx, item in enumerate(parsed, start=1):
-        item["rank"] = idx
-        ranked.append(item)
+        clean_item = dict(item)
+        clean_item.pop("_sort_key", None)
+        clean_item["rank"] = idx
+        ranked.append(clean_item)
 
     return ranked

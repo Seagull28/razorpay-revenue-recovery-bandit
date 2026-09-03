@@ -9,21 +9,21 @@ Phase 3 introduces **Recovery Strategy Intelligence**, **Risk-Aware Decision Mod
 
 ---
 
-## 📊 Strategy Mode Evaluation (500 Simulated Transactions)
+## 📊 Strategy Mode Evaluation (500 Simulated Transactions across Warmed Policy State)
 
 | Strategy Mode | Mode Shift Rate vs Raw | Top Strategy Arm | Stability Distribution |
 | :--- | :---: | :---: | :--- |
-| **MAXIMIZE_RECOVERY** | `0.0%` | `1hr` | UNSTABLE: 500 |
-| **BALANCED** | `0.0%` | `1hr` | UNSTABLE: 500 |
-| **CONSERVATIVE** | `100.0%` | `6hr` | UNSTABLE: 500 |
+| **MAXIMIZE_RECOVERY** | `0.0%` | `7d` | STABLE: 458, MODERATELY_STABLE: 26, UNSTABLE: 16 |
+| **BALANCED** | `1.2%` | `7d` | STABLE: 458, MODERATELY_STABLE: 26, UNSTABLE: 16 |
+| **CONSERVATIVE** | `3.0%` | `7d` | STABLE: 458, MODERATELY_STABLE: 26, UNSTABLE: 16 |
 
 ---
 
 ## 💡 Merchant Recovery Opportunity Leaderboard
 
-- **Highest Opportunity Segment**: `issuer_timeout (Opportunity Score: 40.3)`
+- **Highest Opportunity Segment**: `insufficient_funds (Opportunity Score: 100.0)`
 - **Highest Risk Segment**: `None`
-- **Best Performing Strategy**: `IMMEDIATE_RECOVERY (1hr)`
+- **Best Performing Strategy**: `LAST_CHANCE_RECOVERY (7d)`
 
 ---
 
