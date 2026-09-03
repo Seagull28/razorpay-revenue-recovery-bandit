@@ -39,6 +39,8 @@ Locked Core Files   : UNTOUCHED (policies/linucb.py, policies/encoder.py, simula
 - **Canonical Output Directory**: `audit/evaluation_results/phase4_strategy_diagnostics/`
 - **Canonical Mode Indicator**: `"run_mode": "canonical"`
 
+> **Semantic Definition**: `run_mode` classifies the evaluation configuration based on sample size (`eval_sample_size`). It does not identify the physical artifact destination. A caller may redirect artifacts using `output_dir` (e.g. pytest `tmp_path`) for isolated testing while preserving the evaluation configuration represented by `run_mode`.
+
 ---
 
 ## 4. Experimental Isolation Contract

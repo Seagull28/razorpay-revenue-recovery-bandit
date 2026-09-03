@@ -128,10 +128,21 @@ def get_git_commit_info() -> Tuple[str, bool]:
 
 
 def run_phase4_diagnostics(eval_sample_size: int = CANONICAL_PHASE4_SAMPLE_SIZE, output_dir: Path = None):
+    """Executes Phase 4A Strategy Intelligence Diagnostics.
+
+    run_mode semantics vs. output_dir destination:
+    - run_mode classifies the evaluation/sample configuration determined by eval_sample_size:
+        - "canonical" means the canonical evaluation configuration (CANONICAL_PHASE4_SAMPLE_SIZE = 5000 transactions).
+        - "experimental" means a non-canonical evaluation sample configuration (eval_sample_size != 5000).
+    - run_mode describes the evaluation configuration, NOT the physical artifact output location.
+    - output_dir specifies the physical artifact destination. Callers may supply a custom output_dir
+      (e.g., pytest tmp_path for isolated testing) without altering the run_mode evaluation classification.
+    """
     canonical_dir = PROJECT_ROOT / "audit" / "evaluation_results" / "phase4_strategy_diagnostics"
     experimental_base_dir = canonical_dir / "experimental"
 
-    # Enforce output path safety & run mode classification
+    # Enforce output path safety & run mode classification:
+    # run_mode classifies evaluation sample configuration, while output_dir determines physical destination.
     if eval_sample_size == CANONICAL_PHASE4_SAMPLE_SIZE:
         run_mode = "canonical"
         if output_dir is None:

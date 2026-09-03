@@ -198,3 +198,39 @@ def test_readme_and_report_discoverability():
     content = readme_path.read_text(encoding="utf-8")
     assert "run_phase4_strategy_diagnostics.py" in content
     assert "PHASE4_STRATEGY_INTELLIGENCE_REPORT.md" in content
+
+
+def test_run_mode_describes_sample_configuration_not_output_destination(tmp_path):
+    """Test G: Asserts that run_mode classifies the sample configuration (canonical = 5000) independently from output_dir destination."""
+    canonical_dir = PROJECT_ROOT / "audit" / "evaluation_results" / "phase4_strategy_diagnostics"
+    canonical_meta = canonical_dir / "phase4_run_metadata.json"
+    assert canonical_meta.exists()
+
+    with open(canonical_meta, "r", encoding="utf-8") as f:
+        orig_meta_content = f.read()
+
+    # Execute canonical sample configuration (5000 txs) redirected to isolated tmp_path
+    run_phase4_diagnostics(eval_sample_size=CANONICAL_PHASE4_SAMPLE_SIZE, output_dir=tmp_path)
+
+    # Verify artifacts were written to tmp_path
+    tmp_meta = tmp_path / "phase4_run_metadata.json"
+    tmp_summary = tmp_path / "phase4_strategy_summary.json"
+    assert tmp_meta.exists()
+    assert tmp_summary.exists()
+
+    with open(tmp_meta, "r", encoding="utf-8") as f:
+        meta_data = json.load(f)
+    with open(tmp_summary, "r", encoding="utf-8") as f:
+        summary_data = json.load(f)
+
+    # Verify run_mode is "canonical" because sample size is 5000, even though output destination is tmp_path
+    assert meta_data["run_mode"] == "canonical"
+    assert summary_data["run_mode"] == "canonical"
+    assert meta_data["sample_size"] == 5000
+
+    # Verify checked-in canonical evidence directory was NOT modified
+    with open(canonical_meta, "r", encoding="utf-8") as f:
+        after_meta_content = f.read()
+
+    assert orig_meta_content == after_meta_content
+
