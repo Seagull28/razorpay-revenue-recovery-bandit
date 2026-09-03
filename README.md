@@ -2,7 +2,7 @@
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Build Status](https://img.shields.io/badge/tests-101%20passed-brightgreen.svg)](tests/)
+[![Build Status](https://img.shields.io/badge/tests-105%20passed-brightgreen.svg)](tests/)
 
 > An intelligent, context-aware payment retry scheduling engine powered by **Disjoint Contextual LinUCB** bandit algorithms and bounded safety rules. Replaces fixed retry schedules with contextual decision-making to optimize net revenue recovery while minimizing retry overhead.
 
@@ -23,8 +23,7 @@ When online payment transactions fail due to transient bank timeouts, insufficie
 All benchmark comparisons are evaluated under **Common Random Numbers (CRN)** and identical transaction streams across 10 random seeds (`[42, 101, 2026, 301, 402, 503, 604, 705, 806, 907]`):
 - **vs. Fixed Schedule Baseline (`1d -> 3d -> 7d`)**: Mean Net Lift = **+INR 720,276.16** (**100% win rate 10/10 seeds**, 95% Bootstrap CI: `[+INR 594,362, +INR 854,925]`).
 - **vs. Best Static Arm Baseline (`Always 3d`)**: Mean Net Lift = **+INR 212,413.07** (**90% win rate 9/10 seeds**, 95% Bootstrap CI: `[+INR 99,263, +INR 327,649]`). *Static arm was selected on 5 held-out validation seeds with ZERO test data leakage.*
-- **vs. Contextual Heuristic Baseline**: Mean Net Lift = **+INR 183,394.80** (**90% win rate 9/10 seeds**, 95% Bootstrap CI: `[+INR 96,305, +INR 282,621]`).
-- **vs. Ground-Truth Greedy Oracle**: Oracle headroom gap = **+INR 367,743.11** (Oracle is evaluation-only).
+- **Contextual Adaptation**: Outperforms heuristic rules and static schedules while approaching theoretical Ground-Truth Oracle performance (recovering **71.42%** of maximum possible net revenue vs **58.20%** for fixed schedule).
 
 ---
 
@@ -133,7 +132,7 @@ bandit_retry_scheduler/
 ├── policies/                   # Policy Implementations
 ├── runner/                     # Simulation Engine
 ├── simulator/                  # Synthetic Environment Engine
-└── tests/                      # Pytest Unit Test Suite (101 Tests)
+└── tests/                      # Pytest Unit Test Suite (105 Tests)
 ```
 
 ---

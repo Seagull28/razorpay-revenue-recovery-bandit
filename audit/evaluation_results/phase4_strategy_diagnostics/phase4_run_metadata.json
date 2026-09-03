@@ -1,13 +1,18 @@
 {
   "phase": "Phase 4A Strategy Intelligence Validation",
+  "run_mode": "canonical",
   "diagnostic_script": "run_phase4_strategy_diagnostics.py",
+  "primary_validation_environment": "Python 3.11.9",
   "python_version": "3.11.9",
-  "transaction_count": 20,
+  "intended_compatibility": "Python 3.9+",
+  "transaction_count": 5000,
+  "evaluation_sample_size": 5000,
+  "sample_size": 5000,
   "random_seed_or_crn_configuration": {
     "warmup_seed": 42,
     "warmup_tx_count": 1000,
     "evaluation_seed": 101,
-    "evaluation_sample_size": 20,
+    "evaluation_sample_size": 5000,
     "common_random_numbers": true
   },
   "configuration_fingerprint": "0580358a30ba",
@@ -22,5 +27,6 @@
     "phase4_run_metadata.json",
     "phase4_decision_samples.csv"
   ],
-  "git_commit": "5541ecd"
+  "git_commit": "28afd3d",
+  "git_metadata_available": true
 }

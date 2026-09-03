@@ -13,7 +13,7 @@ def main():
     project_dir = Path(__file__).resolve().parent
     output_zip = project_dir.parent / "bandit_retry_scheduler_submission_final.zip"
 
-    ignore_dirs = {".git", "__pycache__", ".pytest_cache", ".streamlit", ".venv", "venv", "env", "tmp_extract", "scratch"}
+    ignore_dirs = {".git", "__pycache__", ".pytest_cache", ".streamlit", ".venv", "venv", "env", "tmp_extract", "scratch", "experimental"}
     ignore_extensions = {".pyc", ".pyo", ".zip", ".tmp", ".log"}
 
     print("====================================================================================================")

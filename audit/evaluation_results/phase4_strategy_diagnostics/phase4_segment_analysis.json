@@ -1,102 +1,110 @@
 {
   "by_failure_code": {
     "card_expired": {
-      "count": 2,
-      "percentage": 10.0,
-      "mean_confidence": 1.0,
-      "balanced_override_rate_pct": 0.0,
-      "conservative_override_rate_pct": 0.0,
-      "disagreement_rate_pct": 0.0
+      "count": 400,
+      "percentage": 8.0,
+      "mean_confidence": 0.9817,
+      "balanced_override_rate_pct": 0.75,
+      "conservative_override_rate_pct": 1.25,
+      "disagreement_rate_pct": 0.5
+    },
+    "do_not_honor": {
+      "count": 584,
+      "percentage": 11.68,
+      "mean_confidence": 0.8795,
+      "balanced_override_rate_pct": 2.4,
+      "conservative_override_rate_pct": 4.28,
+      "disagreement_rate_pct": 1.88
     },
     "generic_decline": {
-      "count": 4,
-      "percentage": 20.0,
-      "mean_confidence": 0.8579,
-      "balanced_override_rate_pct": 0.0,
-      "conservative_override_rate_pct": 25.0,
-      "disagreement_rate_pct": 25.0
+      "count": 894,
+      "percentage": 17.88,
+      "mean_confidence": 0.9066,
+      "balanced_override_rate_pct": 1.45,
+      "conservative_override_rate_pct": 8.72,
+      "disagreement_rate_pct": 7.27
     },
     "insufficient_funds": {
-      "count": 7,
-      "percentage": 35.0,
-      "mean_confidence": 0.9138,
-      "balanced_override_rate_pct": 14.29,
-      "conservative_override_rate_pct": 14.29,
-      "disagreement_rate_pct": 0.0
+      "count": 1898,
+      "percentage": 37.96,
+      "mean_confidence": 0.942,
+      "balanced_override_rate_pct": 1.42,
+      "conservative_override_rate_pct": 3.21,
+      "disagreement_rate_pct": 1.79
     },
     "issuer_timeout": {
-      "count": 7,
-      "percentage": 35.0,
-      "mean_confidence": 0.9896,
-      "balanced_override_rate_pct": 0.0,
-      "conservative_override_rate_pct": 0.0,
-      "disagreement_rate_pct": 0.0
+      "count": 1224,
+      "percentage": 24.48,
+      "mean_confidence": 0.9786,
+      "balanced_override_rate_pct": 0.65,
+      "conservative_override_rate_pct": 0.98,
+      "disagreement_rate_pct": 0.33
     }
   },
   "by_amount_quantile": {
     "LOW_AMOUNT": {
-      "amount_range_inr": "[0.00, 1234.43]",
-      "count": 7,
-      "percentage": 35.0,
-      "mean_confidence": 0.8326,
-      "balanced_override_rate_pct": 14.29,
-      "conservative_override_rate_pct": 28.57,
-      "disagreement_rate_pct": 14.29
+      "amount_range_inr": "[0.00, 1720.22]",
+      "count": 1665,
+      "percentage": 33.3,
+      "mean_confidence": 0.9542,
+      "balanced_override_rate_pct": 0.9,
+      "conservative_override_rate_pct": 3.54,
+      "disagreement_rate_pct": 2.64
     },
     "MEDIUM_AMOUNT": {
-      "amount_range_inr": "[1234.43, 2326.73]",
-      "count": 6,
-      "percentage": 30.0,
-      "mean_confidence": 1.0,
-      "balanced_override_rate_pct": 0.0,
-      "conservative_override_rate_pct": 0.0,
-      "disagreement_rate_pct": 0.0
+      "amount_range_inr": "[1720.22, 3948.56]",
+      "count": 1665,
+      "percentage": 33.3,
+      "mean_confidence": 0.9383,
+      "balanced_override_rate_pct": 1.5,
+      "conservative_override_rate_pct": 4.14,
+      "disagreement_rate_pct": 2.64
     },
     "HIGH_AMOUNT": {
-      "amount_range_inr": "[>= 2326.73]",
-      "count": 7,
-      "percentage": 35.0,
-      "mean_confidence": 0.9896,
-      "balanced_override_rate_pct": 0.0,
-      "conservative_override_rate_pct": 0.0,
-      "disagreement_rate_pct": 0.0
+      "amount_range_inr": "[>= 3948.56]",
+      "count": 1670,
+      "percentage": 33.4,
+      "mean_confidence": 0.929,
+      "balanced_override_rate_pct": 1.5,
+      "conservative_override_rate_pct": 3.17,
+      "disagreement_rate_pct": 1.68
     }
   },
   "by_base_arm": {
     "1hr": {
-      "count": 9,
-      "percentage": 45.0,
-      "balanced_override_rate_pct": 0.0,
-      "conservative_override_rate_pct": 11.11,
-      "disagreement_rate_pct": 11.11
+      "count": 1474,
+      "percentage": 29.48,
+      "balanced_override_rate_pct": 1.02,
+      "conservative_override_rate_pct": 5.16,
+      "disagreement_rate_pct": 4.14
     },
     "6hr": {
-      "count": 0,
-      "percentage": 0.0,
+      "count": 136,
+      "percentage": 2.72,
       "balanced_override_rate_pct": 0.0,
       "conservative_override_rate_pct": 0.0,
       "disagreement_rate_pct": 0.0
     },
     "1d": {
-      "count": 5,
-      "percentage": 25.0,
-      "balanced_override_rate_pct": 0.0,
-      "conservative_override_rate_pct": 0.0,
-      "disagreement_rate_pct": 0.0
+      "count": 1442,
+      "percentage": 28.84,
+      "balanced_override_rate_pct": 0.76,
+      "conservative_override_rate_pct": 0.97,
+      "disagreement_rate_pct": 0.21
     },
     "3d": {
-      "count": 0,
-      "percentage": 0.0,
+      "count": 216,
+      "percentage": 4.32,
       "balanced_override_rate_pct": 0.0,
       "conservative_override_rate_pct": 0.0,
       "disagreement_rate_pct": 0.0
     },
     "7d": {
-      "count": 6,
-      "percentage": 30.0,
-      "balanced_override_rate_pct": 16.67,
-      "conservative_override_rate_pct": 16.67,
-      "disagreement_rate_pct": 0.0
+      "count": 1732,
+      "percentage": 34.64,
+      "balanced_override_rate_pct": 2.25,
+      "conservative_override_rate_pct": 5.25,
+      "disagreement_rate_pct": 3.0
     }
   }
 }

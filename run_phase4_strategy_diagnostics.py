@@ -6,7 +6,7 @@ Investigates why strategy divergence is low (2.2% disagreement rate between BALA
 without modifying any production strategy formulas, policy parameters, or benchmark logic.
 
 Captures:
-- 5,000 CRN evaluation transactions over warmed LinUCB policy state
+- 5,000 CRN evaluation transactions over warmed LinUCB policy state (Canonical Run)
 - Score gap distributions (absolute & relative) and ambiguity classifications
 - Confidence bucket distributions and per-bucket override & disagreement rates
 - Strategy influence ratio (adjustment magnitude / score gap)
@@ -17,13 +17,16 @@ Captures:
 - Strategy trade-off & semantic validation (score sacrifice vs arm risk ordering)
 - Provenance metadata (phase4_run_metadata.json)
 
-Saves reproducible artifacts in audit/evaluation_results/phase4_strategy_diagnostics/.
+Enforces strict isolation between Canonical Mode (5000 txs) and Experimental Mode (non-5000 txs).
+Saves canonical artifacts to audit/evaluation_results/phase4_strategy_diagnostics/.
+Experimental runs write to audit/evaluation_results/phase4_strategy_diagnostics/experimental/sample_size_<N>/.
 """
 
 import sys
 import os
 import json
 import csv
+import argparse
 import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
@@ -57,6 +60,8 @@ from bandit_retry_scheduler.core.config import (
     MIN_CONFIDENCE_SCALE,
     CONFIDENCE_GAP_NORM_FACTOR,
 )
+
+CANONICAL_PHASE4_SAMPLE_SIZE = 5000
 
 
 def get_warmed_evaluation_policy(seed: int = 42, warm_tx_count: int = 1000) -> LinUCBPolicy:
@@ -108,23 +113,45 @@ def calculate_quantiles(arr: List[float]) -> Dict[str, float]:
     }
 
 
-def get_git_commit_hash() -> str:
-    """Retrieves current git commit hash safely or returns None representation."""
+def get_git_commit_info() -> Tuple[str, bool]:
+    """Retrieves current git commit hash safely or returns explicit fallback."""
+    git_dir = PROJECT_ROOT / ".git"
+    if not git_dir.exists():
+        return "unavailable_in_source_archive", False
     try:
         res = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, cwd=PROJECT_ROOT)
-        if res.returncode == 0:
-            return res.stdout.strip()
+        if res.returncode == 0 and res.stdout.strip():
+            return res.stdout.strip(), True
     except Exception:
         pass
-    return None
+    return "unavailable_in_source_archive", False
 
 
-def run_phase4_diagnostics(eval_sample_size: int = 5000):
-    output_dir = PROJECT_ROOT / "audit" / "evaluation_results" / "phase4_strategy_diagnostics"
+def run_phase4_diagnostics(eval_sample_size: int = CANONICAL_PHASE4_SAMPLE_SIZE, output_dir: Path = None):
+    canonical_dir = PROJECT_ROOT / "audit" / "evaluation_results" / "phase4_strategy_diagnostics"
+    experimental_base_dir = canonical_dir / "experimental"
+
+    # Enforce strict output path safety & run mode classification
+    if eval_sample_size == CANONICAL_PHASE4_SAMPLE_SIZE:
+        run_mode = "canonical"
+        if output_dir is None:
+            output_dir = canonical_dir
+        elif output_dir.resolve() != canonical_dir.resolve():
+            raise ValueError(f"Canonical sample size ({CANONICAL_PHASE4_SAMPLE_SIZE}) must write to canonical path: {canonical_dir}")
+    else:
+        run_mode = "experimental"
+        if output_dir is None or output_dir.resolve() == canonical_dir.resolve():
+            output_dir = experimental_base_dir / f"sample_size_{eval_sample_size}"
+        
+        # Explicit safety assertion: non-canonical runs CANNOT write to canonical directory
+        if output_dir.resolve() == canonical_dir.resolve():
+            raise ValueError("Experimental runs with non-canonical sample sizes are strictly forbidden from overwriting canonical artifacts!")
+
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print("====================================================================================================")
-    print(f"RUNNING RECOVERFLOW PHASE 4A STRATEGY INTELLIGENCE DIAGNOSTICS ({eval_sample_size} TRANSACTIONS)")
+    print(f"RUNNING RECOVERFLOW PHASE 4A STRATEGY INTELLIGENCE DIAGNOSTICS ({run_mode.upper()} MODE: {eval_sample_size} TRANSACTIONS)")
+    print(f"Target Output Directory: {output_dir.absolute()}")
     print("====================================================================================================\n")
 
     warmed_policy = get_warmed_evaluation_policy(seed=42, warm_tx_count=1000)
@@ -235,6 +262,8 @@ def run_phase4_diagnostics(eval_sample_size: int = 5000):
 
     score_gap_analysis = {
         "sample_size": eval_sample_size,
+        "evaluation_sample_size": eval_sample_size,
+        "transaction_count": eval_sample_size,
         "absolute_score_gap_stats": calculate_quantiles(abs_gaps),
         "relative_score_gap_stats": calculate_quantiles(rel_gaps),
         "ambiguity_tier_distribution": {},
@@ -266,6 +295,8 @@ def run_phase4_diagnostics(eval_sample_size: int = 5000):
     conf_values = [r["confidence"] for r in records]
     confidence_analysis = {
         "sample_size": eval_sample_size,
+        "evaluation_sample_size": eval_sample_size,
+        "transaction_count": eval_sample_size,
         "confidence_stats": calculate_quantiles(conf_values),
         "confidence_buckets": {},
     }
@@ -333,6 +364,8 @@ def run_phase4_diagnostics(eval_sample_size: int = 5000):
 
     transition_matrix = {
         "sample_size": eval_sample_size,
+        "evaluation_sample_size": eval_sample_size,
+        "transaction_count": eval_sample_size,
         "mode_agreement_matrix": {
             "MAXIMIZE_vs_BALANCED": {
                 "agreement_count": sum(1 for r in records if not r["bal_override"]),
@@ -566,11 +599,18 @@ def run_phase4_diagnostics(eval_sample_size: int = 5000):
     }
 
     # Provenance Metadata
+    commit_hash, git_available = get_git_commit_info()
+
     metadata_artifact = {
         "phase": "Phase 4A Strategy Intelligence Validation",
+        "run_mode": run_mode,
         "diagnostic_script": "run_phase4_strategy_diagnostics.py",
+        "primary_validation_environment": "Python 3.11.9",
         "python_version": sys.version.split()[0],
+        "intended_compatibility": "Python 3.9+",
         "transaction_count": eval_sample_size,
+        "evaluation_sample_size": eval_sample_size,
+        "sample_size": eval_sample_size,
         "random_seed_or_crn_configuration": {
             "warmup_seed": 42,
             "warmup_tx_count": 1000,
@@ -590,13 +630,17 @@ def run_phase4_diagnostics(eval_sample_size: int = 5000):
             "phase4_run_metadata.json",
             "phase4_decision_samples.csv",
         ],
-        "git_commit": get_git_commit_hash(),
+        "git_commit": commit_hash,
+        "git_metadata_available": git_available,
     }
 
     # Write summary JSON
     summary_artifact = {
         "diagnostic_phase": "Phase 4A Strategy Intelligence Validation",
+        "run_mode": run_mode,
         "sample_size": eval_sample_size,
+        "evaluation_sample_size": eval_sample_size,
+        "transaction_count": eval_sample_size,
         "score_gap_analysis": score_gap_analysis,
         "confidence_analysis": confidence_analysis,
         "influence_analysis": influence_analysis,
@@ -658,4 +702,8 @@ def run_phase4_diagnostics(eval_sample_size: int = 5000):
     print("====================================================================================================\n")
 
 if __name__ == "__main__":
-    run_phase4_diagnostics()
+    parser = argparse.ArgumentParser(description="RecoverFlow Phase 4A Strategy Intelligence Diagnostics")
+    parser.add_argument("--sample-size", type=int, default=CANONICAL_PHASE4_SAMPLE_SIZE, help="Transaction sample size (default: 5000 for canonical run)")
+    args = parser.parse_args()
+
+    run_phase4_diagnostics(eval_sample_size=args.sample_size)
