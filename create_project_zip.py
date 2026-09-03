@@ -1,7 +1,8 @@
 """
 create_project_zip.py
 Exports a clean zip archive of the complete bandit_retry_scheduler codebase
-including Phase 5 Tier 3 dashboard.py, evaluation reports, plots, and tests.
+including dashboard.py, evaluation reports, plots, and tests.
+Includes built-in ZIP member validation asserting 0 forbidden cache/git files.
 """
 
 import os
@@ -12,8 +13,8 @@ def main():
     project_dir = Path(__file__).resolve().parent
     output_zip = project_dir.parent / "bandit_retry_scheduler_phase5_tier3_final.zip"
 
-    ignore_dirs = {".git", "__pycache__", ".pytest_cache", ".streamlit"}
-    ignore_extensions = {".pyc", ".pyo"}
+    ignore_dirs = {".git", "__pycache__", ".pytest_cache", ".streamlit", ".venv", "venv", "env"}
+    ignore_extensions = {".pyc", ".pyo", ".zip", ".tmp", ".log"}
 
     print("====================================================================================================")
     print("CREATING PROJECT ZIP ARCHIVE FOR INDEPENDENT VERIFICATION")
@@ -27,11 +28,28 @@ def main():
                 file_path = Path(root) / f
                 if file_path.suffix in ignore_extensions:
                     continue
-                if file_path == output_zip:
+                if file_path == output_zip or file_path.name.endswith(".zip"):
                     continue
                 rel_path = file_path.relative_to(project_dir)
                 zf.write(file_path, arcname=str(rel_path))
                 file_count += 1
+
+    # ZIP Member Validation
+    forbidden_terms = [".git", "__pycache__", ".pytest_cache", ".pyc", ".venv", "venv"]
+    invalid_members = []
+    with zipfile.ZipFile(output_zip, "r") as zf:
+        for member in zf.namelist():
+            for term in forbidden_terms:
+                if term in member.split("/") or member.endswith(".pyc") or member.endswith(".zip"):
+                    invalid_members.append(member)
+
+    if invalid_members:
+        print(f"[FAIL] ZIP VALIDATION FAILED! Found {len(invalid_members)} forbidden files in archive:")
+        for m in invalid_members[:10]:
+            print(f"   - {m}")
+        raise ValueError("ZIP Validation Failed!")
+    else:
+        print("[PASS] ZIP VALIDATION PASSED (0 forbidden git/cache/zip entries found)")
 
     stat = output_zip.stat()
     print(f"Archive Created : {output_zip.absolute()}")

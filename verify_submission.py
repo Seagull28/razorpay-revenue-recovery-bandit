@@ -88,10 +88,17 @@ def run_check_import_health() -> Tuple[bool, str]:
         return False, f"Module import failed: {e}"
 
 
+def _get_env():
+    env = os.environ.copy()
+    parents = [str(PROJECT_ROOT.parent), str(PROJECT_ROOT)]
+    env["PYTHONPATH"] = os.pathsep.join(parents) + os.pathsep + env.get("PYTHONPATH", "")
+    return env
+
+
 def run_check_ground_truth_isolation() -> Tuple[bool, str]:
     """Stage 4: Execute AST-based ground-truth leakage test suite."""
     cmd = [sys.executable, "-m", "pytest", "tests/test_no_ground_truth_leakage.py", "-q"]
-    res = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True)
+    res = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True, env=_get_env())
     if res.returncode != 0:
         return False, f"Ground-truth leakage tests failed!\nOutput:\n{res.stdout}\n{res.stderr}"
     return True, "Zero ground-truth leakage verified across production directories (api/, policies/, runner/)."
@@ -100,7 +107,7 @@ def run_check_ground_truth_isolation() -> Tuple[bool, str]:
 def run_check_full_test_suite() -> Tuple[bool, str]:
     """Stage 5: Execute full Pytest regression suite."""
     cmd = [sys.executable, "-m", "pytest", "-q"]
-    res = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True)
+    res = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True, env=_get_env())
     if res.returncode != 0:
         return False, f"Pytest suite failed!\nOutput:\n{res.stdout}\n{res.stderr}"
     return True, "Full regression test suite passed cleanly with 0 failures."
@@ -109,7 +116,7 @@ def run_check_full_test_suite() -> Tuple[bool, str]:
 def run_check_benchmark_execution() -> Tuple[bool, str]:
     """Stage 6: Run Phase 1 benchmark evaluation harness."""
     cmd = [sys.executable, "run_phase1_evaluation.py"]
-    res = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True)
+    res = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True, env=_get_env())
     if res.returncode != 0:
         return False, f"Phase 1 evaluation harness failed!\nOutput:\n{res.stdout}\n{res.stderr}"
     return True, "Phase 1 evaluation benchmark executed cleanly."
@@ -177,7 +184,7 @@ def run_check_deterministic_reproducibility() -> Tuple[bool, str]:
 
     # Execute Run 2
     cmd = [sys.executable, "run_phase1_evaluation.py"]
-    res = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True)
+    res = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True, env=_get_env())
     if res.returncode != 0:
         return False, f"Run 2 Phase 1 evaluation failed!\nOutput:\n{res.stdout}"
 

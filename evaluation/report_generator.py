@@ -1,9 +1,6 @@
 """
 report_generator.py
-Generates the comprehensive 11-section Markdown evaluation report incorporating
-multi-seed tables, detailed segment breakdowns, regret curves, arm convergence,
-cold-start analysis, drift adaptation results, 10-seed bootstrap CIs, adaptive threshold experiments,
-alpha sensitivity analysis, and sim-to-real considerations.
+Generates human-readable Markdown evaluation report.
 """
 
 from pathlib import Path
@@ -17,10 +14,16 @@ def generate_evaluation_report(
 ) -> str:
     """
     Formally formats evaluation results into a Markdown report.
-    Delegates to build_full_project_report.py logic if output_report_path is specified.
+    Delegates to canonical Phase 1 markdown report generator.
     """
-    from bandit_retry_scheduler.build_full_project_report import main as build_main
-    build_main()
+    from bandit_retry_scheduler.run_phase1_evaluation import generate_phase1_markdown_report
+    summary_data = eval_results.get("summary_by_policy", eval_results.get("summary", {}))
+    paired_data = eval_results.get("paired_comparisons", eval_results.get("paired", {}))
+    fingerprint = eval_results.get("evaluation_fingerprint", eval_results.get("fingerprint", {}))
     
-    with open(output_report_path, "r", encoding="utf-8") as f:
-        return f.read()
+    report_text = generate_phase1_markdown_report(summary_data, paired_data, fingerprint)
+    if output_report_path:
+        out_file = Path(output_report_path)
+        out_file.parent.mkdir(parents=True, exist_ok=True)
+        out_file.write_text(report_text, encoding="utf-8")
+    return report_text
