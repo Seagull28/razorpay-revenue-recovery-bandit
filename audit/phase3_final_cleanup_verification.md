@@ -11,7 +11,7 @@ All 10 Phase 3 final cleanup and credibility hardening issues have been fully re
 | Issue | Status | Root Cause & Resolution | Evidence |
 | :--- | :---: | :--- | :--- |
 | **1. Test Count Reconciliation** | **FIXED** | Reconciled test suite to exactly 93 tests across source repository, packaged ZIP, and verification report. | `audit/phase3_test_count_reconciliation.md` |
-| **2. Remove Scale-Free Claims** | **FIXED** | Corrected active claims to precise language explaining stability floor (50.0 INR) near zero. | `README.md`, `core/strategy.py` |
+| **2. Scale-Awareness Claims** | **FIXED** | Corrected active claims to precise language explaining stability floor (50.0 INR) near zero. | `README.md`, `core/strategy.py` |
 | **3. Complete Constant Centralization** | **FIXED** | Centralized all strategy, risk, confidence, threshold, and safeguard constants in `core/config.py`. | `core/config.py`, `api/explainability.py` |
 | **4. Precise Fixed INR Wording** | **FIXED** | Corrected active wording: *"No fixed INR arm-selection penalty is used in Phase 3 strategy utility functions."* | `core/risk.py`, `README.md` |
 | **5. README Badge & Disclosures** | **FIXED** | Updated badge to `tests-93 passed` and added transparent disclosures regarding synthetic simulation and policy assumptions. | `README.md` |
