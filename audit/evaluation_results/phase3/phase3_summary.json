@@ -119,6 +119,12 @@
         "LOW": 463,
         "MEDIUM": 37
       }
+    },
+    "balanced_vs_conservative_disagreement": {
+      "disagreement_count": 11,
+      "disagreement_rate_pct": 2.2,
+      "agreement_count": 489,
+      "agreement_rate_pct": 97.8
     }
   },
   "merchant_insights": {

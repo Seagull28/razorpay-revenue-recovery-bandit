@@ -8,6 +8,7 @@
 This report presents targeted empirical validation proving that RecoverFlow strategy modes:
 1. **Converge naturally** when decision confidence is high (clear score separation).
 2. **Diverge appropriately** when decision confidence is low (narrow score gaps), shifting recommendations to lower-risk timing windows.
+3. **Demonstrate 3-Way Divergence (Scenario F)**: Under narrow score gaps, `MAXIMIZE_RECOVERY` selects `1hr`, `BALANCED` shifts to `1d`, and `CONSERVATIVE` shifts to `3d`.
 
 ---
 
@@ -20,9 +21,11 @@ This report presents targeted empirical validation proving that RecoverFlow stra
 | Scenario C: High-Risk Extreme Arm vs Safer Arm | `0.1143` | `1hr` | `3d` | `3d` | **TRUE** |
 | Scenario D: Low Confidence / Nearly Tied Scores | `0.0160` | `7d` | `3d` | `3d` | **TRUE** |
 | Scenario E: Dominant Patient Arm (Perfect Confidence) | `1.0000` | `3d` | `3d` | `3d` | False |
+| Scenario F: Three-Way Strategy Divergence (1hr vs 1d vs 3d) | `0.0400` | `1hr` | `1d` | `3d` | **TRUE** |
 
 ---
 
 ## 💡 Key Empirical Findings
 - **High Confidence Scenarios (A & E)**: Zero mode divergence (`Max = Bal = Cons = 3d`). Risk adjustments decay naturally as confidence approaches 1.0.
 - **Uncertain / Narrow Gap Scenarios (B, C & D)**: Modes diverge legitimately. `MAXIMIZE_RECOVERY` selects the raw highest score (`1hr` or `7d`), `BALANCED` shifts to `3d`, and `CONSERVATIVE` shifts to `3d` (lowest timing friction).
+- **Three-Way Divergence Scenario (F)**: `MAXIMIZE_RECOVERY` selects `1hr` (raw highest score), `BALANCED` shifts to `1d`, and `CONSERVATIVE` shifts to `3d` (lowest timing friction).

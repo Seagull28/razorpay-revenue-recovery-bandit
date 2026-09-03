@@ -19,6 +19,12 @@ Phase 3 introduces **Recovery Strategy Intelligence**, **Risk-Aware Decision Mod
 
 ---
 
+## 📊 Transaction-Level Mode Disagreement
+- **Balanced vs. Conservative Disagreement Rate**: `2.20%` (11 out of 500 transactions).
+- **Balanced vs. Conservative Agreement Rate**: `97.80%` (489 out of 500 transactions).
+
+---
+
 ## 💡 Merchant Recovery Opportunity Leaderboard
 
 - **Highest Opportunity Segment**: `insufficient_funds (Opportunity Score: 100.0)`

@@ -39,7 +39,7 @@ $$U_a^{\text{new}} = S_a - \left(0.70 \cdot R_a + 0.50 \cdot E_a\right) \cdot (1
 where:
 - $R_{1\text{hr}} = 0.70, R_{6\text{hr}} = 0.45, R_{1\text{d}} = 0.25, R_{3\text{d}} = 0.10, R_{7\text{d}} = 0.85$ (Dimensionless timing friction)
 - $E_{1\text{hr}} = 0.35, E_{7\text{d}} = 0.40$ (Dimensionless extreme arm friction)
-- **ZERO fixed INR penalties exist in the codebase! All risk penalties scale 100% proportionally with score magnitude.**
+- **No fixed INR arm-selection penalty is used in Phase 3 strategy utility functions! All risk adjustments scale proportionally relative to decision magnitude.**
 
 ---
 

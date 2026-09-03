@@ -38,7 +38,7 @@
      $$\text{confidence} = \text{clip}\left(\frac{\text{relative\_gap}}{0.25}, 0.0, 1.0\right)$$
      This guarantees:
      - $0.0 \le \text{confidence} \le 1.0$
-     - Scale-free & non-biased across low (₹500) and high (₹50,000) amounts!
+     - Scale-aware & non-biased for normal decision magnitudes across low (₹500) and high (₹50,000) amounts!
      - Responds monotonically to decision margin.
 
 ### 3. Issue 4: Formal Objective Functions for Strategy Modes

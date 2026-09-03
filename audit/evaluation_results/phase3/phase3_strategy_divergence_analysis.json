@@ -34,7 +34,8 @@
         "7d": 300.0
       }
     },
-    "mode_divergence": false
+    "mode_divergence": false,
+    "three_way_divergence": false
   },
   "scenario_b_close_competition": {
     "scenario_name": "Scenario B: Close Competition with Uncertainty",
@@ -71,7 +72,8 @@
         "7d": 227.328
       }
     },
-    "mode_divergence": true
+    "mode_divergence": true,
+    "three_way_divergence": false
   },
   "scenario_c_extreme_vs_safer": {
     "scenario_name": "Scenario C: High-Risk Extreme Arm vs Safer Arm",
@@ -108,7 +110,8 @@
         "7d": 236.6948
       }
     },
-    "mode_divergence": true
+    "mode_divergence": true,
+    "three_way_divergence": false
   },
   "scenario_d_low_confidence_tied": {
     "scenario_name": "Scenario D: Low Confidence / Nearly Tied Scores",
@@ -145,7 +148,8 @@
         "3d": 458.111
       }
     },
-    "mode_divergence": true
+    "mode_divergence": true,
+    "three_way_divergence": false
   },
   "scenario_e_dominant_patient": {
     "scenario_name": "Scenario E: Dominant Patient Arm (Perfect Confidence)",
@@ -182,6 +186,45 @@
         "7d": 300.0
       }
     },
-    "mode_divergence": false
+    "mode_divergence": false,
+    "three_way_divergence": false
+  },
+  "scenario_f_three_way_divergence": {
+    "scenario_name": "Scenario F: Three-Way Strategy Divergence (1hr vs 1d vs 3d)",
+    "description": "Narrow score gap under uncertainty producing 3 distinct arm recommendations (Max -> 1hr, Bal -> 1d, Cons -> 3d).",
+    "confidence_score": 0.04,
+    "raw_policy_arm": "1hr",
+    "maximize_recovery": {
+      "selected_arm": "1hr",
+      "adjusted_scores": {
+        "1hr": 1000.0,
+        "1d": 990.0,
+        "3d": 940.0,
+        "6hr": 900.0,
+        "7d": 800.0
+      }
+    },
+    "balanced": {
+      "selected_arm": "1d",
+      "adjusted_scores": {
+        "1hr": 798.4,
+        "1d": 918.72,
+        "3d": 912.928,
+        "6hr": 783.36,
+        "7d": 604.16
+      }
+    },
+    "conservative": {
+      "selected_arm": "3d",
+      "adjusted_scores": {
+        "1hr": 361.6,
+        "1d": 823.68,
+        "3d": 876.832,
+        "6hr": 627.84,
+        "7d": 189.44
+      }
+    },
+    "mode_divergence": true,
+    "three_way_divergence": true
   }
 }

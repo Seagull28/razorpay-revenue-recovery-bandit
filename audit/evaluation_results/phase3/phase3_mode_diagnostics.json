@@ -32,6 +32,12 @@
     "balanced": 1.2,
     "conservative": 3.4
   },
+  "balanced_vs_conservative_disagreement": {
+    "disagreement_count": 11,
+    "disagreement_rate_pct": 2.2,
+    "agreement_count": 489,
+    "agreement_rate_pct": 97.8
+  },
   "arm_distribution": {
     "MAXIMIZE_RECOVERY": {
       "1hr": {

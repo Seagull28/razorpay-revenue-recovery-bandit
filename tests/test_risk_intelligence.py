@@ -46,8 +46,8 @@ def test_conservative_mode_behavior():
 
 def test_no_fixed_inr_penalties_behavioral_proportional_scaling():
     """
-    Verifies that zero fixed INR penalties exist and that risk adjustments
-    scale 100% proportionally when score vectors are multiplied by a scalar c.
+    Verifies that no fixed INR arm-selection penalty is used in Phase 3 strategy utility functions
+    and that risk adjustments scale 100% proportionally when score vectors are multiplied by a scalar c.
     """
     scores_small = {"1hr": 1000.0, "3d": 900.0}
     scores_large = {"1hr": 10000.0, "3d": 9000.0}
