@@ -13,7 +13,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 def test_repeat_clicks():
-    dashboard_path = str(Path(__file__).resolve().parent / "dashboard.py")
+    dashboard_path = str(Path(__file__).resolve().parent.parent.parent / "dashboard.py")
     
     print("====================================================================================================")
     print("VERIFYING 3 SEQUENTIAL CLICKS ON THE SAME SAMPLE TRANSACTION")

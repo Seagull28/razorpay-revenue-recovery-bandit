@@ -23,7 +23,14 @@ import zlib
 def get_deterministic_uniform(seed: int, tx_id: str, attempt: int) -> float:
     """
     Derives a deterministic latent uniform value u in [0, 1) for paired Common Random Numbers (CRN) evaluation.
-    u = deterministic_uniform(evaluation_seed, transaction_id, attempt_number)
+
+    CRN ARCHITECTURE & KEY SPECIFICATION:
+    - Key: f"{seed}:{tx_id}:{attempt}"
+    - Purpose: Reduces Monte Carlo variance in paired policy comparisons by reusing the exact same
+      underlying stochastic shock u for attempt k of transaction i across competing policies.
+    - Intentional Arm Exclusion: The retry arm is intentionally EXCLUDED from the CRN key so that competing
+      policies share the exact same latent random roll u for a given attempt. While recovery probabilities
+      P(recover | context, arm) differ by arm, the sampled latent random variable u is common across policies.
     """
     key = f"{seed}:{tx_id}:{attempt}".encode("utf-8")
     crc = zlib.crc32(key) & 0xffffffff

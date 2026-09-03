@@ -15,9 +15,17 @@ from bandit_retry_scheduler.simulator.ground_truth import calculate_recovery_pro
 
 class OraclePolicy(BasePolicy):
     """
-    Evaluation-only Oracle Upper Bound policy.
-    Uses ground-truth recovery probabilities to select the expected-value maximizing retry arm.
-    Stops if maximum expected net value across all candidate arms is <= 0.
+    Ground-Truth Greedy Oracle (Evaluation Only).
+
+    Uses hidden simulator recovery probabilities to select the retry action with the highest
+    immediate expected net value E[R] = P_true(recover | context, arm) * amount - retry_cost.
+    Stops if maximum immediate expected net value across all candidate arms is <= 0.
+
+    EVALUATION DISCLAIMER:
+    The Oracle uses hidden simulator recovery probabilities and selects the retry action with the
+    highest immediate expected net value for the current decision. It is evaluation-only and is
+    not a production policy. It is a ground-truth reference benchmark, not necessarily a globally
+    optimal sequential policy across the entire retry trajectory.
     """
 
     def __init__(self, max_attempts: int = 4, retry_cost: float = DEFAULT_RETRY_COST):

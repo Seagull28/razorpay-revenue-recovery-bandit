@@ -2,34 +2,84 @@
   "summary_by_policy": {
     "Fixed Schedule": {
       "mean_net_revenue": 8765870.96,
-      "mean_recovery_rate_pct": 66.97,
+      "mean_recovery_rate_retried_pct": 66.97,
+      "mean_overall_recovery_rate_pct": 66.97,
       "mean_retry_cost": 76379.0,
       "mean_retry_attempts": 7637.9
     },
     "Best Static Arm": {
       "mean_net_revenue": 9273734.06,
-      "mean_recovery_rate_pct": 70.06,
+      "mean_recovery_rate_retried_pct": 70.06,
+      "mean_overall_recovery_rate_pct": 70.06,
       "mean_retry_cost": 72027.0,
       "mean_retry_attempts": 7202.7
     },
     "Contextual Heuristic": {
       "mean_net_revenue": 9302752.33,
-      "mean_recovery_rate_pct": 76.43,
+      "mean_recovery_rate_retried_pct": 76.43,
+      "mean_overall_recovery_rate_pct": 76.43,
       "mean_retry_cost": 64034.0,
       "mean_retry_attempts": 6403.4
     },
     "RecoverFlow LinUCB": {
       "mean_net_revenue": 9486147.13,
-      "mean_recovery_rate_pct": 77.16,
+      "mean_recovery_rate_retried_pct": 77.16,
+      "mean_overall_recovery_rate_pct": 77.16,
       "mean_retry_cost": 62504.0,
       "mean_retry_attempts": 6250.4
     },
-    "Oracle Upper Bound": {
+    "Ground-Truth Greedy Oracle": {
       "mean_net_revenue": 9853890.23,
-      "mean_recovery_rate_pct": 86.92,
+      "mean_recovery_rate_retried_pct": 86.92,
+      "mean_overall_recovery_rate_pct": 79.83,
       "mean_retry_cost": 57457.0,
       "mean_retry_attempts": 5745.7
     }
   },
-  "config_hash": "0580358a30ba"
+  "evaluation_fingerprint": {
+    "evaluation_version": "Phase1_v1.0",
+    "configuration_hash": "0580358a30ba",
+    "validation_seeds": [
+      1001,
+      1002,
+      1003,
+      1004,
+      1005
+    ],
+    "benchmark_seeds": [
+      42,
+      101,
+      2026,
+      301,
+      402,
+      503,
+      604,
+      705,
+      806,
+      907
+    ],
+    "delay_arms": [
+      "1hr",
+      "6hr",
+      "1d",
+      "3d",
+      "7d"
+    ],
+    "retry_cost": 10.0,
+    "linucb_hyperparameters": {
+      "alpha": 1.0,
+      "min_samples_for_stopping": 15,
+      "feature_dimension": 19
+    },
+    "source_hashes": {
+      "ground_truth.py": "d1ee451fa03ea42b",
+      "environment.py": "87ea9f76c5964176",
+      "linucb.py": "6dbc4f10baf32688",
+      "fixed_schedule.py": "4b1ee9697cc45c14",
+      "static_arm.py": "a38c44750856ee42",
+      "heuristic.py": "c20e845fa71c94e4",
+      "oracle.py": "c57dc70a7f6e9062",
+      "engine.py": "461d341c5bb6c780"
+    }
+  }
 }

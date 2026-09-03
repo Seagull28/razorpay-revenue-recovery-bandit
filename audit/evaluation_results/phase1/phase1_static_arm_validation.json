@@ -1,10 +1,18 @@
 {
+  "selection_metric": "mean_net_revenue",
   "validation_seeds": [
     1001,
     1002,
     1003,
     1004,
     1005
+  ],
+  "candidate_arms": [
+    "1hr",
+    "6hr",
+    "1d",
+    "3d",
+    "7d"
   ],
   "selected_best_static_arm": "3d",
   "mean_net_revenue_by_arm": {

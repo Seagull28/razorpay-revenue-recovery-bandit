@@ -9,7 +9,7 @@ from bandit_retry_scheduler.audit.logger import AuditLogger
 from bandit_retry_scheduler.policies.base import BasePolicy
 from bandit_retry_scheduler.simulator.config import DEFAULT_RETRY_COST, DelayArm
 from bandit_retry_scheduler.simulator.environment import RetrySimulator
-from bandit_retry_scheduler.simulator.ground_truth import to_day_bucket, to_failure_bucket
+from bandit_retry_scheduler.core.context_utils import to_day_bucket, to_failure_bucket
 
 
 # Duration in simulated days added per delay arm

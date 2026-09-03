@@ -39,9 +39,47 @@ VALIDATION_SEEDS = [1001, 1002, 1003, 1004, 1005]
 BENCHMARK_SEEDS = [42, 101, 2026, 301, 402, 503, 604, 705, 806, 907]
 
 
-def compute_config_hash() -> str:
-    payload = f"{EVALUATION_VERSION}:{VALIDATION_SEEDS}:{BENCHMARK_SEEDS}:{DELAY_ARMS}:{DEFAULT_RETRY_COST}"
-    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:12]
+def get_file_sha256(filepath: Path) -> str:
+    """Computes SHA256 hash of a source file."""
+    if not filepath.exists():
+        return "file_not_found"
+    return hashlib.sha256(filepath.read_bytes()).hexdigest()[:16]
+
+
+def compute_evaluation_fingerprint() -> Dict[str, Any]:
+    """
+    Generates a comprehensive evaluation fingerprint capturing configuration parameters,
+    LinUCB hyperparameters, and source code SHA256 hashes.
+    """
+    critical_files = {
+        "ground_truth.py": PROJECT_ROOT / "simulator" / "ground_truth.py",
+        "environment.py": PROJECT_ROOT / "simulator" / "environment.py",
+        "linucb.py": PROJECT_ROOT / "policies" / "linucb.py",
+        "fixed_schedule.py": PROJECT_ROOT / "policies" / "fixed_schedule.py",
+        "static_arm.py": PROJECT_ROOT / "policies" / "static_arm.py",
+        "heuristic.py": PROJECT_ROOT / "policies" / "heuristic.py",
+        "oracle.py": PROJECT_ROOT / "evaluation" / "oracle.py",
+        "engine.py": PROJECT_ROOT / "runner" / "engine.py",
+    }
+    source_hashes = {name: get_file_sha256(path) for name, path in critical_files.items()}
+
+    config_payload = f"{EVALUATION_VERSION}:{VALIDATION_SEEDS}:{BENCHMARK_SEEDS}:{DELAY_ARMS}:{DEFAULT_RETRY_COST}"
+    config_hash = hashlib.sha256(config_payload.encode("utf-8")).hexdigest()[:12]
+
+    return {
+        "evaluation_version": EVALUATION_VERSION,
+        "configuration_hash": config_hash,
+        "validation_seeds": VALIDATION_SEEDS,
+        "benchmark_seeds": BENCHMARK_SEEDS,
+        "delay_arms": DELAY_ARMS,
+        "retry_cost": DEFAULT_RETRY_COST,
+        "linucb_hyperparameters": {
+            "alpha": 1.0,
+            "min_samples_for_stopping": 15,
+            "feature_dimension": 19,
+        },
+        "source_hashes": source_hashes,
+    }
 
 
 def validate_and_select_best_static_arm(
@@ -79,7 +117,9 @@ def validate_and_select_best_static_arm(
     best_arm = max(mean_net_revs, key=mean_net_revs.get)
 
     val_summary = {
+        "selection_metric": "mean_net_revenue",
         "validation_seeds": validation_seeds,
+        "candidate_arms": DELAY_ARMS,
         "selected_best_static_arm": best_arm,
         "mean_net_revenue_by_arm": mean_net_revs,
         "per_seed_arm_net_revenue": per_seed_arm_results,
@@ -93,10 +133,11 @@ def compute_policy_seed_metrics(
     policy_name: str,
     records: List[Dict[str, Any]],
     tx_count: int,
-    config_hash: str,
+    fingerprint: Dict[str, Any],
 ) -> Dict[str, Any]:
     """
-    Computes standard raw metrics dictionary matching the required Phase 1 schema.
+    Computes standard raw metrics dictionary matching the required Phase 1 schema,
+    including both Retried Recovery Rate and Overall Recovery Rate.
     """
     if not records:
         return {}
@@ -108,7 +149,11 @@ def compute_policy_seed_metrics(
 
     attempts = len(records)
     recoveries = sum(1 for r in records if r["actual_outcome"] == 1)
-    recovery_rate = (recoveries / transactions_eligible * 100.0) if transactions_eligible > 0 else 0.0
+
+    # Metric A: Recovery Rate Among Retried Transactions
+    recovery_rate_retried = (recoveries / transactions_eligible * 100.0) if transactions_eligible > 0 else 0.0
+    # Metric B: Overall Failed-Payment Recovery Rate (Total Entering Stream)
+    overall_recovery_rate = (recoveries / tx_count * 100.0) if tx_count > 0 else 0.0
 
     gross_recovered = sum(r["amount_recovered"] for r in records)
     total_cost = sum(abs(r["reward"] - r["amount_recovered"]) if r["actual_outcome"] == 1 else abs(r["reward"]) for r in records)
@@ -128,7 +173,8 @@ def compute_policy_seed_metrics(
         "transactions_stopped": transactions_stopped,
         "retry_attempts": attempts,
         "recoveries": recoveries,
-        "recovery_rate_pct": round(recovery_rate, 2),
+        "recovery_rate_retried_pct": round(recovery_rate_retried, 2),
+        "overall_recovery_rate_pct": round(overall_recovery_rate, 2),
         "gross_recovered_revenue": round(gross_recovered, 2),
         "total_retry_cost": round(total_cost, 2),
         "net_revenue": round(net_revenue, 2),
@@ -136,7 +182,7 @@ def compute_policy_seed_metrics(
         "net_revenue_per_eligible_transaction": round(net_rev_per_elig, 2),
         "average_attempts_per_transaction": round(avg_attempts, 2),
         "evaluation_version": EVALUATION_VERSION,
-        "configuration_hash": config_hash,
+        "configuration_hash": fingerprint["configuration_hash"],
     }
     res.update(arm_counts)
     return res
@@ -202,7 +248,7 @@ def run_phase1_evaluation(
     out_dir = output_dir or (PROJECT_ROOT / "audit" / "evaluation_results" / "phase1")
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    config_hash = compute_config_hash()
+    fingerprint = compute_evaluation_fingerprint()
 
     print("================================================================================")
     print("PHASE 1 EVALUATION HARDENING — RUNNING BEST STATIC ARM VALIDATION")
@@ -231,7 +277,7 @@ def run_phase1_evaluation(
         "Best Static Arm": {},
         "Contextual Heuristic": {},
         "RecoverFlow LinUCB": {},
-        "Oracle Upper Bound": {},
+        "Ground-Truth Greedy Oracle": {},
     }
 
     total_tx_per_seed = num_days * tx_per_day
@@ -245,7 +291,7 @@ def run_phase1_evaluation(
             ("Best Static Arm", BestStaticArmPolicy(frozen_arm=best_static_arm, validation_summary=val_summary, max_attempts=4)),
             ("Contextual Heuristic", ContextualHeuristicPolicy(max_attempts=4)),
             ("RecoverFlow LinUCB", LinUCBPolicy(alpha=1.0, min_samples_for_stopping=15, max_attempts=4)),
-            ("Oracle Upper Bound", OraclePolicy(max_attempts=4)),
+            ("Ground-Truth Greedy Oracle", OraclePolicy(max_attempts=4)),
         ]
 
         for p_name, pol_inst in policies_to_test:
@@ -256,31 +302,31 @@ def run_phase1_evaluation(
             eng.run(txs_copy, pol_inst, logger=logger, evaluation_seed=seed, use_crn=True)
 
             recs = logger.to_records()
-            m = compute_policy_seed_metrics(seed, p_name, recs, total_tx_per_seed, config_hash)
+            m = compute_policy_seed_metrics(seed, p_name, recs, total_tx_per_seed, fingerprint)
             raw_results.append(m)
             by_policy_seed_net[p_name][seed] = m["net_revenue"]
-
-        print(f"  - Completed Seed {seed} across all 5 policies.")
 
     # Compute Summary Table
     summary_by_policy: Dict[str, Dict[str, Any]] = {}
     for p_name in by_policy_seed_net.keys():
         p_metrics = [r for r in raw_results if r["policy_name"] == p_name]
         mean_net = float(np.mean([r["net_revenue"] for r in p_metrics]))
-        mean_rec_rate = float(np.mean([r["recovery_rate_pct"] for r in p_metrics]))
+        mean_rec_retried = float(np.mean([r["recovery_rate_retried_pct"] for r in p_metrics]))
+        mean_rec_overall = float(np.mean([r["overall_recovery_rate_pct"] for r in p_metrics]))
         mean_cost = float(np.mean([r["total_retry_cost"] for r in p_metrics]))
         mean_attempts = float(np.mean([r["retry_attempts"] for r in p_metrics]))
 
         summary_by_policy[p_name] = {
             "mean_net_revenue": round(mean_net, 2),
-            "mean_recovery_rate_pct": round(mean_rec_rate, 2),
+            "mean_recovery_rate_retried_pct": round(mean_rec_retried, 2),
+            "mean_overall_recovery_rate_pct": round(mean_rec_overall, 2),
             "mean_retry_cost": round(mean_cost, 2),
             "mean_retry_attempts": round(mean_attempts, 2),
         }
 
     # Compute Paired Seed Comparisons relative to RecoverFlow LinUCB
     lin_nets = [by_policy_seed_net["RecoverFlow LinUCB"][s] for s in benchmark_seeds]
-    oracle_nets = [by_policy_seed_net["Oracle Upper Bound"][s] for s in benchmark_seeds]
+    oracle_nets = [by_policy_seed_net["Ground-Truth Greedy Oracle"][s] for s in benchmark_seeds]
 
     paired_comparisons = {
         "RecoverFlow_vs_FixedSchedule": compute_paired_bootstrap_ci(
@@ -314,7 +360,10 @@ def run_phase1_evaluation(
     # Save Summary JSON
     summary_path = out_dir / "phase1_summary.json"
     with open(summary_path, "w", encoding="utf-8") as f:
-        json.dump({"summary_by_policy": summary_by_policy, "config_hash": config_hash}, f, indent=2)
+        json.dump({
+            "summary_by_policy": summary_by_policy,
+            "evaluation_fingerprint": fingerprint,
+        }, f, indent=2)
 
     # Save Paired Comparisons JSON
     paired_path = out_dir / "phase1_paired_comparisons.json"
@@ -338,6 +387,7 @@ def run_phase1_evaluation(
         "best_static_arm": best_static_arm,
         "summary_by_policy": summary_by_policy,
         "paired_comparisons": paired_comparisons,
+        "fingerprint": fingerprint,
     }
 
 
@@ -360,17 +410,18 @@ def generate_phase1_markdown_report(
     lines.append("")
 
     lines.append("### Policy Performance Summary (10 Benchmark Seeds)")
-    lines.append("| Policy Name | Mean Net Revenue (INR) | Mean Recovery Rate (%) | Mean Retry Cost (INR) | Mean Attempts |")
-    lines.append("| :--- | :---: | :---: | :---: | :---: |")
+    lines.append("| Policy Name | Mean Net Revenue (INR) | Retried Rec Rate (%) | Overall Rec Rate (%) | Mean Retry Cost (INR) | Mean Attempts |")
+    lines.append("| :--- | :---: | :---: | :---: | :---: | :---: |")
     for p_name, m in summary.items():
-        label_prefix = "⭐ " if p_name == "RecoverFlow LinUCB" else ("🔮 " if p_name == "Oracle Upper Bound" else "")
-        lines.append(f"| {label_prefix}**{p_name}** | ₹{m['mean_net_revenue']:,.2f} | {m['mean_recovery_rate_pct']:.2f}% | ₹{m['mean_retry_cost']:,.2f} | {m['mean_retry_attempts']} |")
+        label_prefix = "⭐ " if p_name == "RecoverFlow LinUCB" else ("🔮 " if "Oracle" in p_name else "")
+        lines.append(f"| {label_prefix}**{p_name}** | ₹{m['mean_net_revenue']:,.2f} | {m['mean_recovery_rate_retried_pct']:.2f}% | {m['mean_overall_recovery_rate_pct']:.2f}% | ₹{m['mean_retry_cost']:,.2f} | {m['mean_retry_attempts']} |")
     lines.append("")
 
     lines.append("## 1. Static Arm Validation (Held-Out Seeds)")
     lines.append("To prevent evaluation data leakage, the **Best Static Arm** was selected by evaluating all 5 static arms across 5 held-out validation seeds `[1001, 1002, 1003, 1004, 1005]`. The benchmark seeds had ZERO influence on selection.")
     lines.append("")
     lines.append(f"- **Frozen Selected Arm**: `Always {best_arm}`")
+    lines.append(f"- **Selection Metric**: `mean_net_revenue`")
     lines.append("- **Validation Mean Net Revenue Breakdown**:")
     for arm, val_net in val_summary["mean_net_revenue_by_arm"].items():
         sel_mark = " (Selected)" if arm == best_arm else ""
@@ -391,12 +442,12 @@ def generate_phase1_markdown_report(
     lines.append(f"| RecoverFlow vs. Fixed Schedule | +₹{rf_fix['mean_paired_delta']:,.2f} | {rf_fix['win_rate_pct']:.1f}% ({rf_fix['win_count']}/10) | [{rf_fix['ci_lower']:+,.2f}, {rf_fix['ci_upper']:+,.2f}] |")
     lines.append(f"| RecoverFlow vs. Best Static Arm (`{best_arm}`) | +₹{rf_stat['mean_paired_delta']:,.2f} | {rf_stat['win_rate_pct']:.1f}% ({rf_stat['win_count']}/10) | [{rf_stat['ci_lower']:+,.2f}, {rf_stat['ci_upper']:+,.2f}] |")
     lines.append(f"| RecoverFlow vs. Contextual Heuristic | +₹{rf_heur['mean_paired_delta']:,.2f} | {rf_heur['win_rate_pct']:.1f}% ({rf_heur['win_count']}/10) | [{rf_heur['ci_lower']:+,.2f}, {rf_heur['ci_upper']:+,.2f}] |")
-    lines.append(f"| Oracle Upper Bound vs. RecoverFlow | +₹{orc_rf['mean_paired_delta']:,.2f} | N/A (Theoretical Limit) | [{orc_rf['ci_lower']:+,.2f}, {orc_rf['ci_upper']:+,.2f}] |")
+    lines.append(f"| Ground-Truth Greedy Oracle vs. RecoverFlow | +₹{orc_rf['mean_paired_delta']:,.2f} | N/A (Reference Ceiling) | [{orc_rf['ci_lower']:+,.2f}, {orc_rf['ci_upper']:+,.2f}] |")
     lines.append("")
 
-    lines.append("## 3. Oracle Isolation Disclaimer")
+    lines.append("## 3. Ground-Truth Greedy Oracle Disclaimer")
     lines.append("> [!IMPORTANT]")
-    lines.append("> **Evaluation-Only Theoretical Upper Bound**: The Oracle Policy evaluates true expected value using hidden simulator ground truth. It is **not deployable** and is **strictly isolated from production decision and policy modules** (`api/`, `policies/`). It serves exclusively as a benchmarking ceiling.")
+    lines.append("> **Ground-Truth Greedy Oracle (Evaluation Only)**: The Oracle uses hidden simulator recovery probabilities and selects the retry action with the highest immediate expected net value for the current decision. It is **evaluation-only** and **not a production policy**. It is a ground-truth reference benchmark, not necessarily a globally optimal sequential policy across the entire retry trajectory. It is **strictly isolated from production decision and policy modules** (`api/`, `policies/`, `runner/`).")
 
     lines.append("")
     lines.append("## 4. Per-Seed Breakdown (All 10 Benchmark Seeds)")
@@ -408,7 +459,7 @@ def generate_phase1_markdown_report(
         b_net = next(r["net_revenue"] for r in raw_results if r["seed"] == s and r["policy_name"] == "Best Static Arm")
         h_net = next(r["net_revenue"] for r in raw_results if r["seed"] == s and r["policy_name"] == "Contextual Heuristic")
         l_net = next(r["net_revenue"] for r in raw_results if r["seed"] == s and r["policy_name"] == "RecoverFlow LinUCB")
-        o_net = next(r["net_revenue"] for r in raw_results if r["seed"] == s and r["policy_name"] == "Oracle Upper Bound")
+        o_net = next(r["net_revenue"] for r in raw_results if r["seed"] == s and r["policy_name"] == "Ground-Truth Greedy Oracle")
         lines.append(f"| {s} | ₹{f_net:,.2f} | ₹{b_net:,.2f} | ₹{h_net:,.2f} | ₹{l_net:,.2f} | ₹{o_net:,.2f} |")
 
     return "\n".join(lines)

@@ -4,18 +4,19 @@
 This document presents the rigorous, fair, and reproducible Phase 1 evaluation benchmark for RecoverFlow. All policies were evaluated under **Common Random Numbers (CRN)** and identical transaction streams across 10 benchmark seeds.
 
 ### Policy Performance Summary (10 Benchmark Seeds)
-| Policy Name | Mean Net Revenue (INR) | Mean Recovery Rate (%) | Mean Retry Cost (INR) | Mean Attempts |
-| :--- | :---: | :---: | :---: | :---: |
-| **Fixed Schedule** | ₹8,765,870.96 | 66.97% | ₹76,379.00 | 7637.9 |
-| **Best Static Arm** | ₹9,273,734.06 | 70.06% | ₹72,027.00 | 7202.7 |
-| **Contextual Heuristic** | ₹9,302,752.33 | 76.43% | ₹64,034.00 | 6403.4 |
-| ⭐ **RecoverFlow LinUCB** | ₹9,486,147.13 | 77.16% | ₹62,504.00 | 6250.4 |
-| 🔮 **Oracle Upper Bound** | ₹9,853,890.23 | 86.92% | ₹57,457.00 | 5745.7 |
+| Policy Name | Mean Net Revenue (INR) | Retried Rec Rate (%) | Overall Rec Rate (%) | Mean Retry Cost (INR) | Mean Attempts |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Fixed Schedule** | ₹8,765,870.96 | 66.97% | 66.97% | ₹76,379.00 | 7637.9 |
+| **Best Static Arm** | ₹9,273,734.06 | 70.06% | 70.06% | ₹72,027.00 | 7202.7 |
+| **Contextual Heuristic** | ₹9,302,752.33 | 76.43% | 76.43% | ₹64,034.00 | 6403.4 |
+| ⭐ **RecoverFlow LinUCB** | ₹9,486,147.13 | 77.16% | 77.16% | ₹62,504.00 | 6250.4 |
+| 🔮 **Ground-Truth Greedy Oracle** | ₹9,853,890.23 | 86.92% | 79.83% | ₹57,457.00 | 5745.7 |
 
 ## 1. Static Arm Validation (Held-Out Seeds)
 To prevent evaluation data leakage, the **Best Static Arm** was selected by evaluating all 5 static arms across 5 held-out validation seeds `[1001, 1002, 1003, 1004, 1005]`. The benchmark seeds had ZERO influence on selection.
 
 - **Frozen Selected Arm**: `Always 3d`
+- **Selection Metric**: `mean_net_revenue`
 - **Validation Mean Net Revenue Breakdown**:
   - `Always 1hr`: ₹3,405,881.07
   - `Always 6hr`: ₹4,683,595.62
@@ -31,11 +32,11 @@ All comparisons represent **paired seed-level deltas** ($\Delta_{\text{seed}} = 
 | RecoverFlow vs. Fixed Schedule | +₹720,276.16 | 100.0% (10/10) | [+594,361.86, +854,925.27] |
 | RecoverFlow vs. Best Static Arm (`3d`) | +₹212,413.07 | 90.0% (9/10) | [+99,262.66, +327,648.66] |
 | RecoverFlow vs. Contextual Heuristic | +₹183,394.80 | 90.0% (9/10) | [+96,304.80, +282,620.55] |
-| Oracle Upper Bound vs. RecoverFlow | +₹367,743.11 | N/A (Theoretical Limit) | [+278,687.34, +460,644.17] |
+| Ground-Truth Greedy Oracle vs. RecoverFlow | +₹367,743.11 | N/A (Reference Ceiling) | [+278,687.34, +460,644.17] |
 
-## 3. Oracle Isolation Disclaimer
+## 3. Ground-Truth Greedy Oracle Disclaimer
 > [!IMPORTANT]
-> **Evaluation-Only Theoretical Upper Bound**: The Oracle Policy evaluates true expected value using hidden simulator ground truth. It is **not deployable** and is **strictly isolated from production decision and policy modules** (`api/`, `policies/`). It serves exclusively as a benchmarking ceiling.
+> **Ground-Truth Greedy Oracle (Evaluation Only)**: The Oracle uses hidden simulator recovery probabilities and selects the retry action with the highest immediate expected net value for the current decision. It is **evaluation-only** and **not a production policy**. It is a ground-truth reference benchmark, not necessarily a globally optimal sequential policy across the entire retry trajectory. It is **strictly isolated from production decision and policy modules** (`api/`, `policies/`, `runner/`).
 
 ## 4. Per-Seed Breakdown (All 10 Benchmark Seeds)
 | Seed | Fixed Schedule (INR) | Best Static (INR) | Heuristic (INR) | RecoverFlow (INR) | Oracle (INR) |

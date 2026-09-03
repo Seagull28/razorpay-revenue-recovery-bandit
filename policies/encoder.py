@@ -16,7 +16,7 @@ from bandit_retry_scheduler.simulator.config import (
     FailureCode,
     Network,
 )
-from bandit_retry_scheduler.simulator.ground_truth import to_day_bucket, to_failure_bucket, to_success_bucket
+from bandit_retry_scheduler.core.context_utils import to_day_bucket, to_failure_bucket, to_success_bucket
 
 
 class ContextVectorEncoder:
