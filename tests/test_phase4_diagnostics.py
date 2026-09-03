@@ -136,28 +136,29 @@ def test_canonical_artifact_immutability_during_pytest(tmp_path):
     assert orig_summary_content == after_summary_content
 
 
-def test_experimental_isolation_safety():
-    """Test D: Non-canonical sample size (20) writes to experimental directory and DOES NOT overwrite canonical summary."""
+def test_experimental_isolation_safety(tmp_path):
+    """Test D: Non-canonical sample size (20) writes to isolated tmp_path directory and DOES NOT overwrite canonical artifacts or leave source tree files."""
     canonical_dir = PROJECT_ROOT / "audit" / "evaluation_results" / "phase4_strategy_diagnostics"
+    canonical_meta = canonical_dir / "phase4_run_metadata.json"
     canonical_summary = canonical_dir / "phase4_strategy_summary.json"
     assert canonical_summary.exists()
+    assert canonical_meta.exists()
 
     with open(canonical_summary, "r", encoding="utf-8") as f:
-        orig_data = json.load(f)
+        orig_summary_content = f.read()
+    with open(canonical_meta, "r", encoding="utf-8") as f:
+        orig_meta_content = f.read()
 
-    assert orig_data["sample_size"] == CANONICAL_PHASE4_SAMPLE_SIZE
+    # Run non-canonical experimental run with sample size 20 targeting isolated tmp_path
+    exp_out_dir = tmp_path / "experimental" / "sample_size_20"
+    run_phase4_diagnostics(eval_sample_size=20, output_dir=exp_out_dir)
 
-    # Run non-canonical experimental run with sample size 20
-    exp_dir = canonical_dir / "experimental" / "sample_size_20"
-    if exp_dir.exists():
-        shutil.rmtree(exp_dir)
-
-    run_phase4_diagnostics(eval_sample_size=20)
-
-    # Verify experimental output exists in isolated directory
-    assert exp_dir.exists()
-    exp_summary = exp_dir / "phase4_strategy_summary.json"
+    # Verify experimental output exists in isolated tmp_path directory
+    assert exp_out_dir.exists()
+    exp_summary = exp_out_dir / "phase4_strategy_summary.json"
+    exp_meta = exp_out_dir / "phase4_run_metadata.json"
     assert exp_summary.exists()
+    assert exp_meta.exists()
 
     with open(exp_summary, "r", encoding="utf-8") as f:
         exp_data = json.load(f)
@@ -165,12 +166,14 @@ def test_experimental_isolation_safety():
     assert exp_data["sample_size"] == 20
     assert exp_data["run_mode"] == "experimental"
 
-    # Verify canonical summary was NOT overwritten and remains 5000
+    # Verify canonical summary & meta were NOT overwritten and remain byte-for-byte unchanged
     with open(canonical_summary, "r", encoding="utf-8") as f:
-        canonical_after = json.load(f)
+        after_summary_content = f.read()
+    with open(canonical_meta, "r", encoding="utf-8") as f:
+        after_meta_content = f.read()
 
-    assert canonical_after["sample_size"] == CANONICAL_PHASE4_SAMPLE_SIZE
-    assert canonical_after["run_mode"] == "canonical"
+    assert orig_summary_content == after_summary_content
+    assert orig_meta_content == after_meta_content
 
     # Assert ValueError when trying to overwrite canonical directory with sample_size != 5000
     with pytest.raises(ValueError, match="strictly forbidden"):
