@@ -9,8 +9,8 @@
 Phase 4B evaluates the robustness and adaptability of RecoverFlow's **Disjoint Contextual LinUCB** policy when deployed into stressed, non-stationary, or structurally shifted payment environments. Using a scenario-aware simulator framework (`simulator/scenario_environment.py`), policies were evaluated across 3 environmental scenarios without modifying the locked canonical Phase 1 code or artifacts.
 
 Across all evaluated stress scenarios, **RecoverFlow LinUCB maintains a decisive, statistically robust net revenue advantage over the Fixed Schedule baseline**. Notably:
-- Under **High Insufficient Funds**, LinUCB's net revenue lift **expands by +37.28%** (from **+INR 760,942.09** to **+INR 1,044,658.52**).
-- Under severe **Distribution Shift** (issuer timeout dominant + 30% recovery probability reduction), LinUCB maintains a strong **+INR 751,325.34** net revenue lift.
+- Under **High Insufficient Funds**, LinUCB's net revenue lift **expands to +INR 844,656.03** (+9.10% recovery rate lift).
+- Under severe **Distribution Shift** (issuer timeout dominant + 30% recovery probability reduction), LinUCB's net revenue lift **expands dramatically to +INR 1,377,950.09** (+23.49% recovery rate lift), demonstrating powerful contextual resilience.
 
 ---
 
@@ -32,27 +32,27 @@ Evaluated across 3 seeds (`[42, 101, 2026]`), 30 simulated days, 100 transaction
 
 | Scenario | Policy | Recovery Rate (%) | Net Revenue (INR) | Retry Cost (INR) | Avg Attempts / Tx |
 | :--- | :--- | :---: | :---: | :---: | :---: |
-| **`baseline`** | **RecoverFlow LinUCB** | **72.48%** | **INR 9,558,533.63** | INR 52,763.33 | **1.7588** |
-| | Fixed Schedule | 67.57% | INR 8,797,591.54 | INR 76,100.00 | 2.5367 |
-| **`high_insufficient_funds`** | **RecoverFlow LinUCB** | **71.74%** | **INR 8,402,693.30** | INR 55,980.00 | **1.8660** |
-| | Fixed Schedule | 64.08% | INR 7,358,034.78 | INR 81,540.00 | 2.7180 |
-| **`distribution_shift`** | **RecoverFlow LinUCB** | **51.78%** | **INR 6,373,786.11** | INR 50,140.00 | **1.6713** |
-| | Fixed Schedule | 46.68% | INR 5,622,460.77 | INR 74,546.67 | 2.4849 |
+| **`baseline`** | **RecoverFlow LinUCB** | **77.10%** | **INR 9,449,394.27** | INR 62,220.00 | **2.0740** |
+| | Fixed Schedule | 66.99% | INR 8,777,219.44 | INR 76,406.67 | 2.5469 |
+| **`high_insufficient_funds`** | **RecoverFlow LinUCB** | **86.00%** | **INR 12,846,170.64** | INR 59,240.00 | **1.9758** |
+| | Fixed Schedule | 76.90% | INR 12,001,514.61 | INR 76,530.00 | 2.5510 |
+| **`distribution_shift`** | **RecoverFlow LinUCB** | **68.67%** | **INR 5,695,591.90** | INR 68,246.67 | **2.2758** |
+| | Fixed Schedule | 45.18% | INR 4,317,641.81 | INR 88,540.00 | 2.9502 |
 
 ### B. LinUCB Net Performance Lift vs. Fixed Schedule
 
 | Scenario | Net Revenue Lift (INR) | Net Revenue Lift (%) | Recovery Rate Lift (abs) | Attempts Saved / Tx |
 | :--- | :---: | :---: | :---: | :---: |
-| **`baseline`** | **+INR 760,942.09** | **+8.65%** | **+4.91%** | **-0.7779** |
-| **`high_insufficient_funds`** | **+INR 1,044,658.52** | **+14.20%** | **+7.66%** | **-0.8520** |
-| **`distribution_shift`** | **+INR 751,325.34** | **+13.36%** | **+5.10%** | **-0.8136** |
+| **`baseline`** | **+INR 672,174.83** | **+7.66%** | **+10.11%** | **-0.4729** |
+| **`high_insufficient_funds`** | **+INR 844,656.03** | **+7.04%** | **+9.10%** | **-0.5752** |
+| **`distribution_shift`** | **+INR 1,377,950.09** | **+31.91%** | **+23.49%** | **-0.6744** |
 
 ---
 
 ## 4. Analytical Findings
 
-1. **Expanding Advantage Under NSF Stress**: When insufficient-funds transactions rise to 60% of the stream, LinUCB's net revenue lift grows from **+INR 760.9k** to **+INR 1,044.7k**. LinUCB dynamically avoids immediate retries for NSF failures, delaying them to salary-cycle recovery windows (e.g. `3d` or `7d`), whereas Fixed Schedule blindly retries at `1d`, wasting attempt costs.
-2. **Resilience to Severe Distribution Shift**: Under an inverted failure distribution combined with a 30% reduction in overall recovery probability, LinUCB preserves a **+13.36% relative net revenue gain** (+INR 751.3k) over Fixed Schedule while reducing retry attempt overhead by **32.7%** (1.67 vs 2.48 attempts/tx).
+1. **Expanding Advantage Under NSF Stress**: When insufficient-funds transactions rise to 60% of the stream, LinUCB's net revenue lift grows from **+INR 672.2k** to **+INR 844.7k**. LinUCB dynamically avoids immediate retries for NSF failures, delaying them to salary-cycle recovery windows (e.g. `3d` or `7d`), whereas Fixed Schedule blindly retries at `1d`, wasting attempt costs.
+2. **Resilience to Severe Distribution Shift**: Under an inverted failure distribution combined with a 30% reduction in overall recovery probability, LinUCB achieves a **+31.91% relative net revenue gain** (+INR 1,377,950.09) over Fixed Schedule and a **+23.49% recovery rate lift** while reducing retry attempt overhead by **22.9%** (2.28 vs 2.95 attempts/tx).
 
 ---
 
