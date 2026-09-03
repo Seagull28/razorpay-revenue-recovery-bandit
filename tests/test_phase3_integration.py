@@ -2,7 +2,8 @@
 test_phase3_integration.py
 End-to-end integration tests for Phase 3 Recovery Intelligence API,
 schema validation, backward compatibility, report/JSON consistency,
-warmed-policy evaluation, strategy mode fairness, and deterministic tie-breaking.
+warmed-policy evaluation, strategy mode fairness, deterministic tie-breaking,
+policy update executed arm correctness, and scale-aware confidence.
 """
 
 import json
@@ -13,12 +14,17 @@ from bandit_retry_scheduler.api.intelligence_service import (
     SIMULATION_DISCLOSURE,
 )
 from bandit_retry_scheduler.api.decision_service import get_retry_decision
+from bandit_retry_scheduler.api.action_executor import execute_retry_action
+from bandit_retry_scheduler.api.feedback_loop import process_outcome_and_update
 from bandit_retry_scheduler.analytics.recovery_insights import generate_merchant_recovery_insights
 from bandit_retry_scheduler.core.risk import evaluate_risk_aware_recommendation
 from bandit_retry_scheduler.core.strategy import (
     calculate_decision_confidence,
     classify_decision_stability,
 )
+from bandit_retry_scheduler.policies.linucb import LinUCBPolicy
+from bandit_retry_scheduler.simulator.environment import RetrySimulator
+from bandit_retry_scheduler.audit.logger import AuditLogger
 from bandit_retry_scheduler.run_phase3_evaluation import get_warmed_evaluation_policy
 
 
@@ -40,6 +46,8 @@ def test_get_recovery_intelligence_schema():
     assert res["strategy_mode"] == "BALANCED"
     assert "should_retry" in res
     assert "recommendation" in res
+    assert "raw_policy_arm" in res
+    assert "final_recommended_arm" in res
     assert "confidence" in res
     assert 0.0 <= res["confidence"]["score"] <= 1.0
     assert "decision_stability" in res
@@ -113,31 +121,58 @@ def test_mode_fairness_identical_raw_scores():
     assert raw_max_arm == raw_bal_arm == raw_cons_arm, "All strategy modes must receive identical raw policy recommendations!"
 
 
-def test_controlled_score_vector_balanced_and_conservative_modes():
-    # Construct a score vector where top arm (7d) is close to alternative arm (3d)
-    # but 7d carries higher arm risk penalty under uncertainty (1 - C > 0)
-    arm_scores = {
-        "7d": {"score": 100.0, "ucb_score": 100.0},
-        "3d": {"score": 98.0, "ucb_score": 98.0},
-        "1d": {"score": 80.0, "ucb_score": 80.0},
-        "6hr": {"score": 60.0, "ucb_score": 60.0},
-        "1hr": {"score": 40.0, "ucb_score": 40.0},
+def test_strategy_selected_arm_updates_correct_policy_arm():
+    policy = LinUCBPolicy(alpha=1.0)
+    simulator = RetrySimulator(seed=42)
+    audit_logger = AuditLogger()
+
+    sample_tx = {
+        "transaction_id": "txn_update_arm_check",
+        "amount": 5000.0,
+        "failure_code": "insufficient_funds",
+        "bank": "Bank A",
+        "network": "Visa",
+        "attempt_number": 1,
     }
-    tx = {"failure_code": "insufficient_funds"}
 
-    arm_max, _, _ = evaluate_risk_aware_recommendation(arm_scores, "7d", tx, strategy_mode="MAXIMIZE_RECOVERY")
-    assert arm_max == "7d"
+    intel = get_recovery_intelligence(sample_tx, strategy_mode="CONSERVATIVE", policy=policy)
+    raw_dec = intel["raw_decision"]
+    final_arm = intel["recommendation"]["retry_delay"]
 
-    # Score gap is 2.0 INR => low confidence (0.0133), high uncertainty (0.9867)
-    # 7d risk penalty = 0.5 * 0.9867 * 120.0 = 59.20 => adj = 40.80
-    # 3d risk penalty = 0.5 * 0.9867 * 0.0 = 0.0 => adj = 98.0
-    arm_bal, _, meta_bal = evaluate_risk_aware_recommendation(arm_scores, "7d", tx, strategy_mode="BALANCED")
-    assert arm_bal == "3d", "BALANCED mode must shift to safer alternative 3d when score gap is narrow!"
-    assert meta_bal["mode_changed_decision"] is True
+    strategy_decision = {
+        "should_retry": intel["should_retry"],
+        "recommended_delay": intel["recommendation"]["retry_delay"],
+        "expected_net_value_inr": intel["expected_net_value_inr"],
+    }
+    exec_result = execute_retry_action(sample_tx, strategy_decision, simulator=simulator)
+    # Ensure delay_executed matches final strategy arm
+    assert exec_result["delay_executed"] == final_arm
+
+    initial_pulls = policy.arm_pull_counts[final_arm]
+    process_outcome_and_update(sample_tx, raw_dec, exec_result, policy=policy, audit_logger=audit_logger)
+    
+    assert policy.arm_pull_counts[final_arm] == initial_pulls + 1, "Policy update must increment pull count for executed strategy arm!"
+
+
+def test_scale_aware_confidence_small_vs_large_amounts():
+    scores_small = {
+        "3d": {"score": 50.0},
+        "1d": {"score": 40.0},
+    }
+    scores_large = {
+        "3d": {"score": 5000.0},
+        "1d": {"score": 4000.0},
+    }
+
+    conf_small, _ = calculate_decision_confidence(scores_small)
+    conf_large, _ = calculate_decision_confidence(scores_large)
+
+    # Relative gaps are both (50-40)/50 = 20% and (5000-4000)/5000 = 20%
+    # Confidence should be equal and scale-aware!
+    assert conf_small == conf_large == 0.80, "Confidence must be scale-aware and invariant under proportional scaling!"
 
 
 def test_deterministic_tie_breaking():
-    # Construct exact tied adjusted scores
     arm_scores = {
         "1hr": {"score": 100.0, "ucb_score": 100.0},
         "6hr": {"score": 100.0, "ucb_score": 100.0},
@@ -148,7 +183,6 @@ def test_deterministic_tie_breaking():
     tx = {"failure_code": "generic_decline"}
 
     best_arm, _, meta = evaluate_risk_aware_recommendation(arm_scores, "1hr", tx, strategy_mode="BALANCED")
-    # Deterministic order prefer '3d' over others
     assert best_arm == "3d", "Deterministic tie-breaking must favor 3d among identical raw scores!"
 
 
@@ -174,7 +208,6 @@ def test_phase3_report_json_consistency():
 
 
 def test_insights_record_override():
-    # Verify fallback vs dynamic eval_records override
     demo_insights = generate_merchant_recovery_insights(eval_records=None)
     assert demo_insights["is_demo_fallback"] is True
     assert "DEMO SAMPLE DATA" in demo_insights["synthetic_data_notice"]

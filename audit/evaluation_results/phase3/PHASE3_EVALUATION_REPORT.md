@@ -13,9 +13,9 @@ Phase 3 introduces **Recovery Strategy Intelligence**, **Risk-Aware Decision Mod
 
 | Strategy Mode | Mode Shift Rate vs Raw | Top Strategy Arm | Stability Distribution |
 | :--- | :---: | :---: | :--- |
-| **MAXIMIZE_RECOVERY** | `0.0%` | `7d` | STABLE: 458, MODERATELY_STABLE: 26, UNSTABLE: 16 |
-| **BALANCED** | `1.2%` | `7d` | STABLE: 458, MODERATELY_STABLE: 26, UNSTABLE: 16 |
-| **CONSERVATIVE** | `3.0%` | `7d` | STABLE: 458, MODERATELY_STABLE: 26, UNSTABLE: 16 |
+| **MAXIMIZE_RECOVERY** | `0.0%` | `7d` | STABLE: 466, MODERATELY_STABLE: 25, UNSTABLE: 9 |
+| **BALANCED** | `1.2%` | `7d` | STABLE: 466, MODERATELY_STABLE: 25, UNSTABLE: 9 |
+| **CONSERVATIVE** | `3.8%` | `1d` | STABLE: 466, MODERATELY_STABLE: 25, UNSTABLE: 9 |
 
 ---
 

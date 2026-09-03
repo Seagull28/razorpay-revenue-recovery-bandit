@@ -12,8 +12,8 @@ from bandit_retry_scheduler.core.strategy import (
     calculate_decision_confidence,
     classify_decision_stability,
     get_alternative_strategies,
-    STABLE_GAP_THRESHOLD,
-    MODERATE_GAP_THRESHOLD,
+    STABLE_CONFIDENCE_THRESHOLD,
+    MODERATE_CONFIDENCE_THRESHOLD,
 )
 
 
@@ -48,9 +48,9 @@ def test_decision_confidence_bounds():
 
 
 def test_decision_stability_classification():
-    assert classify_decision_stability(0.8, score_gap=100.0) == "STABLE"
-    assert classify_decision_stability(0.3, score_gap=50.0) == "MODERATELY_STABLE"
-    assert classify_decision_stability(0.1, score_gap=10.0) == "UNSTABLE"
+    assert classify_decision_stability(0.8) == "STABLE"
+    assert classify_decision_stability(0.3) == "MODERATELY_STABLE"
+    assert classify_decision_stability(0.1) == "UNSTABLE"
 
 
 def test_alternative_strategies_ranking():

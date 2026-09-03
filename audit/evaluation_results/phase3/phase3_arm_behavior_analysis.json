@@ -1,0 +1,37 @@
+{
+  "1hr": {
+    "evaluations_count": 500,
+    "success_rate": 0.226,
+    "mean_recovered_inr": 457.18,
+    "retry_cost_inr": 10.0,
+    "mean_net_reward_inr": 447.18
+  },
+  "6hr": {
+    "evaluations_count": 500,
+    "success_rate": 0.24,
+    "mean_recovered_inr": 570.88,
+    "retry_cost_inr": 10.0,
+    "mean_net_reward_inr": 560.88
+  },
+  "1d": {
+    "evaluations_count": 500,
+    "success_rate": 0.246,
+    "mean_recovered_inr": 882.77,
+    "retry_cost_inr": 10.0,
+    "mean_net_reward_inr": 872.77
+  },
+  "3d": {
+    "evaluations_count": 500,
+    "success_rate": 0.28,
+    "mean_recovered_inr": 1346.14,
+    "retry_cost_inr": 10.0,
+    "mean_net_reward_inr": 1336.14
+  },
+  "7d": {
+    "evaluations_count": 500,
+    "success_rate": 0.202,
+    "mean_recovered_inr": 1054.41,
+    "retry_cost_inr": 10.0,
+    "mean_net_reward_inr": 1044.41
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "MAXIMIZE_RECOVERY": {
+    "evaluated_transactions": 500,
+    "recovered_transactions": 179,
+    "recovery_rate_pct": 35.8,
+    "gross_revenue_inr": 447500.0,
+    "retry_cost_inr": 5000.0,
+    "net_revenue_inr": 442500.0
+  },
+  "BALANCED": {
+    "evaluated_transactions": 500,
+    "recovered_transactions": 179,
+    "recovery_rate_pct": 35.8,
+    "gross_revenue_inr": 447500.0,
+    "retry_cost_inr": 5000.0,
+    "net_revenue_inr": 442500.0
+  },
+  "CONSERVATIVE": {
+    "evaluated_transactions": 500,
+    "recovered_transactions": 179,
+    "recovery_rate_pct": 35.8,
+    "gross_revenue_inr": 447500.0,
+    "retry_cost_inr": 5000.0,
+    "net_revenue_inr": 442500.0
+  }
+}

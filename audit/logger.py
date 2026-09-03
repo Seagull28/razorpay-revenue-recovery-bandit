@@ -24,6 +24,8 @@ class AuditRecord:
     actual_outcome: int  # 1 for success, 0 for failure
     amount_recovered: float
     reward: float
+    raw_policy_arm: Optional[str] = None
+    strategy_mode: Optional[str] = None
 
 
 class AuditLogger:
@@ -44,6 +46,8 @@ class AuditLogger:
         actual_outcome: int,
         amount_recovered: float,
         reward: float,
+        raw_policy_arm: Optional[str] = None,
+        strategy_mode: Optional[str] = None,
     ) -> AuditRecord:
         """Appends a new decision record conforming to the Section 7 schema."""
         record = AuditRecord(
@@ -55,6 +59,8 @@ class AuditLogger:
             actual_outcome=int(actual_outcome),
             amount_recovered=float(amount_recovered),
             reward=float(reward),
+            raw_policy_arm=raw_policy_arm,
+            strategy_mode=strategy_mode,
         )
         self.records.append(record)
         return record

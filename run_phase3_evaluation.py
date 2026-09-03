@@ -2,9 +2,8 @@
 run_phase3_evaluation.py
 Phase 3 Evaluation CLI Harness for RecoverFlow Product Differentiation & Intelligence.
 Evaluates strategy modes (MAXIMIZE_RECOVERY, BALANCED, CONSERVATIVE), decision stability,
-risk distributions, and segment opportunity scores across synthetic simulation streams.
-Uses a warmed LinUCB policy state to ensure non-trivial score gaps and realistic evaluations.
-Generates separate evaluation artifacts in audit/evaluation_results/phase3/.
+risk distributions, per-arm simulator statistics, and actual strategy mode performance.
+Generates evaluation artifacts in audit/evaluation_results/phase3/.
 """
 
 import sys
@@ -32,6 +31,8 @@ from bandit_retry_scheduler.simulator.environment import RetrySimulator
 from bandit_retry_scheduler.simulator.stream_generator import TransactionStreamGenerator
 from bandit_retry_scheduler.api.intelligence_service import get_recovery_intelligence
 from bandit_retry_scheduler.analytics.recovery_insights import generate_merchant_recovery_insights
+from bandit_retry_scheduler.runner.engine import PolicyExecutionEngine
+from bandit_retry_scheduler.audit.logger import AuditLogger
 
 
 def get_warmed_evaluation_policy(seed: int = 42, warm_tx_count: int = 1000) -> LinUCBPolicy:
@@ -58,6 +59,41 @@ def get_warmed_evaluation_policy(seed: int = 42, warm_tx_count: int = 1000) -> L
     return policy
 
 
+def analyze_arm_behavior(transactions: List[Dict[str, Any]], simulator: RetrySimulator) -> Dict[str, Any]:
+    """
+    Performs empirical per-arm simulator behavior analysis across candidate arms.
+    Measures success probability, average recovered value, retry cost, and net reward.
+    """
+    arms = ["1hr", "6hr", "1d", "3d", "7d"]
+    analysis: Dict[str, Any] = {}
+
+    for arm in arms:
+        total_evals = len(transactions)
+        successes = 0
+        total_recovered = 0.0
+        
+        for tx in transactions:
+            succ, amt = simulator.simulate_retry(tx, arm, attempt_number=1, evaluation_seed=101, use_crn=True)
+            if succ:
+                successes += 1
+                total_recovered += amt
+
+        succ_rate = round(successes / total_evals, 4) if total_evals > 0 else 0.0
+        avg_rec = round(total_recovered / total_evals, 2) if total_evals > 0 else 0.0
+        retry_cost = 10.0
+        net_reward = round(avg_rec - retry_cost, 2)
+
+        analysis[arm] = {
+            "evaluations_count": total_evals,
+            "success_rate": succ_rate,
+            "mean_recovered_inr": avg_rec,
+            "retry_cost_inr": retry_cost,
+            "mean_net_reward_inr": net_reward,
+        }
+
+    return analysis
+
+
 def run_phase3_evaluation():
     output_dir = PROJECT_ROOT / "audit" / "evaluation_results" / "phase3"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -68,6 +104,7 @@ def run_phase3_evaluation():
 
     # Load warmed policy state
     warmed_policy = get_warmed_evaluation_policy(seed=42, warm_tx_count=1000)
+    simulator = RetrySimulator(seed=101)
 
     # Generate synthetic evaluation transaction stream (Seed 101 to prevent data leakage)
     generator = TransactionStreamGenerator(seed=101)
@@ -158,6 +195,50 @@ def run_phase3_evaluation():
     summary_path = output_dir / "phase3_summary.json"
     with open(summary_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2)
+
+    # Perform Arm Behavior Analysis (Issue 5)
+    arm_behavior = analyze_arm_behavior(transactions, simulator)
+    arm_analysis_path = output_dir / "phase3_arm_behavior_analysis.json"
+    with open(arm_analysis_path, "w", encoding="utf-8") as f:
+        json.dump(arm_behavior, f, indent=2)
+
+    # Perform Strategy Mode Performance Simulation (Issue 6)
+    mode_performance: Dict[str, Any] = {}
+    for mode in summary["strategy_modes_evaluated"]:
+        sim_eval = RetrySimulator(seed=101)
+        succ_count = 0
+        total_rev = 0.0
+        total_cost = 0.0
+
+        for r in mode_results[mode]:
+            if r.get("should_retry", False):
+                arm = r["recommendation"]["retry_delay"]
+                succ, amt = sim_eval.simulate_retry(
+                    {"transaction_id": r["transaction_id"], "amount": 2500.0, "failure_code": r.get("failure_code", "generic_decline")},
+                    arm,
+                    attempt_number=1,
+                    evaluation_seed=101,
+                    use_crn=True,
+                )
+                total_cost += 10.0
+                if succ:
+                    succ_count += 1
+                    total_rev += amt
+
+        net_rev = total_rev - total_cost
+        rec_rate = round(succ_count / len(transactions), 4) if transactions else 0.0
+        mode_performance[mode] = {
+            "evaluated_transactions": len(transactions),
+            "recovered_transactions": succ_count,
+            "recovery_rate_pct": round(rec_rate * 100, 2),
+            "gross_revenue_inr": round(total_rev, 2),
+            "retry_cost_inr": round(total_cost, 2),
+            "net_revenue_inr": round(net_rev, 2),
+        }
+
+    perf_path = output_dir / "phase3_strategy_performance.json"
+    with open(perf_path, "w", encoding="utf-8") as f:
+        json.dump(mode_performance, f, indent=2)
 
     # Generate Markdown Report dynamically from summary dict
     report_path = output_dir / "PHASE3_EVALUATION_REPORT.md"
@@ -266,6 +347,8 @@ Phase 3 introduces **Recovery Strategy Intelligence**, **Risk-Aware Decision Mod
     print(f"[PASS] Phase 3 Summary Saved     : {summary_path.absolute()}")
     print(f"[PASS] Phase 3 Report Saved      : {report_path.absolute()}")
     print(f"[PASS] Phase 3 Diagnostics Saved : {diag_path.absolute()}")
+    print(f"[PASS] Arm Behavior Saved        : {arm_analysis_path.absolute()}")
+    print(f"[PASS] Strategy Perf Saved       : {perf_path.absolute()}")
     print("====================================================================================================\n")
 
 if __name__ == "__main__":

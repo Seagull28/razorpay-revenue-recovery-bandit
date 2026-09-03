@@ -47,13 +47,13 @@ class RiskProfile:
 HIGH_RISK_FAILURE_CODES = {"do_not_honor", "card_expired"}
 MEDIUM_RISK_FAILURE_CODES = {"insufficient_funds", "generic_decline"}
 
-# Arm-specific timing risk penalties denominated in currency (INR)
-ARM_RISK_PENALTY: Dict[str, float] = {
-    "3d": 0.0,
-    "1d": 25.0,
-    "6hr": 50.0,
-    "1hr": 80.0,
-    "7d": 120.0,
+# Normalized dimensionless arm timing friction profile R_a in [0.0, 1.0]
+ARM_RISK_PROFILE: Dict[str, float] = {
+    "3d": 0.10,  # Patient replenish window — lowest timing friction
+    "1d": 0.25,  # Balanced daily processing window
+    "6hr": 0.45, # Intraday retry — moderate congestion/timing friction
+    "1hr": 0.70, # Immediate retry — high risk of retrying before bank/customer state changes
+    "7d": 0.85,  # Extended 7-day window — high opportunity-cost & customer churn risk
 }
 
 
@@ -118,10 +118,10 @@ def evaluate_risk_aware_recommendation(
     """
     Evaluates risk-aware strategy recommendations based on merchant preference mode.
     
-    Modes:
-    - MAXIMIZE_RECOVERY: Preserves raw policy choice (highest UCB score).
-    - BALANCED: Applies arm-specific timing risk penalty scaled by score uncertainty.
-    - CONSERVATIVE: Applies strong arm-specific risk penalties and extreme-window penalties under uncertainty.
+    Modes & Objective Utility Functions:
+    - MAXIMIZE_RECOVERY: U_a = UCB_a (Pure LinUCB bandit utility maximization).
+    - BALANCED: U_a = UCB_a - 0.30 * (1 - C) * R_a * max(|UCB_a|, 50.0) (Trade off expected net revenue vs uncertainty-weighted risk).
+    - CONSERVATIVE: U_a = UCB_a - 0.70 * (1 - C) * R_a * max(|UCB_a|, 50.0) - (25.0 if arm in ('1hr', '7d') else 0.0).
     
     Uses explicit deterministic tie-breaking:
     1. Adjusted Score (rounded to 2 decimal places)
@@ -152,15 +152,16 @@ def evaluate_risk_aware_recommendation(
 
     adjusted_scores: Dict[str, float] = {}
     for arm, ev in raw_ucb_scores.items():
-        arm_risk = ARM_RISK_PENALTY.get(arm, 0.0)
+        arm_risk = ARM_RISK_PROFILE.get(arm, 0.25)
+        score_scale = max(abs(ev), 50.0)
 
         if mode == StrategyMode.BALANCED.value:
-            # Balanced mode: arm-specific timing risk penalty scaled by uncertainty
-            adj = ev - (0.50 * uncertainty_penalty * arm_risk)
+            # Balanced mode: 0.30 multiplier on uncertainty-weighted arm risk
+            adj = ev - (0.30 * uncertainty_penalty * arm_risk * score_scale)
         elif mode == StrategyMode.CONSERVATIVE.value:
-            # Conservative mode: stronger arm-specific penalty + fixed extreme window penalty
-            extreme_penalty = 40.0 if arm in ("1hr", "7d") else 0.0
-            adj = ev - (1.20 * uncertainty_penalty * arm_risk) - extreme_penalty
+            # Conservative mode: 0.70 multiplier + fixed extreme window penalty (25 INR)
+            extreme_penalty = 25.0 if arm in ("1hr", "7d") else 0.0
+            adj = ev - (0.70 * uncertainty_penalty * arm_risk * score_scale) - extreme_penalty
         else:
             adj = ev
 

@@ -2,7 +2,7 @@
 strategy.py
 Recovery Strategy Intelligence Engine for RecoverFlow.
 Maps raw retry arm choices into human-readable recovery strategies, calculates
-decision confidence based on score separation, classifies decision stability,
+scale-aware decision confidence based on relative score separation, classifies decision stability,
 and ranks alternative retry strategies.
 """
 
@@ -52,10 +52,9 @@ STRATEGY_METADATA: Dict[StrategyCategory, Dict[str, str]] = {
     },
 }
 
-# Stability Threshold Constants (denominated in currency/net-revenue score gap INR)
-STABLE_GAP_THRESHOLD: float = 75.0
-MODERATE_GAP_THRESHOLD: float = 25.0
-GAP_SCALING_FACTOR: float = 150.0
+# Scale-Aware Stability Threshold Constants (confidence score bounds 0.0 to 1.0)
+STABLE_CONFIDENCE_THRESHOLD: float = 0.50
+MODERATE_CONFIDENCE_THRESHOLD: float = 0.20
 
 
 def get_strategy_category(retry_delay: str) -> StrategyCategory:
@@ -74,9 +73,9 @@ def get_strategy_metadata(retry_delay: str) -> Dict[str, str]:
 
 def calculate_decision_confidence(arm_scores: Dict[str, Any]) -> Tuple[float, str]:
     """
-    Calculates decision confidence from score gap between top two candidate arms.
+    Calculates scale-aware decision confidence from relative score gap between top two candidate arms.
     Confidence represents relative score separation between candidate retry windows (0.0 to 1.0),
-    NOT guaranteed payment recovery probability.
+    NOT guaranteed payment recovery probability. Non-biased across transaction amount scales.
     """
     if not arm_scores:
         return 0.50, "Relative separation between leading retry candidates"
@@ -99,10 +98,15 @@ def calculate_decision_confidence(arm_scores: Dict[str, Any]) -> Tuple[float, st
     top_score = scores[0]
     second_score = scores[1]
 
-    # Score gap calculation
+    # Raw score gap calculation
     raw_gap = top_score - second_score
-    # Normalize gap using standard scaling factor (150 INR gap yields max confidence 1.0)
-    confidence = min(1.0, max(0.0, raw_gap / GAP_SCALING_FACTOR))
+    
+    # Scale-aware relative gap: relative to top score magnitude or cost floor (50.0 INR)
+    scale = max(abs(top_score), 50.0)
+    relative_gap = raw_gap / scale
+
+    # Normalize: 25% relative gap yields 100% confidence
+    confidence = min(1.0, max(0.0, relative_gap / 0.25))
     confidence_rounded = round(float(confidence), 4)
     
     interpretation = "Relative separation between leading retry candidates"
@@ -111,13 +115,12 @@ def calculate_decision_confidence(arm_scores: Dict[str, Any]) -> Tuple[float, st
 
 def classify_decision_stability(confidence_score: float, score_gap: float = None) -> str:
     """
-    Classifies decision stability based on score gap or confidence score.
+    Classifies decision stability based on confidence score or relative score gap.
     Returns: 'STABLE', 'MODERATELY_STABLE', or 'UNSTABLE'.
     """
-    gap = score_gap if score_gap is not None else (confidence_score * GAP_SCALING_FACTOR)
-    if gap >= STABLE_GAP_THRESHOLD:
+    if confidence_score >= STABLE_CONFIDENCE_THRESHOLD:
         return "STABLE"
-    elif gap >= MODERATE_GAP_THRESHOLD:
+    elif confidence_score >= MODERATE_CONFIDENCE_THRESHOLD:
         return "MODERATELY_STABLE"
     else:
         return "UNSTABLE"

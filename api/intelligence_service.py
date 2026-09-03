@@ -120,6 +120,8 @@ def get_recovery_intelligence(
         },
         "decision_stability": stability,
         "risk_profile": risk_profile.to_dict(),
+        "raw_policy_arm": raw_arm,
+        "final_recommended_arm": recommended_arm,
         "alternatives": alternatives,
         "explanation": enriched_explanation,
         "simulation_disclosure": SIMULATION_DISCLOSURE,
