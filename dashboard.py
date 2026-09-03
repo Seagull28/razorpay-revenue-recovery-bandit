@@ -146,7 +146,12 @@ metrics = load_benchmark_metrics()
 
 # Header Banner
 st.title("⚡ RecoverFlow: Bandit-Optimized Retry Scheduler")
-st.markdown("**Production Merchant Performance & Live Policy Walkthrough**")
+st.markdown("**Contextual Bandit Payment Recovery Engine Prototype**")
+st.warning(
+    "⚠️ **Synthetic Simulation Notice**: All KPIs, transaction figures, and policy comparisons in this dashboard "
+    "are generated within a synthetic payment recovery environment. They do not represent real payment gateway "
+    "transaction data or live merchant revenue."
+)
 st.markdown("---")
 
 # =============================================================================
