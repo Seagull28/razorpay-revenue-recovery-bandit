@@ -11,19 +11,19 @@ Phase 3 introduces **Recovery Strategy Intelligence**, **Risk-Aware Decision Mod
 
 ## 📊 Strategy Mode Evaluation (500 Simulated Transactions)
 
-| Strategy Mode | Primary Objective | Mode Shift Rate vs Raw | Top Strategy Arm | Stability Distribution |
-| :--- | :--- | :---: | :---: | :--- |
-| **MAXIMIZE_RECOVERY** | Pure EV Policy Maximization | `0.0%` | `3d` | {'UNSTABLE': 500} |
-| **BALANCED** | Score Gap & Uncertainty Balanced | `0.0%` | `3d` | {'UNSTABLE': 500} |
-| **CONSERVATIVE** | High-Uncertainty & Extreme Penalty | `100.0%` | `3d` | {'UNSTABLE': 500} |
+| Strategy Mode | Mode Shift Rate vs Raw | Top Strategy Arm | Stability Distribution |
+| :--- | :---: | :---: | :--- |
+| **MAXIMIZE_RECOVERY** | `0.0%` | `1hr` | UNSTABLE: 500 |
+| **BALANCED** | `0.0%` | `1hr` | UNSTABLE: 500 |
+| **CONSERVATIVE** | `100.0%` | `6hr` | UNSTABLE: 500 |
 
 ---
 
 ## 💡 Merchant Recovery Opportunity Leaderboard
 
-- **Highest Opportunity Segment**: `issuer_timeout (Opportunity Score: 91.5)`
-- **Highest Risk Segment**: `do_not_honor (Risk Level: HIGH)`
-- **Best Performing Strategy**: `PATIENT_RECOVERY (3d)`
+- **Highest Opportunity Segment**: `issuer_timeout (Opportunity Score: 40.3)`
+- **Highest Risk Segment**: `None`
+- **Best Performing Strategy**: `IMMEDIATE_RECOVERY (1hr)`
 
 ---
 

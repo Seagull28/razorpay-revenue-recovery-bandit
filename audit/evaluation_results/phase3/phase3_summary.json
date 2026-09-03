@@ -8,6 +8,7 @@
   ],
   "metrics": {
     "MAXIMIZE_RECOVERY": {
+      "top_strategy_arm": "1hr",
       "strategy_distribution": {
         "1hr": 500
       },
@@ -21,6 +22,7 @@
       "mode_shift_rate_vs_raw": 0.0
     },
     "BALANCED": {
+      "top_strategy_arm": "1hr",
       "strategy_distribution": {
         "1hr": 500
       },
@@ -34,6 +36,7 @@
       "mode_shift_rate_vs_raw": 0.0
     },
     "CONSERVATIVE": {
+      "top_strategy_arm": "6hr",
       "strategy_distribution": {
         "6hr": 500
       },
@@ -46,5 +49,66 @@
       },
       "mode_shift_rate_vs_raw": 1.0
     }
+  },
+  "merchant_insights": {
+    "overall_recovery_rate": 1.0,
+    "total_transactions_analyzed": 500,
+    "highest_opportunity_segment": "issuer_timeout (Opportunity Score: 40.3)",
+    "highest_risk_segment": "None",
+    "best_performing_strategy": "IMMEDIATE_RECOVERY (1hr)",
+    "segments": [
+      {
+        "dimension": "failure_code",
+        "segment": "issuer_timeout",
+        "transaction_count": 125,
+        "recovery_rate": 1.0,
+        "recommended_strategy": "IMMEDIATE_RECOVERY (1hr)",
+        "opportunity_score": 40.3,
+        "risk_level": "LOW",
+        "summary": "Evaluated segment 'issuer_timeout' across 125 records (retry rate: 100.0%)."
+      },
+      {
+        "dimension": "failure_code",
+        "segment": "insufficient_funds",
+        "transaction_count": 205,
+        "recovery_rate": 1.0,
+        "recommended_strategy": "IMMEDIATE_RECOVERY (1hr)",
+        "opportunity_score": 40.3,
+        "risk_level": "LOW",
+        "summary": "Evaluated segment 'insufficient_funds' across 205 records (retry rate: 100.0%)."
+      },
+      {
+        "dimension": "failure_code",
+        "segment": "generic_decline",
+        "transaction_count": 96,
+        "recovery_rate": 1.0,
+        "recommended_strategy": "IMMEDIATE_RECOVERY (1hr)",
+        "opportunity_score": 38.7,
+        "risk_level": "LOW",
+        "summary": "Evaluated segment 'generic_decline' across 96 records (retry rate: 100.0%)."
+      },
+      {
+        "dimension": "failure_code",
+        "segment": "do_not_honor",
+        "transaction_count": 40,
+        "recovery_rate": 1.0,
+        "recommended_strategy": "IMMEDIATE_RECOVERY (1hr)",
+        "opportunity_score": 16.1,
+        "risk_level": "LOW",
+        "summary": "Evaluated segment 'do_not_honor' across 40 records (retry rate: 100.0%)."
+      },
+      {
+        "dimension": "failure_code",
+        "segment": "card_expired",
+        "transaction_count": 34,
+        "recovery_rate": 1.0,
+        "recommended_strategy": "IMMEDIATE_RECOVERY (1hr)",
+        "opportunity_score": 13.7,
+        "risk_level": "LOW",
+        "summary": "Evaluated segment 'card_expired' across 34 records (retry rate: 100.0%)."
+      }
+    ],
+    "synthetic_data_notice": "Synthetic simulation insight \u2014 derived dynamically from Phase 3 evaluation benchmark records.",
+    "is_demo_fallback": false
   }
 }

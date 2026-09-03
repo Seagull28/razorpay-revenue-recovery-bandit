@@ -1,0 +1,441 @@
+{
+  "sample_size": 500,
+  "summary_statistics": {
+    "score_gap_stats": {
+      "min": 0.0,
+      "max": 0.0,
+      "mean": 0.0,
+      "median": 0.0,
+      "p25": 0.0,
+      "p50": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "p95": 0.0
+    },
+    "confidence_stats": {
+      "min": 0.0,
+      "max": 0.0,
+      "mean": 0.0,
+      "median": 0.0,
+      "p25": 0.0,
+      "p50": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "p95": 0.0
+    },
+    "balanced_shift_rate": 0.0,
+    "conservative_shift_rate": 1.0
+  },
+  "first_10_transactions_detail": [
+    {
+      "transaction_index": 0,
+      "transaction_id": "tx_eb819333b5",
+      "failure_code": "generic_decline",
+      "raw_scores": {
+        "1hr": 2.2913,
+        "6hr": 2.2913,
+        "1d": 2.2913,
+        "3d": 2.2913,
+        "7d": 2.2913
+      },
+      "sorted_ranking": [
+        "1hr",
+        "6hr",
+        "1d",
+        "3d",
+        "7d"
+      ],
+      "top_score": 2.2913,
+      "second_score": 2.2913,
+      "raw_score_gap": 0.0,
+      "confidence": 0.0,
+      "stability": "UNSTABLE",
+      "raw_selected_arm": "1hr",
+      "balanced_selected_arm": "1hr",
+      "balanced_adjusted_scores": {
+        "1hr": 2.0622,
+        "6hr": 2.0622,
+        "1d": 2.0622,
+        "3d": 2.0622,
+        "7d": 2.0622
+      },
+      "conservative_selected_arm": "6hr",
+      "conservative_adjusted_scores": {
+        "1hr": 1.5685,
+        "6hr": 1.7185,
+        "1d": 1.7185,
+        "3d": 1.7185,
+        "7d": 1.5685
+      }
+    },
+    {
+      "transaction_index": 1,
+      "transaction_id": "tx_2f0ddac2af",
+      "failure_code": "generic_decline",
+      "raw_scores": {
+        "1hr": 2.2913,
+        "6hr": 2.2913,
+        "1d": 2.2913,
+        "3d": 2.2913,
+        "7d": 2.2913
+      },
+      "sorted_ranking": [
+        "1hr",
+        "6hr",
+        "1d",
+        "3d",
+        "7d"
+      ],
+      "top_score": 2.2913,
+      "second_score": 2.2913,
+      "raw_score_gap": 0.0,
+      "confidence": 0.0,
+      "stability": "UNSTABLE",
+      "raw_selected_arm": "1hr",
+      "balanced_selected_arm": "1hr",
+      "balanced_adjusted_scores": {
+        "1hr": 2.0622,
+        "6hr": 2.0622,
+        "1d": 2.0622,
+        "3d": 2.0622,
+        "7d": 2.0622
+      },
+      "conservative_selected_arm": "6hr",
+      "conservative_adjusted_scores": {
+        "1hr": 1.5685,
+        "6hr": 1.7185,
+        "1d": 1.7185,
+        "3d": 1.7185,
+        "7d": 1.5685
+      }
+    },
+    {
+      "transaction_index": 2,
+      "transaction_id": "tx_afbf4ce3e3",
+      "failure_code": "do_not_honor",
+      "raw_scores": {
+        "1hr": 2.2913,
+        "6hr": 2.2913,
+        "1d": 2.2913,
+        "3d": 2.2913,
+        "7d": 2.2913
+      },
+      "sorted_ranking": [
+        "1hr",
+        "6hr",
+        "1d",
+        "3d",
+        "7d"
+      ],
+      "top_score": 2.2913,
+      "second_score": 2.2913,
+      "raw_score_gap": 0.0,
+      "confidence": 0.0,
+      "stability": "UNSTABLE",
+      "raw_selected_arm": "1hr",
+      "balanced_selected_arm": "1hr",
+      "balanced_adjusted_scores": {
+        "1hr": 2.0622,
+        "6hr": 2.0622,
+        "1d": 2.0622,
+        "3d": 2.0622,
+        "7d": 2.0622
+      },
+      "conservative_selected_arm": "6hr",
+      "conservative_adjusted_scores": {
+        "1hr": 1.5685,
+        "6hr": 1.7185,
+        "1d": 1.7185,
+        "3d": 1.7185,
+        "7d": 1.5685
+      }
+    },
+    {
+      "transaction_index": 3,
+      "transaction_id": "tx_10c2b4a1b0",
+      "failure_code": "generic_decline",
+      "raw_scores": {
+        "1hr": 2.4495,
+        "6hr": 2.4495,
+        "1d": 2.4495,
+        "3d": 2.4495,
+        "7d": 2.4495
+      },
+      "sorted_ranking": [
+        "1hr",
+        "6hr",
+        "1d",
+        "3d",
+        "7d"
+      ],
+      "top_score": 2.4495,
+      "second_score": 2.4495,
+      "raw_score_gap": 0.0,
+      "confidence": 0.0,
+      "stability": "UNSTABLE",
+      "raw_selected_arm": "1hr",
+      "balanced_selected_arm": "1hr",
+      "balanced_adjusted_scores": {
+        "1hr": 2.2045,
+        "6hr": 2.2045,
+        "1d": 2.2045,
+        "3d": 2.2045,
+        "7d": 2.2045
+      },
+      "conservative_selected_arm": "6hr",
+      "conservative_adjusted_scores": {
+        "1hr": 1.6871,
+        "6hr": 1.8371,
+        "1d": 1.8371,
+        "3d": 1.8371,
+        "7d": 1.6871
+      }
+    },
+    {
+      "transaction_index": 4,
+      "transaction_id": "tx_d4c82aec8e",
+      "failure_code": "issuer_timeout",
+      "raw_scores": {
+        "1hr": 2.2913,
+        "6hr": 2.2913,
+        "1d": 2.2913,
+        "3d": 2.2913,
+        "7d": 2.2913
+      },
+      "sorted_ranking": [
+        "1hr",
+        "6hr",
+        "1d",
+        "3d",
+        "7d"
+      ],
+      "top_score": 2.2913,
+      "second_score": 2.2913,
+      "raw_score_gap": 0.0,
+      "confidence": 0.0,
+      "stability": "UNSTABLE",
+      "raw_selected_arm": "1hr",
+      "balanced_selected_arm": "1hr",
+      "balanced_adjusted_scores": {
+        "1hr": 2.0622,
+        "6hr": 2.0622,
+        "1d": 2.0622,
+        "3d": 2.0622,
+        "7d": 2.0622
+      },
+      "conservative_selected_arm": "6hr",
+      "conservative_adjusted_scores": {
+        "1hr": 1.5685,
+        "6hr": 1.7185,
+        "1d": 1.7185,
+        "3d": 1.7185,
+        "7d": 1.5685
+      }
+    },
+    {
+      "transaction_index": 5,
+      "transaction_id": "tx_694a695339",
+      "failure_code": "insufficient_funds",
+      "raw_scores": {
+        "1hr": 2.2361,
+        "6hr": 2.2361,
+        "1d": 2.2361,
+        "3d": 2.2361,
+        "7d": 2.2361
+      },
+      "sorted_ranking": [
+        "1hr",
+        "6hr",
+        "1d",
+        "3d",
+        "7d"
+      ],
+      "top_score": 2.2361,
+      "second_score": 2.2361,
+      "raw_score_gap": 0.0,
+      "confidence": 0.0,
+      "stability": "UNSTABLE",
+      "raw_selected_arm": "1hr",
+      "balanced_selected_arm": "1hr",
+      "balanced_adjusted_scores": {
+        "1hr": 2.0125,
+        "6hr": 2.0125,
+        "1d": 2.0125,
+        "3d": 2.0125,
+        "7d": 2.0125
+      },
+      "conservative_selected_arm": "6hr",
+      "conservative_adjusted_scores": {
+        "1hr": 1.5271,
+        "6hr": 1.6771,
+        "1d": 1.6771,
+        "3d": 1.6771,
+        "7d": 1.5271
+      }
+    },
+    {
+      "transaction_index": 6,
+      "transaction_id": "tx_3fd8e3189d",
+      "failure_code": "generic_decline",
+      "raw_scores": {
+        "1hr": 2.4495,
+        "6hr": 2.4495,
+        "1d": 2.4495,
+        "3d": 2.4495,
+        "7d": 2.4495
+      },
+      "sorted_ranking": [
+        "1hr",
+        "6hr",
+        "1d",
+        "3d",
+        "7d"
+      ],
+      "top_score": 2.4495,
+      "second_score": 2.4495,
+      "raw_score_gap": 0.0,
+      "confidence": 0.0,
+      "stability": "UNSTABLE",
+      "raw_selected_arm": "1hr",
+      "balanced_selected_arm": "1hr",
+      "balanced_adjusted_scores": {
+        "1hr": 2.2045,
+        "6hr": 2.2045,
+        "1d": 2.2045,
+        "3d": 2.2045,
+        "7d": 2.2045
+      },
+      "conservative_selected_arm": "6hr",
+      "conservative_adjusted_scores": {
+        "1hr": 1.6871,
+        "6hr": 1.8371,
+        "1d": 1.8371,
+        "3d": 1.8371,
+        "7d": 1.6871
+      }
+    },
+    {
+      "transaction_index": 7,
+      "transaction_id": "tx_740905ce45",
+      "failure_code": "issuer_timeout",
+      "raw_scores": {
+        "1hr": 2.2361,
+        "6hr": 2.2361,
+        "1d": 2.2361,
+        "3d": 2.2361,
+        "7d": 2.2361
+      },
+      "sorted_ranking": [
+        "1hr",
+        "6hr",
+        "1d",
+        "3d",
+        "7d"
+      ],
+      "top_score": 2.2361,
+      "second_score": 2.2361,
+      "raw_score_gap": 0.0,
+      "confidence": 0.0,
+      "stability": "UNSTABLE",
+      "raw_selected_arm": "1hr",
+      "balanced_selected_arm": "1hr",
+      "balanced_adjusted_scores": {
+        "1hr": 2.0125,
+        "6hr": 2.0125,
+        "1d": 2.0125,
+        "3d": 2.0125,
+        "7d": 2.0125
+      },
+      "conservative_selected_arm": "6hr",
+      "conservative_adjusted_scores": {
+        "1hr": 1.5271,
+        "6hr": 1.6771,
+        "1d": 1.6771,
+        "3d": 1.6771,
+        "7d": 1.5271
+      }
+    },
+    {
+      "transaction_index": 8,
+      "transaction_id": "tx_15e13e8e17",
+      "failure_code": "generic_decline",
+      "raw_scores": {
+        "1hr": 2.4495,
+        "6hr": 2.4495,
+        "1d": 2.4495,
+        "3d": 2.4495,
+        "7d": 2.4495
+      },
+      "sorted_ranking": [
+        "1hr",
+        "6hr",
+        "1d",
+        "3d",
+        "7d"
+      ],
+      "top_score": 2.4495,
+      "second_score": 2.4495,
+      "raw_score_gap": 0.0,
+      "confidence": 0.0,
+      "stability": "UNSTABLE",
+      "raw_selected_arm": "1hr",
+      "balanced_selected_arm": "1hr",
+      "balanced_adjusted_scores": {
+        "1hr": 2.2045,
+        "6hr": 2.2045,
+        "1d": 2.2045,
+        "3d": 2.2045,
+        "7d": 2.2045
+      },
+      "conservative_selected_arm": "6hr",
+      "conservative_adjusted_scores": {
+        "1hr": 1.6871,
+        "6hr": 1.8371,
+        "1d": 1.8371,
+        "3d": 1.8371,
+        "7d": 1.6871
+      }
+    },
+    {
+      "transaction_index": 9,
+      "transaction_id": "tx_6fbcc923f3",
+      "failure_code": "insufficient_funds",
+      "raw_scores": {
+        "1hr": 2.2913,
+        "6hr": 2.2913,
+        "1d": 2.2913,
+        "3d": 2.2913,
+        "7d": 2.2913
+      },
+      "sorted_ranking": [
+        "1hr",
+        "6hr",
+        "1d",
+        "3d",
+        "7d"
+      ],
+      "top_score": 2.2913,
+      "second_score": 2.2913,
+      "raw_score_gap": 0.0,
+      "confidence": 0.0,
+      "stability": "UNSTABLE",
+      "raw_selected_arm": "1hr",
+      "balanced_selected_arm": "1hr",
+      "balanced_adjusted_scores": {
+        "1hr": 2.0622,
+        "6hr": 2.0622,
+        "1d": 2.0622,
+        "3d": 2.0622,
+        "7d": 2.0622
+      },
+      "conservative_selected_arm": "6hr",
+      "conservative_adjusted_scores": {
+        "1hr": 1.5685,
+        "6hr": 1.7185,
+        "1d": 1.7185,
+        "3d": 1.7185,
+        "7d": 1.5685
+      }
+    }
+  ]
+}

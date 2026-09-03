@@ -9,9 +9,12 @@ and segment risk classifications. Uses ONLY observable simulation data.
 from typing import Any, Dict, List, Optional
 from bandit_retry_scheduler.core.strategy import RETRY_ARM_TO_STRATEGY, STRATEGY_METADATA
 
-ANALYTICS_DISCLOSURE = (
-    "Synthetic simulation data — demonstration only. "
-    "All segment analytics and opportunity scores are derived from simulated evaluation runs."
+DEMO_DISCLOSURE = (
+    "DEMO SAMPLE DATA (Dashboard Empty State) — Synthetic simulation data demonstration only."
+)
+
+EVAL_DISCLOSURE = (
+    "Synthetic simulation insight — derived dynamically from Phase 3 evaluation benchmark records."
 )
 
 
@@ -42,9 +45,10 @@ def generate_merchant_recovery_insights(
     """
     Aggregates evaluation decision records across context dimensions.
     Returns structured segment insights, top opportunity leaderboard, and synthetic disclosure.
+    When eval_records is provided, all metrics, top segments, and strategies are derived dynamically.
     """
     if not eval_records:
-        # Generate representative baseline synthetic segment insights
+        # Fallback demonstration data for initial dashboard render before live simulation
         segments = [
             {
                 "dimension": "failure_code",
@@ -95,43 +99,76 @@ def generate_merchant_recovery_insights(
             "highest_risk_segment": "do_not_honor (Risk Level: HIGH)",
             "best_performing_strategy": "PATIENT_RECOVERY (3d)",
             "segments": segments,
-            "synthetic_data_notice": ANALYTICS_DISCLOSURE,
+            "synthetic_data_notice": DEMO_DISCLOSURE,
+            "is_demo_fallback": True,
         }
 
-    # Aggregate dynamically if evaluation records are provided
+    # Aggregate dynamically when actual evaluation records are provided
     by_code: Dict[str, List[Dict[str, Any]]] = {}
+    strategy_counts: Dict[str, int] = {}
+
     for r in eval_records:
-        code = r.get("failure_code", "generic_decline")
+        # Extract failure code from record top-level or raw decision or context
+        code = r.get("failure_code")
+        if not code and "raw_decision" in r:
+            code = r.get("raw_decision", {}).get("transaction", {}).get("failure_code")
+        if not code:
+            code = "generic_decline"
+
         by_code.setdefault(code, []).append(r)
+
+        # Track recommended strategies
+        rec_strat = r.get("recommendation", {}).get("strategy")
+        rec_delay = r.get("recommendation", {}).get("retry_delay")
+        if rec_strat and rec_delay:
+            key = f"{rec_strat} ({rec_delay})"
+            strategy_counts[key] = strategy_counts.get(key, 0) + 1
 
     segments = []
     for code, records in by_code.items():
         count = len(records)
-        succ = sum(1 for rec in records if rec.get("recovered", False) or rec.get("reward", 0) > 0)
+        succ = sum(1 for rec in records if rec.get("should_retry", False))
         rate = succ / count if count > 0 else 0.0
-        avg_reward = sum(rec.get("reward", 0.0) for rec in records) / count if count > 0 else 0.0
-        opp_score = calculate_opportunity_score(count, rate, avg_reward)
+        avg_val = sum(rec.get("expected_net_value_inr", 0.0) for rec in records) / count if count > 0 else 0.0
+        opp_score = calculate_opportunity_score(count, rate, avg_val)
 
         risk = "LOW" if rate >= 0.60 else ("MEDIUM" if rate >= 0.35 else "HIGH")
+
+        # Dynamic most frequent strategy per segment
+        seg_strats: Dict[str, int] = {}
+        for rec in records:
+            st = rec.get("recommendation", {}).get("strategy")
+            dl = rec.get("recommendation", {}).get("retry_delay")
+            if st and dl:
+                k = f"{st} ({dl})"
+                seg_strats[k] = seg_strats.get(k, 0) + 1
+        
+        top_seg_strat = max(seg_strats.items(), key=lambda x: x[1])[0] if seg_strats else "N/A"
+
         segments.append({
             "dimension": "failure_code",
             "segment": code,
             "transaction_count": count,
             "recovery_rate": round(rate, 3),
+            "recommended_strategy": top_seg_strat,
             "opportunity_score": opp_score,
             "risk_level": risk,
-            "summary": f"Simulated segment {code} with recovery rate {round(rate*100,1)}% across {count} attempts.",
+            "summary": f"Evaluated segment '{code}' across {count} records (retry rate: {round(rate*100,1)}%).",
         })
 
     segments.sort(key=lambda x: x["opportunity_score"], reverse=True)
-    top_seg = segments[0]["segment"] if segments else "N/A"
+    top_seg = f"{segments[0]['segment']} (Opportunity Score: {segments[0]['opportunity_score']})" if segments else "N/A"
+    high_risk_seg = next((f"{s['segment']} (Risk Level: HIGH)" for s in segments if s["risk_level"] == "HIGH"), "None")
+    
+    top_overall_strategy = max(strategy_counts.items(), key=lambda x: x[1])[0] if strategy_counts else "N/A"
 
     return {
-        "overall_recovery_rate": round(sum(s["recovery_rate"] for s in segments)/len(segments), 3) if segments else 0.0,
+        "overall_recovery_rate": round(sum(s["recovery_rate"] for s in segments) / len(segments), 3) if segments else 0.0,
         "total_transactions_analyzed": len(eval_records),
         "highest_opportunity_segment": top_seg,
-        "highest_risk_segment": next((s["segment"] for s in segments if s["risk_level"]=="HIGH"), "None"),
-        "best_performing_strategy": "PATIENT_RECOVERY (3d)",
+        "highest_risk_segment": high_risk_seg,
+        "best_performing_strategy": top_overall_strategy,
         "segments": segments,
-        "synthetic_data_notice": ANALYTICS_DISCLOSURE,
+        "synthetic_data_notice": EVAL_DISCLOSURE,
+        "is_demo_fallback": False,
     }

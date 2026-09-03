@@ -49,9 +49,10 @@ def run_phase3_evaluation():
     }
 
     for tx in transactions:
-        tx_dict = tx
         for mode in mode_results.keys():
-            intel = get_recovery_intelligence(tx_dict, strategy_mode=mode, attempt_number=1)
+            intel = get_recovery_intelligence(tx, strategy_mode=mode, attempt_number=1)
+            # Attach transaction context to intel for analytics aggregation
+            intel["failure_code"] = tx.get("failure_code")
             mode_results[mode].append(intel)
 
     summary: Dict[str, Any] = {
@@ -68,7 +69,11 @@ def run_phase3_evaluation():
         strat_counts: Dict[str, int] = {}
         for r in retry_results:
             arm = r["recommendation"]["retry_delay"]
-            strat_counts[arm] = strat_counts.get(arm, 0) + 1
+            if arm:
+                strat_counts[arm] = strat_counts.get(arm, 0) + 1
+
+        # Determine most frequent strategy arm dynamically
+        top_arm = max(strat_counts.items(), key=lambda x: x[1])[0] if strat_counts else "None"
 
         # Stability distribution
         stab_counts: Dict[str, int] = {}
@@ -89,20 +94,34 @@ def run_phase3_evaluation():
         shift_rate = round(shifts / len(raw_arms), 4) if raw_arms else 0.0
 
         summary["metrics"][mode] = {
+            "top_strategy_arm": top_arm,
             "strategy_distribution": strat_counts,
             "stability_distribution": stab_counts,
             "risk_distribution": risk_counts,
             "mode_shift_rate_vs_raw": shift_rate,
         }
 
+    # Pass actual evaluation records to Merchant Insights Engine
+    insights = generate_merchant_recovery_insights(mode_results["BALANCED"])
+    summary["merchant_insights"] = insights
+
     # Save phase3 summary JSON
     summary_path = output_dir / "phase3_summary.json"
     with open(summary_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2)
 
-    # Generate Markdown Report
+    # Generate Markdown Report dynamically from summary dict
     report_path = output_dir / "PHASE3_EVALUATION_REPORT.md"
-    insights = generate_merchant_recovery_insights()
+
+    table_rows = []
+    for mode in summary["strategy_modes_evaluated"]:
+        m_data = summary["metrics"][mode]
+        top_arm = m_data["top_strategy_arm"]
+        shift_pct = f"{m_data['mode_shift_rate_vs_raw'] * 100:.1f}%"
+        stab_str = ", ".join([f"{k}: {v}" for k, v in m_data["stability_distribution"].items()])
+        table_rows.append(f"| **{mode}** | `{shift_pct}` | `{top_arm}` | {stab_str} |")
+
+    table_body = "\n".join(table_rows)
 
     report_content = f"""# 🚀 RecoverFlow Phase 3 Evaluation Report: Product Differentiation & Intelligence
 
@@ -115,13 +134,11 @@ Phase 3 introduces **Recovery Strategy Intelligence**, **Risk-Aware Decision Mod
 
 ---
 
-## 📊 Strategy Mode Evaluation ({len(transactions)} Simulated Transactions)
+## 📊 Strategy Mode Evaluation ({summary['sample_size']} Simulated Transactions)
 
-| Strategy Mode | Primary Objective | Mode Shift Rate vs Raw | Top Strategy Arm | Stability Distribution |
-| :--- | :--- | :---: | :---: | :--- |
-| **MAXIMIZE_RECOVERY** | Pure EV Policy Maximization | `0.0%` | `3d` | {summary['metrics']['MAXIMIZE_RECOVERY']['stability_distribution']} |
-| **BALANCED** | Score Gap & Uncertainty Balanced | `{summary['metrics']['BALANCED']['mode_shift_rate_vs_raw']*100:.1f}%` | `3d` | {summary['metrics']['BALANCED']['stability_distribution']} |
-| **CONSERVATIVE** | High-Uncertainty & Extreme Penalty | `{summary['metrics']['CONSERVATIVE']['mode_shift_rate_vs_raw']*100:.1f}%` | `3d` | {summary['metrics']['CONSERVATIVE']['stability_distribution']} |
+| Strategy Mode | Mode Shift Rate vs Raw | Top Strategy Arm | Stability Distribution |
+| :--- | :---: | :---: | :--- |
+{table_body}
 
 ---
 

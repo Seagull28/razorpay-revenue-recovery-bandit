@@ -7,7 +7,8 @@ import pytest
 from bandit_retry_scheduler.analytics.recovery_insights import (
     calculate_opportunity_score,
     generate_merchant_recovery_insights,
-    ANALYTICS_DISCLOSURE,
+    DEMO_DISCLOSURE,
+    EVAL_DISCLOSURE,
 )
 
 
@@ -24,15 +25,18 @@ def test_generate_merchant_insights_baseline():
     assert "highest_opportunity_segment" in insights
     assert "segments" in insights
     assert len(insights["segments"]) >= 4
-    assert insights["synthetic_data_notice"] == ANALYTICS_DISCLOSURE
+    assert insights["synthetic_data_notice"] == DEMO_DISCLOSURE
+    assert insights["is_demo_fallback"] is True
 
 
 def test_generate_merchant_insights_with_records():
     records = [
-        {"failure_code": "insufficient_funds", "recovered": True, "reward": 100.0},
-        {"failure_code": "insufficient_funds", "recovered": False, "reward": -10.0},
-        {"failure_code": "issuer_timeout", "recovered": True, "reward": 150.0},
+        {"failure_code": "insufficient_funds", "should_retry": True, "expected_net_value_inr": 100.0, "recommendation": {"strategy": "PATIENT_RECOVERY", "retry_delay": "3d"}},
+        {"failure_code": "insufficient_funds", "should_retry": False, "expected_net_value_inr": 0.0, "recommendation": {"strategy": None, "retry_delay": None}},
+        {"failure_code": "issuer_timeout", "should_retry": True, "expected_net_value_inr": 150.0, "recommendation": {"strategy": "IMMEDIATE_RECOVERY", "retry_delay": "1hr"}},
     ]
     insights = generate_merchant_recovery_insights(records)
     assert insights["total_transactions_analyzed"] == 3
     assert len(insights["segments"]) == 2
+    assert insights["is_demo_fallback"] is False
+    assert insights["synthetic_data_notice"] == EVAL_DISCLOSURE
