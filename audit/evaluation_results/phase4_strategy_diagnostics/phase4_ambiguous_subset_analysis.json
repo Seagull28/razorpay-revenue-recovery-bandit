@@ -1,0 +1,22 @@
+{
+  "full_dataset": {
+    "count": 20,
+    "balanced_override_rate_pct": 5.0,
+    "conservative_override_rate_pct": 10.0,
+    "disagreement_rate_pct": 5.0
+  },
+  "lowest_10pct_confidence_subset": {
+    "confidence_threshold": 0.8778400000000001,
+    "count": 2,
+    "balanced_override_rate_pct": 50.0,
+    "conservative_override_rate_pct": 100.0,
+    "disagreement_rate_pct": 50.0
+  },
+  "smallest_10pct_relative_gap_subset": {
+    "relative_gap_threshold": 0.21946190000000002,
+    "count": 2,
+    "balanced_override_rate_pct": 50.0,
+    "conservative_override_rate_pct": 100.0,
+    "disagreement_rate_pct": 50.0
+  }
+}

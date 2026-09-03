@@ -2,7 +2,7 @@
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Build Status](https://img.shields.io/badge/tests-93%20passed-brightgreen.svg)](tests/)
+[![Build Status](https://img.shields.io/badge/tests-97%20passed-brightgreen.svg)](tests/)
 
 > An intelligent, context-aware payment retry scheduling engine powered by **Disjoint Contextual LinUCB** bandit algorithms and bounded safety rules. Replaces fixed retry schedules with contextual decision-making to optimize net revenue recovery while minimizing retry overhead.
 

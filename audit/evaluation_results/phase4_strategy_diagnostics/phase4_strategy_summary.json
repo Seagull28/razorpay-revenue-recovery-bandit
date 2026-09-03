@@ -1,0 +1,639 @@
+{
+  "diagnostic_phase": "Phase 4A Strategy Intelligence Validation",
+  "sample_size": 20,
+  "score_gap_analysis": {
+    "sample_size": 20,
+    "absolute_score_gap_stats": {
+      "min": 45.7994,
+      "max": 1634.8625,
+      "mean": 785.4538,
+      "median": 629.2694,
+      "p10": 210.6515,
+      "p25": 288.4581,
+      "p50": 629.2694,
+      "p75": 1244.3084,
+      "p90": 1520.7957,
+      "p95": 1631.4543
+    },
+    "relative_score_gap_stats": {
+      "min": 0.0992,
+      "max": 1.0222,
+      "mean": 0.596,
+      "median": 0.6468,
+      "p10": 0.2195,
+      "p25": 0.3128,
+      "p50": 0.6468,
+      "p75": 0.8447,
+      "p90": 1.009,
+      "p95": 1.0209
+    },
+    "ambiguity_tier_distribution": {
+      "VERY_AMBIGUOUS": {
+        "count": 0,
+        "percentage": 0.0,
+        "balanced_overrides": 0,
+        "balanced_override_rate_pct": 0.0,
+        "conservative_overrides": 0,
+        "conservative_override_rate_pct": 0.0,
+        "disagreement_count": 0,
+        "disagreement_rate_pct": 0.0
+      },
+      "AMBIGUOUS": {
+        "count": 0,
+        "percentage": 0.0,
+        "balanced_overrides": 0,
+        "balanced_override_rate_pct": 0.0,
+        "conservative_overrides": 0,
+        "conservative_override_rate_pct": 0.0,
+        "disagreement_count": 0,
+        "disagreement_rate_pct": 0.0
+      },
+      "MODERATELY_SEPARATED": {
+        "count": 0,
+        "percentage": 0.0,
+        "balanced_overrides": 0,
+        "balanced_override_rate_pct": 0.0,
+        "conservative_overrides": 0,
+        "conservative_override_rate_pct": 0.0,
+        "disagreement_count": 0,
+        "disagreement_rate_pct": 0.0
+      },
+      "CLEAR_WINNER": {
+        "count": 2,
+        "percentage": 10.0,
+        "balanced_overrides": 1,
+        "balanced_override_rate_pct": 50.0,
+        "conservative_overrides": 2,
+        "conservative_override_rate_pct": 100.0,
+        "disagreement_count": 1,
+        "disagreement_rate_pct": 50.0
+      },
+      "STRONGLY_DOMINANT": {
+        "count": 18,
+        "percentage": 90.0,
+        "balanced_overrides": 0,
+        "balanced_override_rate_pct": 0.0,
+        "conservative_overrides": 0,
+        "conservative_override_rate_pct": 0.0,
+        "disagreement_count": 0,
+        "disagreement_rate_pct": 0.0
+      }
+    }
+  },
+  "confidence_analysis": {
+    "sample_size": 20,
+    "confidence_stats": {
+      "min": 0.3967,
+      "max": 1.0,
+      "mean": 0.9378,
+      "median": 1.0,
+      "p10": 0.8778,
+      "p25": 1.0,
+      "p50": 1.0,
+      "p75": 1.0,
+      "p90": 1.0,
+      "p95": 1.0
+    },
+    "confidence_buckets": {
+      "0.00-0.10": {
+        "count": 0,
+        "percentage": 0.0,
+        "balanced_overrides": 0,
+        "balanced_override_rate_pct": 0.0,
+        "conservative_overrides": 0,
+        "conservative_override_rate_pct": 0.0,
+        "disagreement_count": 0,
+        "disagreement_rate_pct": 0.0
+      },
+      "0.10-0.20": {
+        "count": 0,
+        "percentage": 0.0,
+        "balanced_overrides": 0,
+        "balanced_override_rate_pct": 0.0,
+        "conservative_overrides": 0,
+        "conservative_override_rate_pct": 0.0,
+        "disagreement_count": 0,
+        "disagreement_rate_pct": 0.0
+      },
+      "0.20-0.40": {
+        "count": 1,
+        "percentage": 5.0,
+        "balanced_overrides": 1,
+        "balanced_override_rate_pct": 100.0,
+        "conservative_overrides": 1,
+        "conservative_override_rate_pct": 100.0,
+        "disagreement_count": 0,
+        "disagreement_rate_pct": 0.0
+      },
+      "0.40-0.60": {
+        "count": 1,
+        "percentage": 5.0,
+        "balanced_overrides": 0,
+        "balanced_override_rate_pct": 0.0,
+        "conservative_overrides": 1,
+        "conservative_override_rate_pct": 100.0,
+        "disagreement_count": 1,
+        "disagreement_rate_pct": 100.0
+      },
+      "0.60-0.80": {
+        "count": 0,
+        "percentage": 0.0,
+        "balanced_overrides": 0,
+        "balanced_override_rate_pct": 0.0,
+        "conservative_overrides": 0,
+        "conservative_override_rate_pct": 0.0,
+        "disagreement_count": 0,
+        "disagreement_rate_pct": 0.0
+      },
+      "0.80-1.00": {
+        "count": 18,
+        "percentage": 90.0,
+        "balanced_overrides": 0,
+        "balanced_override_rate_pct": 0.0,
+        "conservative_overrides": 0,
+        "conservative_override_rate_pct": 0.0,
+        "disagreement_count": 0,
+        "disagreement_rate_pct": 0.0
+      }
+    }
+  },
+  "influence_analysis": {
+    "balanced_influence_ratio_all": {
+      "min": 0.0,
+      "max": 1.5512,
+      "mean": 0.1361,
+      "median": 0.0,
+      "p10": 0.0,
+      "p25": 0.0,
+      "p50": 0.0,
+      "p75": 0.0,
+      "p90": 0.1698,
+      "p95": 1.1277
+    },
+    "conservative_influence_ratio_all": {
+      "min": 0.0,
+      "max": 4.836,
+      "mean": 0.4272,
+      "median": 0.0,
+      "p10": 0.0,
+      "p25": 0.0,
+      "p50": 0.0,
+      "p75": 0.0,
+      "p90": 0.5374,
+      "p95": 3.5673
+    },
+    "balanced_influence_ratio_overrides_only": {
+      "min": 1.5512,
+      "max": 1.5512,
+      "mean": 1.5512,
+      "median": 1.5512,
+      "p10": 1.5512,
+      "p25": 1.5512,
+      "p50": 1.5512,
+      "p75": 1.5512,
+      "p90": 1.5512,
+      "p95": 1.5512
+    },
+    "conservative_influence_ratio_overrides_only": {
+      "min": 3.5005,
+      "max": 4.836,
+      "mean": 4.1683,
+      "median": 4.1683,
+      "p10": 3.6341,
+      "p25": 3.8344,
+      "p50": 4.1683,
+      "p75": 4.5021,
+      "p90": 4.7025,
+      "p95": 4.7692
+    }
+  },
+  "transition_matrix": {
+    "sample_size": 20,
+    "mode_agreement_matrix": {
+      "MAXIMIZE_vs_BALANCED": {
+        "agreement_count": 19,
+        "agreement_rate_pct": 95.0,
+        "disagreement_count": 1,
+        "disagreement_rate_pct": 5.0
+      },
+      "MAXIMIZE_vs_CONSERVATIVE": {
+        "agreement_count": 18,
+        "agreement_rate_pct": 90.0,
+        "disagreement_count": 2,
+        "disagreement_rate_pct": 10.0
+      },
+      "BALANCED_vs_CONSERVATIVE": {
+        "agreement_count": 19,
+        "agreement_rate_pct": 95.0,
+        "disagreement_count": 1,
+        "disagreement_rate_pct": 5.0
+      }
+    },
+    "arm_transitions": {
+      "1hr": {
+        "1hr": {
+          "1hr": 8,
+          "6hr": 0,
+          "1d": 1,
+          "3d": 0,
+          "7d": 0
+        },
+        "6hr": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        },
+        "1d": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        },
+        "3d": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        },
+        "7d": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        }
+      },
+      "6hr": {
+        "1hr": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        },
+        "6hr": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        },
+        "1d": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        },
+        "3d": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        },
+        "7d": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        }
+      },
+      "1d": {
+        "1hr": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        },
+        "6hr": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        },
+        "1d": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 5,
+          "3d": 0,
+          "7d": 0
+        },
+        "3d": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        },
+        "7d": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        }
+      },
+      "3d": {
+        "1hr": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        },
+        "6hr": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        },
+        "1d": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        },
+        "3d": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        },
+        "7d": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        }
+      },
+      "7d": {
+        "1hr": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        },
+        "6hr": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        },
+        "1d": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 1,
+          "3d": 0,
+          "7d": 0
+        },
+        "3d": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 0
+        },
+        "7d": {
+          "1hr": 0,
+          "6hr": 0,
+          "1d": 0,
+          "3d": 0,
+          "7d": 5
+        }
+      }
+    }
+  },
+  "segment_analysis": {
+    "by_failure_code": {
+      "card_expired": {
+        "count": 2,
+        "percentage": 10.0,
+        "mean_confidence": 1.0,
+        "balanced_override_rate_pct": 0.0,
+        "conservative_override_rate_pct": 0.0,
+        "disagreement_rate_pct": 0.0
+      },
+      "generic_decline": {
+        "count": 4,
+        "percentage": 20.0,
+        "mean_confidence": 0.8579,
+        "balanced_override_rate_pct": 0.0,
+        "conservative_override_rate_pct": 25.0,
+        "disagreement_rate_pct": 25.0
+      },
+      "insufficient_funds": {
+        "count": 7,
+        "percentage": 35.0,
+        "mean_confidence": 0.9138,
+        "balanced_override_rate_pct": 14.29,
+        "conservative_override_rate_pct": 14.29,
+        "disagreement_rate_pct": 0.0
+      },
+      "issuer_timeout": {
+        "count": 7,
+        "percentage": 35.0,
+        "mean_confidence": 0.9896,
+        "balanced_override_rate_pct": 0.0,
+        "conservative_override_rate_pct": 0.0,
+        "disagreement_rate_pct": 0.0
+      }
+    },
+    "by_amount_quantile": {
+      "LOW_AMOUNT": {
+        "amount_range_inr": "[0.00, 1234.43]",
+        "count": 7,
+        "percentage": 35.0,
+        "mean_confidence": 0.8326,
+        "balanced_override_rate_pct": 14.29,
+        "conservative_override_rate_pct": 28.57,
+        "disagreement_rate_pct": 14.29
+      },
+      "MEDIUM_AMOUNT": {
+        "amount_range_inr": "[1234.43, 2326.73]",
+        "count": 6,
+        "percentage": 30.0,
+        "mean_confidence": 1.0,
+        "balanced_override_rate_pct": 0.0,
+        "conservative_override_rate_pct": 0.0,
+        "disagreement_rate_pct": 0.0
+      },
+      "HIGH_AMOUNT": {
+        "amount_range_inr": "[>= 2326.73]",
+        "count": 7,
+        "percentage": 35.0,
+        "mean_confidence": 0.9896,
+        "balanced_override_rate_pct": 0.0,
+        "conservative_override_rate_pct": 0.0,
+        "disagreement_rate_pct": 0.0
+      }
+    },
+    "by_base_arm": {
+      "1hr": {
+        "count": 9,
+        "percentage": 45.0,
+        "balanced_override_rate_pct": 0.0,
+        "conservative_override_rate_pct": 11.11,
+        "disagreement_rate_pct": 11.11
+      },
+      "6hr": {
+        "count": 0,
+        "percentage": 0.0,
+        "balanced_override_rate_pct": 0.0,
+        "conservative_override_rate_pct": 0.0,
+        "disagreement_rate_pct": 0.0
+      },
+      "1d": {
+        "count": 5,
+        "percentage": 25.0,
+        "balanced_override_rate_pct": 0.0,
+        "conservative_override_rate_pct": 0.0,
+        "disagreement_rate_pct": 0.0
+      },
+      "3d": {
+        "count": 0,
+        "percentage": 0.0,
+        "balanced_override_rate_pct": 0.0,
+        "conservative_override_rate_pct": 0.0,
+        "disagreement_rate_pct": 0.0
+      },
+      "7d": {
+        "count": 6,
+        "percentage": 30.0,
+        "balanced_override_rate_pct": 16.67,
+        "conservative_override_rate_pct": 16.67,
+        "disagreement_rate_pct": 0.0
+      }
+    }
+  },
+  "ambiguous_subset_analysis": {
+    "full_dataset": {
+      "count": 20,
+      "balanced_override_rate_pct": 5.0,
+      "conservative_override_rate_pct": 10.0,
+      "disagreement_rate_pct": 5.0
+    },
+    "lowest_10pct_confidence_subset": {
+      "confidence_threshold": 0.8778400000000001,
+      "count": 2,
+      "balanced_override_rate_pct": 50.0,
+      "conservative_override_rate_pct": 100.0,
+      "disagreement_rate_pct": 50.0
+    },
+    "smallest_10pct_relative_gap_subset": {
+      "relative_gap_threshold": 0.21946190000000002,
+      "count": 2,
+      "balanced_override_rate_pct": 50.0,
+      "conservative_override_rate_pct": 100.0,
+      "disagreement_rate_pct": 50.0
+    }
+  },
+  "risk_sensitivity_analysis": {
+    "multiplier_0.5x": {
+      "multiplier": 0.5,
+      "balanced_risk_weight": 0.15,
+      "conservative_risk_weight": 0.35,
+      "balanced_override_rate_pct": 0.0,
+      "conservative_override_rate_pct": 10.0,
+      "disagreement_rate_pct": 10.0,
+      "mean_balanced_selected_arm_risk": 0.6325,
+      "mean_conservative_selected_arm_risk": 0.58,
+      "mean_balanced_score_sacrifice": 0.0,
+      "mean_conservative_score_sacrifice": 11.0708
+    },
+    "multiplier_1.0x": {
+      "multiplier": 1.0,
+      "balanced_risk_weight": 0.3,
+      "conservative_risk_weight": 0.7,
+      "balanced_override_rate_pct": 5.0,
+      "conservative_override_rate_pct": 10.0,
+      "disagreement_rate_pct": 5.0,
+      "mean_balanced_selected_arm_risk": 0.6025,
+      "mean_conservative_selected_arm_risk": 0.58,
+      "mean_balanced_score_sacrifice": 7.1717,
+      "mean_conservative_score_sacrifice": 11.0708
+    },
+    "multiplier_1.5x": {
+      "multiplier": 1.5,
+      "balanced_risk_weight": 0.45,
+      "conservative_risk_weight": 1.05,
+      "balanced_override_rate_pct": 5.0,
+      "conservative_override_rate_pct": 10.0,
+      "disagreement_rate_pct": 5.0,
+      "mean_balanced_selected_arm_risk": 0.6025,
+      "mean_conservative_selected_arm_risk": 0.58,
+      "mean_balanced_score_sacrifice": 7.1717,
+      "mean_conservative_score_sacrifice": 11.0708
+    },
+    "multiplier_2.0x": {
+      "multiplier": 2.0,
+      "balanced_risk_weight": 0.6,
+      "conservative_risk_weight": 1.4,
+      "balanced_override_rate_pct": 5.0,
+      "conservative_override_rate_pct": 10.0,
+      "disagreement_rate_pct": 5.0,
+      "mean_balanced_selected_arm_risk": 0.6025,
+      "mean_conservative_selected_arm_risk": 0.58,
+      "mean_balanced_score_sacrifice": 7.1717,
+      "mean_conservative_score_sacrifice": 11.0708
+    },
+    "multiplier_3.0x": {
+      "multiplier": 3.0,
+      "balanced_risk_weight": 0.9,
+      "conservative_risk_weight": 2.1,
+      "balanced_override_rate_pct": 10.0,
+      "conservative_override_rate_pct": 10.0,
+      "disagreement_rate_pct": 0.0,
+      "mean_balanced_selected_arm_risk": 0.58,
+      "mean_conservative_selected_arm_risk": 0.58,
+      "mean_balanced_score_sacrifice": 11.0708,
+      "mean_conservative_score_sacrifice": 11.0708
+    }
+  },
+  "tradeoff_analysis": {
+    "mean_base_score_sacrifice": {
+      "MAXIMIZE_RECOVERY": 0.0,
+      "BALANCED": 7.1717,
+      "CONSERVATIVE": 11.0708
+    },
+    "mean_selected_arm_risk": {
+      "MAXIMIZE_RECOVERY": 0.6325,
+      "BALANCED": 0.6025,
+      "CONSERVATIVE": 0.58
+    },
+    "extreme_arm_selections_1hr_and_7d": {
+      "MAXIMIZE_RECOVERY": {
+        "count": 15,
+        "percentage": 75.0
+      },
+      "BALANCED": {
+        "count": 14,
+        "percentage": 70.0
+      },
+      "CONSERVATIVE": {
+        "count": 13,
+        "percentage": 65.0
+      }
+    },
+    "semantic_risk_ordering_validation": {
+      "rule": "Conservative Risk <= Balanced Risk <= Maximize Risk",
+      "ordering_holds_count": 20,
+      "ordering_holds_percentage": 100.0,
+      "ordering_violations_count": 0,
+      "ordering_violations_percentage": 0.0
+    }
+  }
+}

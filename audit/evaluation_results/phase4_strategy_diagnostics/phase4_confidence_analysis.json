@@ -1,0 +1,77 @@
+{
+  "sample_size": 20,
+  "confidence_stats": {
+    "min": 0.3967,
+    "max": 1.0,
+    "mean": 0.9378,
+    "median": 1.0,
+    "p10": 0.8778,
+    "p25": 1.0,
+    "p50": 1.0,
+    "p75": 1.0,
+    "p90": 1.0,
+    "p95": 1.0
+  },
+  "confidence_buckets": {
+    "0.00-0.10": {
+      "count": 0,
+      "percentage": 0.0,
+      "balanced_overrides": 0,
+      "balanced_override_rate_pct": 0.0,
+      "conservative_overrides": 0,
+      "conservative_override_rate_pct": 0.0,
+      "disagreement_count": 0,
+      "disagreement_rate_pct": 0.0
+    },
+    "0.10-0.20": {
+      "count": 0,
+      "percentage": 0.0,
+      "balanced_overrides": 0,
+      "balanced_override_rate_pct": 0.0,
+      "conservative_overrides": 0,
+      "conservative_override_rate_pct": 0.0,
+      "disagreement_count": 0,
+      "disagreement_rate_pct": 0.0
+    },
+    "0.20-0.40": {
+      "count": 1,
+      "percentage": 5.0,
+      "balanced_overrides": 1,
+      "balanced_override_rate_pct": 100.0,
+      "conservative_overrides": 1,
+      "conservative_override_rate_pct": 100.0,
+      "disagreement_count": 0,
+      "disagreement_rate_pct": 0.0
+    },
+    "0.40-0.60": {
+      "count": 1,
+      "percentage": 5.0,
+      "balanced_overrides": 0,
+      "balanced_override_rate_pct": 0.0,
+      "conservative_overrides": 1,
+      "conservative_override_rate_pct": 100.0,
+      "disagreement_count": 1,
+      "disagreement_rate_pct": 100.0
+    },
+    "0.60-0.80": {
+      "count": 0,
+      "percentage": 0.0,
+      "balanced_overrides": 0,
+      "balanced_override_rate_pct": 0.0,
+      "conservative_overrides": 0,
+      "conservative_override_rate_pct": 0.0,
+      "disagreement_count": 0,
+      "disagreement_rate_pct": 0.0
+    },
+    "0.80-1.00": {
+      "count": 18,
+      "percentage": 90.0,
+      "balanced_overrides": 0,
+      "balanced_override_rate_pct": 0.0,
+      "conservative_overrides": 0,
+      "conservative_override_rate_pct": 0.0,
+      "disagreement_count": 0,
+      "disagreement_rate_pct": 0.0
+    }
+  }
+}

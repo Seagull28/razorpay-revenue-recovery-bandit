@@ -1,0 +1,79 @@
+{
+  "sample_size": 20,
+  "absolute_score_gap_stats": {
+    "min": 45.7994,
+    "max": 1634.8625,
+    "mean": 785.4538,
+    "median": 629.2694,
+    "p10": 210.6515,
+    "p25": 288.4581,
+    "p50": 629.2694,
+    "p75": 1244.3084,
+    "p90": 1520.7957,
+    "p95": 1631.4543
+  },
+  "relative_score_gap_stats": {
+    "min": 0.0992,
+    "max": 1.0222,
+    "mean": 0.596,
+    "median": 0.6468,
+    "p10": 0.2195,
+    "p25": 0.3128,
+    "p50": 0.6468,
+    "p75": 0.8447,
+    "p90": 1.009,
+    "p95": 1.0209
+  },
+  "ambiguity_tier_distribution": {
+    "VERY_AMBIGUOUS": {
+      "count": 0,
+      "percentage": 0.0,
+      "balanced_overrides": 0,
+      "balanced_override_rate_pct": 0.0,
+      "conservative_overrides": 0,
+      "conservative_override_rate_pct": 0.0,
+      "disagreement_count": 0,
+      "disagreement_rate_pct": 0.0
+    },
+    "AMBIGUOUS": {
+      "count": 0,
+      "percentage": 0.0,
+      "balanced_overrides": 0,
+      "balanced_override_rate_pct": 0.0,
+      "conservative_overrides": 0,
+      "conservative_override_rate_pct": 0.0,
+      "disagreement_count": 0,
+      "disagreement_rate_pct": 0.0
+    },
+    "MODERATELY_SEPARATED": {
+      "count": 0,
+      "percentage": 0.0,
+      "balanced_overrides": 0,
+      "balanced_override_rate_pct": 0.0,
+      "conservative_overrides": 0,
+      "conservative_override_rate_pct": 0.0,
+      "disagreement_count": 0,
+      "disagreement_rate_pct": 0.0
+    },
+    "CLEAR_WINNER": {
+      "count": 2,
+      "percentage": 10.0,
+      "balanced_overrides": 1,
+      "balanced_override_rate_pct": 50.0,
+      "conservative_overrides": 2,
+      "conservative_override_rate_pct": 100.0,
+      "disagreement_count": 1,
+      "disagreement_rate_pct": 50.0
+    },
+    "STRONGLY_DOMINANT": {
+      "count": 18,
+      "percentage": 90.0,
+      "balanced_overrides": 0,
+      "balanced_override_rate_pct": 0.0,
+      "conservative_overrides": 0,
+      "conservative_override_rate_pct": 0.0,
+      "disagreement_count": 0,
+      "disagreement_rate_pct": 0.0
+    }
+  }
+}
