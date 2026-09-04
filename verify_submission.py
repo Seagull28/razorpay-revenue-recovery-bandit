@@ -14,6 +14,9 @@ import os
 import json
 import csv
 import subprocess
+import tempfile
+import venv
+import shutil
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -379,19 +382,30 @@ def run_check_v2_reproducibility() -> Tuple[bool, str]:
 
 
 def run_check_packaging() -> Tuple[bool, str]:
-    """Stage 15: Verify pip install -e . and external module import health."""
-    cmd_install = [sys.executable, "-m", "pip", "install", "-e", "."]
-    res_inst = subprocess.run(cmd_install, cwd=PROJECT_ROOT, capture_output=True, text=True)
-    if res_inst.returncode != 0:
-        return False, f"pip install -e . failed!\n{res_inst.stdout}\n{res_inst.stderr}"
+    """Stage 15: Verify pip install -e . and external module import health in an isolated venv."""
+    egg_info_dir = PROJECT_ROOT / "bandit_retry_scheduler.egg-info"
+    try:
+        with tempfile.TemporaryDirectory() as tmp_venv_dir:
+            venv.create(tmp_venv_dir, with_pip=True)
+            if sys.platform == "win32":
+                venv_python = str(Path(tmp_venv_dir) / "Scripts" / "python.exe")
+            else:
+                venv_python = str(Path(tmp_venv_dir) / "bin" / "python")
 
-    out_dir = str(PROJECT_ROOT.parent)
-    cmd_import = [sys.executable, "-c", "import bandit_retry_scheduler; print(bandit_retry_scheduler.__file__)"]
-    res_imp = subprocess.run(cmd_import, cwd=out_dir, capture_output=True, text=True)
-    if res_imp.returncode != 0:
-        return False, f"External import of bandit_retry_scheduler failed from outside repo!\n{res_imp.stderr}"
+            install_cmd = [venv_python, "-m", "pip", "install", "--no-deps", "-e", str(PROJECT_ROOT)]
+            res = subprocess.run(install_cmd, capture_output=True, text=True)
+            if res.returncode != 0:
+                return False, f"pip install -e . failed in isolated venv!\n{res.stdout}\n{res.stderr}"
 
-    return True, "Package installation and external import verified cleanly from outside repository."
+            import_cmd = [venv_python, "-c", "import bandit_retry_scheduler; print(bandit_retry_scheduler.__file__)"]
+            res2 = subprocess.run(import_cmd, capture_output=True, text=True, cwd=str(Path.home()))
+            if res2.returncode != 0:
+                return False, f"External import failed in isolated venv!\n{res2.stdout}\n{res2.stderr}"
+
+            return True, "Package installation and external import verified cleanly in an isolated venv."
+    finally:
+        if egg_info_dir.exists():
+            shutil.rmtree(egg_info_dir, ignore_errors=True)
 
 
 def run_check_synthetic_disclosures() -> Tuple[bool, str]:

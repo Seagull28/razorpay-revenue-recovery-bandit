@@ -192,3 +192,59 @@ def test_dashboard_full_cross_tab_user_journey():
     # Check session state history populated
     history = at.session_state["history"]
     assert len(history) > 0, "Session state history was not populated after retry action execution!"
+
+
+def test_dashboard_ev_and_ucb_banner_table_consistency():
+    """
+    Verifies that top-line metric cards (m2 Expected Net EV and m3 LinUCB Score)
+    match the Candidate Action Evaluation Matrix table row for the SELECTED action
+    both BEFORE and AFTER executing a retry action (state mutation).
+    """
+    at = AppTest.from_file(str(PROJECT_ROOT / "dashboard.py"), default_timeout=60)
+    at.run()
+    assert not at.exception
+
+    def assert_banner_and_table_synchronized(app_state, stage_label):
+        # Find top-line metrics
+        m2 = next(m for m in app_state.metric if "Expected Net EV" in str(m.label))
+        m3 = next(m for m in app_state.metric if "LinUCB Score" in str(m.label))
+
+        metric_ev_str = str(m2.value).replace("₹", "").replace(",", "").strip()
+        metric_ev_val = float(metric_ev_str)
+
+        # Find candidate evaluation matrix dataframe
+        assert len(app_state.dataframe) > 0, f"No dataframes found ({stage_label})"
+        df = app_state.dataframe[0].value
+
+        selected_rows = df[df["Status"] == "SELECTED"]
+        assert len(selected_rows) == 1, f"Expected exactly 1 SELECTED row, found {len(selected_rows)} ({stage_label})"
+        selected_row = selected_rows.iloc[0]
+
+        table_ev_str = str(selected_row["EV (INR)"]).replace("₹", "").replace(",", "").strip()
+        table_ev_val = float(table_ev_str)
+
+        table_ucb_str = str(selected_row["Total UCB"]).strip()
+        table_ucb_val = float(table_ucb_str)
+
+        # Assert EV equality
+        assert pytest.approx(metric_ev_val, abs=0.01) == table_ev_val, (
+            f"EV mismatch ({stage_label}): Metric={metric_ev_val}, Table={table_ev_val}"
+        )
+
+        # Assert UCB equality (if not HALT)
+        if str(m3.value) != "HALT":
+            metric_ucb_val = float(str(m3.value).strip())
+            assert pytest.approx(metric_ucb_val, abs=0.01) == table_ucb_val, (
+                f"LinUCB score mismatch ({stage_label}): Metric={metric_ucb_val}, Table={table_ucb_val}"
+            )
+
+    # 1. Assert synchronization BEFORE click
+    assert_banner_and_table_synchronized(at, "BEFORE click")
+
+    # 2. Click Execute Retry Action (mutates policy state via process_v2_outcome_and_update)
+    exec_btn = next(btn for btn in at.button if "Execute Retry Action" in str(btn.label))
+    exec_btn.click().run()
+    assert not at.exception
+
+    # 3. Assert synchronization AFTER click
+    assert_banner_and_table_synchronized(at, "AFTER click")

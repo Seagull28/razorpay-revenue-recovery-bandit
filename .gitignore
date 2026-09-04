@@ -24,3 +24,7 @@ desktop.ini
 *.log
 *.tmp
 experimental/
+*.egg-info/
+build/
+dist/
+capture_dashboard_screenshots.py

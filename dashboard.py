@@ -274,7 +274,6 @@ with tab1:
 
         should_retry = decision.get("should_retry", False)
         chosen_action = decision.get("action_chosen")
-        expected_ev = decision.get("expected_net_value_inr", 0.0)
         stop_reason = decision.get("stop_reason")
 
         # Check candidate eligibility and scores
@@ -286,6 +285,32 @@ with tab1:
             previous_success=False,
             max_attempts=policy.max_attempts,
         )
+
+        # Pre-compute single snapshot of scores, EVs, and probabilities ONCE before execution
+        if eligible_candidates:
+            scores_map = policy.get_action_scores(tx_context, eligible_candidates)
+            candidate_evs = {cand.action_id: ev_estimator.calculate_action_ev(tx_context, cand) for cand in eligible_candidates}
+            candidate_ps = {cand.action_id: ev_estimator.predict_probability(tx_context, cand.action_id) for cand in eligible_candidates}
+        else:
+            scores_map = {}
+            candidate_evs = {}
+            candidate_ps = {}
+
+        if should_retry and chosen_action:
+            chosen_id = chosen_action.action_id
+            expected_ev = candidate_evs.get(chosen_id, decision.get("expected_net_value_inr", 0.0))
+            decision["expected_net_value_inr"] = round(expected_ev, 2)
+            act_scores = scores_map.get(chosen_id, {})
+            ucb_score = act_scores.get("ucb_score", 0.0)
+            p_hat = candidate_ps.get(chosen_id, 0.0)
+            channel_str = f"{source_method.upper()} → {chosen_action.target_method.upper()}"
+            delay_str = chosen_action.delay
+        else:
+            expected_ev = decision.get("expected_net_value_inr", 0.0)
+            p_hat = 0.0
+            ucb_score = 0.0
+            channel_str = "HALT"
+            delay_str = "HALT"
 
         # Recommendation Banner
         if should_retry and chosen_action:
@@ -303,20 +328,6 @@ with tab1:
 
         # Metric Cards Header
         m1, m2, m3, m4, m5 = st.columns(5)
-
-        if should_retry and chosen_action:
-            p_hat = ev_estimator.predict_probability(tx_context, chosen_action.action_id)
-            scores_dict = policy.get_action_scores(tx_context, [chosen_action])
-            act_scores = scores_dict.get(chosen_action.action_id, {})
-            ucb_score = act_scores.get("ucb_score", 0.0)
-
-            channel_str = f"{source_method.upper()} → {chosen_action.target_method.upper()}"
-            delay_str = chosen_action.delay
-        else:
-            p_hat = 0.0
-            ucb_score = 0.0
-            channel_str = "HALT"
-            delay_str = "HALT"
 
         m1.metric("Est. Success P̂", f"{p_hat*100:.1f}%")
         m2.metric("Expected Net EV", f"₹{expected_ev:,.2f}")
@@ -364,13 +375,12 @@ with tab1:
         st.subheader("Candidate Action Evaluation Matrix")
 
         if eligible_candidates:
-            scores_map = policy.get_action_scores(tx_context, eligible_candidates)
             rows = []
             for cand in eligible_candidates:
                 cid = cand.action_id
                 s_info = scores_map.get(cid, {})
-                cand_p = ev_estimator.predict_probability(tx_context, cid)
-                cand_ev = ev_estimator.calculate_action_ev(tx_context, cand)
+                cand_p = candidate_ps.get(cid, 0.0)
+                cand_ev = candidate_evs.get(cid, 0.0)
                 is_sel = (should_retry and chosen_action and cid == chosen_action.action_id)
 
                 rows.append({

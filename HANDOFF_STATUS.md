@@ -60,7 +60,7 @@ tests/test_dashboard_smoke.py::test_dashboard_card_expired_hard_stop_shows_halt 
   3. Import Health (V1 + V2 core modules)
   4. Ground-Truth Isolation (AST Analysis across `api/`, `policies/`, `runner/`)
   5. V1 Core Locked-File Integrity (9 V1 locked files verified untouched)
-  6. Full Automated Test Suite (216 tests passed)
+  6. Full Automated Test Suite (217 tests passed)
   7. Dashboard Smoke Testing (AppTest framework execution)
   8. Phase 1 Benchmark Execution (`run_phase1_evaluation.py`)
   9. Canonical Artifact Validation (6 Phase 1 artifacts & fingerprint)
@@ -99,6 +99,15 @@ tests/test_dashboard_smoke.py::test_dashboard_card_expired_hard_stop_shows_halt 
   - `python -m pytest -q` -> **217 passed**
   - `python verify_submission.py` -> **RESULT: SUBMISSION VERIFICATION PASSED (All 16 Stages Verified)**
 - **7.3 Path Cleanliness Audit**: Grep scan across all cleanroom production modules (`api/`, `policies/`, `simulator/`, `runner/`, `core/`, `evaluation/`, `dashboard.py`, `verify_submission.py`, `README.md`) confirmed **zero stray local hardcoded paths**.
+
+### Phase 8 HTTP API & Razorpay Webhook Adapter Service Result
+- **FastAPI HTTP Service**: Implemented `service/http_api.py` and `service/razorpay_adapter.py` providing `GET /health`, `POST /v1/webhooks/razorpay`, and `POST /v1/recovery/decide`.
+- **Unit Tests**: Added `tests/test_http_api.py` covering health check, webhook translation, expired card safety gate, 422 error handling, direct decisions, and stack-trace leak prevention.
+- **Verification Results**:
+  - `python -m pytest tests/test_http_api.py -v` -> **7/7 passed**.
+  - `python -m pytest -q` -> **217/217 passed**.
+  - `python verify_submission.py` -> **ALL 16 STAGES PASSED**.
+  - Manual live server verification: Verified `uvicorn service.http_api:app` and `curl` requests against `/health` (`{"status":"ok"}`) and `/v1/webhooks/razorpay` (returned expected V2 recovery decision payload).
 
 
 

@@ -127,9 +127,16 @@ class V2DecisionService:
         )
 
         chosen_action = policy_decision.action_chosen
-        expected_net_val = float(policy_decision.expected_value) if policy_decision.expected_value is not None else 0.0
-
         should_retry = (chosen_action is not None)
+
+        if should_retry and chosen_action:
+            chosen_ev = action_evs.get(
+                chosen_action.action_id,
+                self.ev_estimator.calculate_action_ev(transaction, chosen_action) if self.ev_estimator else 0.0,
+            )
+        else:
+            chosen_ev = 0.0
+
         stop_reason = policy_decision.metadata.get("reason") if not should_retry else None
 
         result = {
@@ -137,7 +144,7 @@ class V2DecisionService:
             "should_retry": should_retry,
             "action_chosen": chosen_action,
             "action_id": policy_decision.action_id if should_retry else None,
-            "expected_net_value_inr": round(expected_net_val, 2),
+            "expected_net_value_inr": round(chosen_ev, 2),
             "stop_reason": stop_reason,
             "metadata": policy_decision.metadata,
         }
