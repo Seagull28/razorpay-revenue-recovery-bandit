@@ -129,6 +129,7 @@ bandit_retry_scheduler/
 ├── api/                        # Production API Layer (Zero Ground-Truth Leakage)
 │   └── intelligence_service.py # Phase 3 Recovery Intelligence API
 ├── audit/                      # Evaluation Reports & Plot Artifacts
+│   ├── PARAMETER_REGISTRY.md   # Parameter Classification & Transparency Registry
 │   ├── evaluation_results/phase1/  # Canonical Phase 1 Artifacts
 │   ├── evaluation_results/phase3/  # Phase 3 Intelligence Evaluation Artifacts
 │   ├── evaluation_results/phase4_strategy_diagnostics/ # Phase 4A Diagnostic Artifacts
