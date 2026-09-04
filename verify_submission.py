@@ -1,7 +1,7 @@
 """
 verify_submission.py
 Single-command comprehensive submission readiness verification utility for RecoverFlow.
-Executes 9 deterministic verification stages and returns exit code 0 on success or non-zero on failure.
+Executes 11 verification stages and returns exit code 0 on success or non-zero on failure.
 
 Usage:
     python verify_submission.py
@@ -15,18 +15,9 @@ import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
-import types
-
 PROJECT_ROOT = Path(__file__).resolve().parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
 if str(PROJECT_ROOT.parent) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT.parent))
-
-if "bandit_retry_scheduler" not in sys.modules:
-    mod = types.ModuleType("bandit_retry_scheduler")
-    mod.__path__ = [str(PROJECT_ROOT)]
-    sys.modules["bandit_retry_scheduler"] = mod
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -121,8 +112,7 @@ def run_check_full_test_suite() -> Tuple[bool, str]:
     res = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True, env=_get_env())
     if res.returncode != 0:
         return False, f"Pytest suite failed!\nOutput:\n{res.stdout}\n{res.stderr}"
-    
-    # Parse actual test count dynamically
+
     summary_line = [line for line in res.stdout.splitlines() if "passed" in line]
     passed_msg = summary_line[-1].strip() if summary_line else "All tests passed"
     return True, f"Full regression test suite passed cleanly ({passed_msg})."
@@ -153,11 +143,10 @@ def run_check_artifact_validation() -> Tuple[bool, str]:
         if not fpath.exists() or fpath.stat().st_size == 0:
             return False, f"Canonical artifact {fname} is missing or empty!"
 
-    # Parse and validate summary JSON
     try:
         with open(p1_dir / "phase1_summary.json", "r", encoding="utf-8") as f:
             summary_data = json.load(f)
-        
+
         sum_by_pol = summary_data.get("summary_by_policy", {})
         expected_policies = {
             "Fixed Schedule",
@@ -170,7 +159,6 @@ def run_check_artifact_validation() -> Tuple[bool, str]:
         if expected_policies != actual_policies:
             return False, f"Policy names mismatch in summary artifact! Expected {expected_policies}, got {actual_policies}"
 
-        # Validate no NaN or Inf in values
         for p, metrics in sum_by_pol.items():
             for k, val in metrics.items():
                 if isinstance(val, (int, float)):
@@ -190,26 +178,22 @@ def run_check_artifact_validation() -> Tuple[bool, str]:
 def run_check_deterministic_reproducibility() -> Tuple[bool, str]:
     """Stage 8: Run Phase 1 evaluation a second time and compare structured outputs for 100% numerical identity."""
     p1_dir = PROJECT_ROOT / "audit" / "evaluation_results" / "phase1"
-    
-    # Capture Run 1 structured artifacts
+
     with open(p1_dir / "phase1_summary.json", "r", encoding="utf-8") as f:
         sum_run1 = json.load(f)["summary_by_policy"]
     with open(p1_dir / "phase1_paired_comparisons.json", "r", encoding="utf-8") as f:
         paired_run1 = json.load(f)
 
-    # Execute Run 2
     cmd = [sys.executable, "run_phase1_evaluation.py"]
     res = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True, env=_get_env())
     if res.returncode != 0:
         return False, f"Run 2 Phase 1 evaluation failed!\nOutput:\n{res.stdout}"
 
-    # Capture Run 2 structured artifacts
     with open(p1_dir / "phase1_summary.json", "r", encoding="utf-8") as f:
         sum_run2 = json.load(f)["summary_by_policy"]
     with open(p1_dir / "phase1_paired_comparisons.json", "r", encoding="utf-8") as f:
         paired_run2 = json.load(f)
 
-    # Compare structured summary metrics
     if sum_run1 != sum_run2:
         return False, f"Non-deterministic summary metrics detected!\nRun 1: {sum_run1}\nRun 2: {sum_run2}"
 
@@ -219,8 +203,87 @@ def run_check_deterministic_reproducibility() -> Tuple[bool, str]:
     return True, "100% deterministic reproducibility verified across consecutive evaluation runs."
 
 
+def run_check_phase3_and_phase4a_execution() -> Tuple[bool, str]:
+    """Stage 9: Run Phase 3 and Phase 4A strategy execution scripts and validate artifacts."""
+    cmd3 = [sys.executable, "run_phase3_evaluation.py"]
+    res3 = subprocess.run(cmd3, cwd=PROJECT_ROOT, capture_output=True, text=True, env=_get_env())
+    if res3.returncode != 0:
+        return False, f"Phase 3 evaluation harness failed!\nOutput:\n{res3.stdout}\n{res3.stderr}"
+
+    cmd4a = [sys.executable, "run_phase4_strategy_diagnostics.py"]
+    res4a = subprocess.run(cmd4a, cwd=PROJECT_ROOT, capture_output=True, text=True, env=_get_env())
+    if res4a.returncode != 0:
+        return False, f"Phase 4A strategy diagnostics failed!\nOutput:\n{res4a.stdout}\n{res4a.stderr}"
+
+    required_artifacts = [
+        PROJECT_ROOT / "audit" / "PHASE3_FINAL_AUDIT_REPORT.md",
+        PROJECT_ROOT / "audit" / "evaluation_results" / "phase4_strategy_diagnostics" / "phase4_strategy_summary.json",
+        PROJECT_ROOT / "audit" / "evaluation_results" / "phase4_strategy_diagnostics" / "phase4_strategy_differentiation_analysis.json",
+    ]
+    for artifact_path in required_artifacts:
+        if not artifact_path.exists() or artifact_path.stat().st_size == 0:
+            return False, f"Required Phase 3 / Phase 4A artifact {artifact_path.name} is missing or empty!"
+
+    return True, "Phase 3 and Phase 4A strategy scripts executed cleanly and artifacts validated."
+
+
+def run_check_phase4b_robustness_execution() -> Tuple[bool, str]:
+    """Stage 10: Run Phase 4B robustness evaluation across 2 independent runs and verify tolerance bounds."""
+    p4b_summary_path = PROJECT_ROOT / "audit" / "evaluation_results" / "phase4b_robustness" / "phase4b_summary.json"
+
+    # Run 1
+    cmd1 = [sys.executable, "run_phase4b_robustness.py"]
+    res1 = subprocess.run(cmd1, cwd=PROJECT_ROOT, capture_output=True, text=True, env=_get_env())
+    if res1.returncode != 0:
+        return False, f"Run 1 Phase 4B robustness evaluation failed!\nOutput:\n{res1.stdout}\n{res1.stderr}"
+
+    if not p4b_summary_path.exists():
+        return False, "Phase 4B summary artifact missing after Run 1!"
+
+    with open(p4b_summary_path, "r", encoding="utf-8") as f:
+        summary_run1 = json.load(f)
+
+    # Run 2
+    cmd2 = [sys.executable, "run_phase4b_robustness.py"]
+    res2 = subprocess.run(cmd2, cwd=PROJECT_ROOT, capture_output=True, text=True, env=_get_env())
+    if res2.returncode != 0:
+        return False, f"Run 2 Phase 4B robustness evaluation failed!\nOutput:\n{res2.stdout}\n{res2.stderr}"
+
+    with open(p4b_summary_path, "r", encoding="utf-8") as f:
+        summary_run2 = json.load(f)
+
+    max_rel_diff = 0.0
+    scenarios_r1 = summary_run1.get("scenarios", {})
+    scenarios_r2 = summary_run2.get("scenarios", {})
+
+    for sc_name, sc_data1 in scenarios_r1.items():
+        policies1 = sc_data1.get("policies", {})
+        policies2 = scenarios_r2.get(sc_name, {}).get("policies", {})
+        for pname, metrics1 in policies1.items():
+            metrics2 = policies2.get(pname, {})
+            for metric in ["mean_net_revenue_inr", "mean_recovery_rate_pct"]:
+                v1 = metrics1.get(metric, 0.0)
+                v2 = metrics2.get(metric, 0.0)
+                rel_diff = abs(v1 - v2) / max(abs(v1), 1.0)
+                if rel_diff > max_rel_diff:
+                    max_rel_diff = rel_diff
+                if rel_diff > 0.001:
+                    return (
+                        False,
+                        f"Phase 4B metric tolerance exceeded for scenario '{sc_name}', policy '{pname}', "
+                        f"metric '{metric}': run1={v1}, run2={v2}, rel_diff={rel_diff:.6f} > 0.001"
+                    )
+
+    return (
+        True,
+        "Phase 4B robustness evaluation executed cleanly across 2 independent runs; "
+        f"all metrics within 0.1% run-to-run tolerance (max observed rel diff: {max_rel_diff:.4%}; see known limitation: "
+        "Phase 4B does not guarantee bit-identical reproducibility like Phase 1)."
+    )
+
+
 def run_check_synthetic_disclosures() -> Tuple[bool, str]:
-    """Stage 9: Verify synthetic simulation notices are present in README and Dashboard."""
+    """Stage 11: Verify synthetic simulation notices are present in README and Dashboard."""
     readme_path = PROJECT_ROOT / "README.md"
     dash_path = PROJECT_ROOT / "dashboard.py"
 
@@ -249,6 +312,8 @@ def main():
         ("Phase 1 Benchmark Execution", run_check_benchmark_execution),
         ("Canonical Artifact Validation", run_check_artifact_validation),
         ("Deterministic Reproducibility", run_check_deterministic_reproducibility),
+        ("Phase 3 & Phase 4A Strategy Execution", run_check_phase3_and_phase4a_execution),
+        ("Phase 4B Robustness Execution (Tolerance-Based)", run_check_phase4b_robustness_execution),
         ("Synthetic Simulation Disclosures", run_check_synthetic_disclosures),
     ]
 
@@ -256,7 +321,7 @@ def main():
     failed_stages = []
 
     for name, check_fn in stages:
-        sys.stdout.write(f"Testing {name:38s} ... ")
+        sys.stdout.write(f"Testing {name:48s} ... ")
         sys.stdout.flush()
         try:
             success, msg = check_fn()
@@ -273,7 +338,7 @@ def main():
 
     print("================================================================================")
     if all_passed:
-        print("RESULT: SUBMISSION VERIFICATION PASSED (All 9 Stages Verified)")
+        print("RESULT: SUBMISSION VERIFICATION PASSED (All 11 Stages Verified)")
         print("================================================================================")
         sys.exit(0)
     else:

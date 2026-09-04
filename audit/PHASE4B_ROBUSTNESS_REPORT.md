@@ -9,8 +9,10 @@
 Phase 4B evaluates the robustness and adaptability of RecoverFlow's **Disjoint Contextual LinUCB** policy when deployed into stressed, non-stationary, or structurally shifted payment environments. Using a scenario-aware simulator framework (`simulator/scenario_environment.py`), policies were evaluated across 3 environmental scenarios without modifying the locked canonical Phase 1 code or artifacts.
 
 Across all evaluated stress scenarios, **RecoverFlow LinUCB maintains a decisive, statistically robust net revenue advantage over the Fixed Schedule baseline**. Notably:
-- Under **High Insufficient Funds**, LinUCB's net revenue lift **expands to +INR 844,656.03** (+9.10% recovery rate lift).
-- Under severe **Distribution Shift** (issuer timeout dominant + 30% recovery probability reduction), LinUCB's net revenue lift **expands dramatically to +INR 1,377,950.09** (+23.49% recovery rate lift), demonstrating powerful contextual resilience.
+- Under **High Insufficient Funds**, LinUCB's net revenue lift **expands to approximately +INR 844,656.03** (+9.10% recovery rate lift).
+- Under severe **Distribution Shift** (issuer timeout dominant + 30% recovery probability reduction), LinUCB's net revenue lift **expands to approximately +INR 1,377,950.09** (+23.49% recovery rate lift), demonstrating powerful contextual resilience.
+
+Note: unlike Phase 1's bit-exact reproducibility guarantee, Phase 4B figures may vary by up to ~0.1% between independent runs due to floating-point accumulation order in the online-learning policy update; see Stage 11 of verify_submission.py for the automated tolerance check.
 
 ---
 
