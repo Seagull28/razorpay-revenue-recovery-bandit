@@ -20,7 +20,7 @@ if str(PROJECT_ROOT.parent) not in sys.path:
 
 from bandit_retry_scheduler.policies.linucb import LinUCBPolicy
 from bandit_retry_scheduler.simulator.environment import RetrySimulator
-from bandit_retry_scheduler.simulator.config import FailureCode, Bank, Network, DelayArm
+from bandit_retry_scheduler.simulator.config import FailureCode, Bank, Network, DelayArm, DEFAULT_RETRY_COST
 from bandit_retry_scheduler.api.eligibility import check_eligibility
 from bandit_retry_scheduler.api.decision_service import get_retry_decision
 from bandit_retry_scheduler.api.intelligence_service import get_recovery_intelligence
@@ -97,8 +97,11 @@ def load_pretrained_policy_and_simulator(num_tx: int = 1000):
         if not should_stop:
             decision = policy.select_arm(tx, attempt_number=attempt)
             chosen_arm = decision.arm_chosen
-            state = simulator.step(tx, chosen_arm)
-            policy.update(tx, chosen_arm, state["reward"])
+            success, amount_recovered = simulator.simulate_retry(tx, chosen_arm)
+            reward = RetrySimulator.calculate_reward(
+                success=success, amount_recovered=amount_recovered, retry_cost=DEFAULT_RETRY_COST
+            )
+            policy.update(tx, chosen_arm, reward)
 
     return policy, simulator, AuditLogger()
 
@@ -116,11 +119,14 @@ def load_phase1_canonical_metrics():
     if summary_path.exists():
         with open(summary_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-        lin_net = data.get("RecoverFlow LinUCB", {}).get("mean_net_revenue", 9486147.13)
-        base_net = data.get("Fixed Schedule Baseline", {}).get("mean_net_revenue", 8765870.96)
+        policy_summary = data.get("summary_by_policy", {})
+        lin = policy_summary.get("RecoverFlow LinUCB", {})
+        base = policy_summary.get("Fixed Schedule", {})  # NOT "Fixed Schedule Baseline"
+        lin_net = lin.get("mean_net_revenue", 9486147.13)
+        base_net = base.get("mean_net_revenue", 8765870.96)
         lift_net = lin_net - base_net
-        rec_rate = data.get("RecoverFlow LinUCB", {}).get("mean_recovery_rate_pct", 71.4)
-        base_rec_rate = data.get("Fixed Schedule Baseline", {}).get("mean_recovery_rate_pct", 58.2)
+        rec_rate = lin.get("mean_overall_recovery_rate_pct", 71.4)
+        base_rec_rate = base.get("mean_overall_recovery_rate_pct", 58.2)
         return {
             "linucb_net": f"₹{lin_net:,.2f}",
             "baseline_net": f"₹{base_net:,.2f}",
@@ -129,7 +135,7 @@ def load_phase1_canonical_metrics():
             "recovery_rate": f"{rec_rate:.2f}%",
             "rec_rate_delta": f"+{rec_rate - base_rec_rate:.2f}% Lift",
             "ci_text": "+₹5,94,362 to +₹8,54,925 (95% CI)",
-            "phase1_summary": data,
+            "phase1_summary": policy_summary,
         }
     return {
         "linucb_net": "₹9,486,147.13",
@@ -144,6 +150,8 @@ def load_phase1_canonical_metrics():
 
 
 metrics = load_phase1_canonical_metrics()
+if metrics.get("phase1_summary") is not None and len(metrics.get("phase1_summary", {})) == 0:
+    st.warning("⚠️ phase1_summary.json was found but 'summary_by_policy' key was empty or missing — displaying fallback values, not live data.")
 
 # Header Title & Disclaimer
 st.title("⚡ RecoverFlow: Merchant Recovery Control Center")
@@ -182,7 +190,7 @@ if metrics["phase1_summary"]:
             "Policy Category": status_label,
             "Policy Name": p_name,
             "Mean Net Revenue (INR)": f"₹{s['mean_net_revenue']:,.2f}",
-            "Mean Recovery Rate (%)": f"{s['mean_recovery_rate_pct']:.2f}%",
+            "Mean Recovery Rate (%)": f"{s['mean_overall_recovery_rate_pct']:.2f}%",
             "Mean Retry Cost (INR)": f"₹{s['mean_retry_cost']:,.2f}",
             "Mean Attempt Count": s["mean_retry_attempts"],
         })
