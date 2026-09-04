@@ -14,21 +14,16 @@ Purely additive evaluation; saves artifacts to audit/evaluation_results/phase4b_
 import sys
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 import numpy as np
 
-# Ensure root path resolution
+# Standard package path resolution matching run_phase1_evaluation.py
 PROJECT_ROOT = Path(__file__).resolve().parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
 if str(PROJECT_ROOT.parent) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT.parent))
 
-import types
-if "bandit_retry_scheduler" not in sys.modules:
-    mod = types.ModuleType("bandit_retry_scheduler")
-    mod.__path__ = [str(PROJECT_ROOT)]
-    sys.modules["bandit_retry_scheduler"] = mod
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 from bandit_retry_scheduler.audit.logger import AuditLogger
 from bandit_retry_scheduler.policies.fixed_schedule import FixedSchedulePolicy
@@ -54,8 +49,9 @@ SCENARIOS: List[ScenarioConfig] = [
 ]
 
 
-def run_phase4b_robustness():
-    output_dir = PROJECT_ROOT / "audit" / "evaluation_results" / "phase4b_robustness"
+def run_phase4b_robustness(output_dir: Optional[Path] = None) -> Dict[str, Any]:
+    if output_dir is None:
+        output_dir = PROJECT_ROOT / "audit" / "evaluation_results" / "phase4b_robustness"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print("====================================================================================================")
@@ -86,7 +82,7 @@ def run_phase4b_robustness():
                 records = logger.to_records()
                 total_txs = len(txs)
 
-                # Compute metrics
+                # Authoritative single-source-of-truth calculations
                 recovered_tx_ids = {r["transaction_id"] for r in records if r["actual_outcome"] == 1}
                 rec_count = len(recovered_tx_ids)
                 rec_rate_pct = round((rec_count / total_txs) * 100.0, 2) if total_txs > 0 else 0.0
@@ -94,11 +90,30 @@ def run_phase4b_robustness():
                 attempts_count = len(records)
                 avg_attempts = round(attempts_count / total_txs, 4) if total_txs > 0 else 0.0
 
-                gross_revenue = float(sum(r["amount_recovered"] for r in records if r["actual_outcome"] == 1))
-                total_retry_cost = float(attempts_count * DEFAULT_RETRY_COST)
+                gross_revenue = round(float(sum(r["amount_recovered"] for r in records if r["actual_outcome"] == 1)), 2)
+                total_retry_cost = round(float(attempts_count * DEFAULT_RETRY_COST), 2)
                 net_revenue = round(gross_revenue - total_retry_cost, 2)
 
                 arm_counts = {arm: sum(1 for r in records if r["arm_chosen"] == arm) for arm in DELAY_ARMS}
+
+                # Phase 4 Runtime Integrity Assertions
+                expected_retry_cost = round(attempts_count * DEFAULT_RETRY_COST, 2)
+                assert total_retry_cost == expected_retry_cost, (
+                    f"cost/attempts mismatch: attempts={attempts_count}, "
+                    f"retry_cost={total_retry_cost}, expected={expected_retry_cost}"
+                )
+
+                expected_net_revenue = round(gross_revenue - total_retry_cost, 2)
+                assert abs(net_revenue - expected_net_revenue) < 0.01, (
+                    f"net revenue mismatch: gross={gross_revenue}, "
+                    f"retry_cost={total_retry_cost}, net={net_revenue}, expected={expected_net_revenue}"
+                )
+
+                expected_avg_attempts = round(attempts_count / total_txs, 4) if total_txs > 0 else 0.0
+                assert avg_attempts == expected_avg_attempts, (
+                    f"avg attempts mismatch: attempts={attempts_count}, txs={total_txs}, "
+                    f"avg_attempts={avg_attempts}, expected={expected_avg_attempts}"
+                )
 
                 run_res = {
                     "scenario_name": sc.name,
@@ -110,8 +125,8 @@ def run_phase4b_robustness():
                     "recovery_rate_pct": rec_rate_pct,
                     "total_attempts": attempts_count,
                     "average_attempts_per_transaction": avg_attempts,
-                    "gross_recovered_revenue": round(gross_revenue, 2),
-                    "total_retry_cost": round(total_retry_cost, 2),
+                    "gross_recovered_revenue": gross_revenue,
+                    "total_retry_cost": total_retry_cost,
                     "net_revenue": net_revenue,
                     "arm_counts": arm_counts,
                 }
@@ -144,11 +159,28 @@ def run_phase4b_robustness():
         }
         for pname in ["RecoverFlow LinUCB", "Fixed Schedule"]:
             matching = [r for r in per_run_results if r["scenario_name"] == sc.name and r["policy_name"] == pname]
+            assert len(matching) == len(ROBUSTNESS_SEEDS), (
+                f"Expected {len(ROBUSTNESS_SEEDS)} runs for scenario '{sc.name}' and policy '{pname}', got {len(matching)}"
+            )
+
             mean_rec = round(float(np.mean([r["recovery_rate_pct"] for r in matching])), 2)
             mean_net = round(float(np.mean([r["net_revenue"] for r in matching])), 2)
             mean_att = round(float(np.mean([r["average_attempts_per_transaction"] for r in matching])), 4)
             mean_gross = round(float(np.mean([r["gross_recovered_revenue"] for r in matching])), 2)
             mean_cost = round(float(np.mean([r["total_retry_cost"] for r in matching])), 2)
+
+            # Phase 5 Runtime aggregate self-checks
+            recomputed_mean_net = round(sum(r["net_revenue"] for r in matching) / len(matching), 2)
+            assert abs(mean_net - recomputed_mean_net) < 0.01, (
+                f"Aggregate net revenue mismatch for scenario {sc.name}, policy {pname}: "
+                f"reported={mean_net}, recomputed={recomputed_mean_net}"
+            )
+
+            recomputed_mean_cost = round(sum(r["total_retry_cost"] for r in matching) / len(matching), 2)
+            assert abs(mean_cost - recomputed_mean_cost) < 0.01, (
+                f"Aggregate cost mismatch for scenario {sc.name}, policy {pname}: "
+                f"reported={mean_cost}, recomputed={recomputed_mean_cost}"
+            )
 
             summary["scenarios"][sc.name]["policies"][pname] = {
                 "mean_recovery_rate_pct": mean_rec,
