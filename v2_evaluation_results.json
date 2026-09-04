@@ -1,0 +1,2230 @@
+{
+  "evaluation_config": {
+    "seeds": [
+      42,
+      123,
+      456,
+      789,
+      2026
+    ],
+    "num_days": 30,
+    "tx_per_day": 100,
+    "use_crn": true,
+    "action_space_size": 16
+  },
+  "summary": {
+    "v2_linucb": {
+      "mean_net_reward_inr": 10739537.96,
+      "mean_recovery_rate_pct": 92.24,
+      "mean_total_recovered_inr": 10811278.96,
+      "mean_action_cost_inr": 71741.0,
+      "mean_avg_attempts_per_tx": 2.02,
+      "total_transactions_all_seeds": 15000
+    },
+    "diagnostics": {
+      "mean_avg_attempts_per_tx": 2.02,
+      "mean_pct_reaching_max_attempts": 7.76,
+      "mean_negative_reward_retry_pct": 54.34,
+      "mean_negative_reward_retry_count": 3296.6,
+      "mean_total_negative_reward_inr": -39536.0,
+      "marginal_retry_value_by_attempt": {
+        "1": {
+          "mean_num_retries": 3000.0,
+          "mean_successes": 1223.4,
+          "mean_recovery_rate_pct": 40.78,
+          "mean_avg_reward_per_retry_inr": 1589.34
+        },
+        "2": {
+          "mean_num_retries": 1776.6,
+          "mean_successes": 969.8,
+          "mean_recovery_rate_pct": 54.63,
+          "mean_avg_reward_per_retry_inr": 2155.15
+        },
+        "3": {
+          "mean_num_retries": 806.8,
+          "mean_successes": 326.4,
+          "mean_recovery_rate_pct": 40.51,
+          "mean_avg_reward_per_retry_inr": 1572.31
+        },
+        "4": {
+          "mean_num_retries": 480.4,
+          "mean_successes": 247.6,
+          "mean_recovery_rate_pct": 51.46,
+          "mean_avg_reward_per_retry_inr": 1827.17
+        }
+      }
+    },
+    "ev_feasibility": {
+      "reward_semantics": "theta^T x represents expected NET REWARD after deducting action cost (10 INR timed / 15 INR switch)",
+      "ucb_decomposition": {
+        "mean_estimated_reward_inr": 1772.3,
+        "mean_exploration_bonus_inr": 0.15,
+        "mean_ucb_score_inr": 1772.44
+      },
+      "negative_ev_opportunity_rates": {
+        "pct_decisions_max_theta_x_leq_zero": 0.18,
+        "pct_decisions_max_ucb_leq_zero": 0.18,
+        "pct_decisions_max_oracle_ev_leq_zero": 0.0
+      },
+      "offline_calibration_error": {
+        "mean_predicted_reward_inr": 1772.3,
+        "mean_realized_reward_inr": 1772.17,
+        "prediction_error_inr": -0.13
+      },
+      "signal_comparison": {
+        "Signal_A_UCB": {
+          "meaning": "Optimistic upper bound (estimate + bonus)",
+          "defensible_for_stopping": false,
+          "reason": "Exploration bonus remains positive at cold-start (~2.5 INR per unit norm), failing to halt low-EV attempts."
+        },
+        "Signal_B_Theta_T_x": {
+          "meaning": "Learned linear net reward estimate",
+          "defensible_for_stopping": false,
+          "reason": "At cold-start theta=0 so theta^T x = 0, causing premature stopping on attempt 1 before parameter learning."
+        },
+        "Signal_C_Synthetic_Oracle_EV": {
+          "meaning": "True simulator EV (P_true * amount - cost)",
+          "defensible_for_stopping": false,
+          "reason": "Analysis-only oracle using simulator ground-truth probabilities unavailable in production."
+        },
+        "Signal_D_Calibrated_EV_Estimator": {
+          "meaning": "Decoupled P_hat(success|x,a) * E[Amount|x] - cost(a)",
+          "defensible_for_stopping": true,
+          "reason": "Decouples probability estimation from reward modeling, enabling safe economic stopping without cold-start shutdown."
+        }
+      },
+      "architectural_recommendation": "OPTION B \u2014 A separate calibrated EV estimator is required"
+    },
+    "baselines": {
+      "same_method_1d": {
+        "mean_net_reward_inr": 8872625.3,
+        "mean_recovery_rate_pct": 77.78,
+        "mean_total_recovered_inr": 8942551.3,
+        "mean_action_cost_inr": 69926.0,
+        "mean_avg_attempts_per_tx": 2.33,
+        "mean_target_action_available_pct": 97.94
+      },
+      "same_method_3d": {
+        "mean_net_reward_inr": 9868323.07,
+        "mean_recovery_rate_pct": 79.23,
+        "mean_total_recovered_inr": 9935027.07,
+        "mean_action_cost_inr": 66704.0,
+        "mean_avg_attempts_per_tx": 2.22,
+        "mean_target_action_available_pct": 97.84
+      },
+      "same_method_7d": {
+        "mean_net_reward_inr": 9329446.72,
+        "mean_recovery_rate_pct": 71.98,
+        "mean_total_recovered_inr": 9402006.72,
+        "mean_action_cost_inr": 72560.0,
+        "mean_avg_attempts_per_tx": 2.42,
+        "mean_target_action_available_pct": 98.01
+      },
+      "switch_to_upi": {
+        "mean_net_reward_inr": 3516891.95,
+        "mean_recovery_rate_pct": 30.77,
+        "mean_total_recovered_inr": 3548250.95,
+        "mean_action_cost_inr": 31359.0,
+        "mean_avg_attempts_per_tx": 0.7,
+        "mean_target_action_available_pct": 50.17
+      },
+      "switch_to_netbanking": {
+        "mean_net_reward_inr": 3945654.03,
+        "mean_recovery_rate_pct": 34.12,
+        "mean_total_recovered_inr": 3986190.03,
+        "mean_action_cost_inr": 40536.0,
+        "mean_avg_attempts_per_tx": 0.9,
+        "mean_target_action_available_pct": 57.76
+      }
+    },
+    "comparisons": {
+      "vs_same_method_1d": {
+        "absolute_reward_diff_inr": 1866912.66,
+        "percentage_reward_lift": 21.04,
+        "absolute_recovery_diff_pct": 14.46,
+        "percentage_recovery_lift": 18.59
+      },
+      "vs_same_method_3d": {
+        "absolute_reward_diff_inr": 871214.89,
+        "percentage_reward_lift": 8.83,
+        "absolute_recovery_diff_pct": 13.01,
+        "percentage_recovery_lift": 16.42
+      },
+      "vs_same_method_7d": {
+        "absolute_reward_diff_inr": 1410091.24,
+        "percentage_reward_lift": 15.11,
+        "absolute_recovery_diff_pct": 20.26,
+        "percentage_recovery_lift": 28.15
+      },
+      "vs_switch_to_upi": {
+        "absolute_reward_diff_inr": 7222646.01,
+        "percentage_reward_lift": 205.37,
+        "absolute_recovery_diff_pct": 61.47,
+        "percentage_recovery_lift": 199.8
+      },
+      "vs_switch_to_netbanking": {
+        "absolute_reward_diff_inr": 6793883.93,
+        "percentage_reward_lift": 172.19,
+        "absolute_recovery_diff_pct": 58.12,
+        "percentage_recovery_lift": 170.35
+      }
+    }
+  },
+  "per_seed_results": [
+    {
+      "seed": 42,
+      "v2_linucb": {
+        "total_transactions": 3000,
+        "num_recovered": 2777,
+        "recovery_rate_pct": 92.57,
+        "total_recovered_inr": 10724810.9,
+        "total_action_cost_inr": 70665.0,
+        "net_reward_inr": 10654145.9,
+        "avg_reward_per_tx": 3551.38,
+        "total_attempts": 5912,
+        "avg_attempts_per_tx": 1.97,
+        "action_counts": {
+          "nb_same_method_1d": 560,
+          "nb_same_method_3d": 17,
+          "nb_same_method_7d": 33,
+          "nb_switch_to_card": 4,
+          "same_method_1d": 277,
+          "upi_same_method_1d": 809,
+          "upi_same_method_3d": 1039,
+          "nb_switch_to_upi": 233,
+          "same_method_3d": 5,
+          "same_method_7d": 147,
+          "switch_to_upi": 1503,
+          "upi_same_method_7d": 716,
+          "switch_to_netbanking": 209,
+          "upi_switch_to_netbanking": 216,
+          "upi_switch_to_card": 144
+        },
+        "action_rates_pct": {
+          "nb_same_method_1d": 9.47,
+          "nb_same_method_3d": 0.29,
+          "nb_same_method_7d": 0.56,
+          "nb_switch_to_card": 0.07,
+          "same_method_1d": 4.69,
+          "upi_same_method_1d": 13.68,
+          "upi_same_method_3d": 17.57,
+          "nb_switch_to_upi": 3.94,
+          "same_method_3d": 0.08,
+          "same_method_7d": 2.49,
+          "switch_to_upi": 25.42,
+          "upi_same_method_7d": 12.11,
+          "switch_to_netbanking": 3.54,
+          "upi_switch_to_netbanking": 3.65,
+          "upi_switch_to_card": 2.44
+        },
+        "method_switch_count": 2309,
+        "timed_retry_count": 3603
+      },
+      "diagnostics": {
+        "retry_intensity": {
+          "avg_attempts_per_tx": 1.97,
+          "median_attempts_per_tx": 2.0,
+          "attempt_distribution": {
+            "1": 1295,
+            "2": 949,
+            "3": 305,
+            "4": 451
+          },
+          "pct_transactions_reaching_max_attempts": 7.43
+        },
+        "marginal_retry_value_by_attempt": {
+          "1": {
+            "num_retries": 3000,
+            "successes": 1295,
+            "recovery_rate_pct": 43.17,
+            "total_reward_inr": 5126258.79,
+            "avg_reward_per_retry_inr": 1708.75
+          },
+          "2": {
+            "num_retries": 1705,
+            "successes": 949,
+            "recovery_rate_pct": 55.66,
+            "total_reward_inr": 3637260.54,
+            "avg_reward_per_retry_inr": 2133.29
+          },
+          "3": {
+            "num_retries": 756,
+            "successes": 305,
+            "recovery_rate_pct": 40.34,
+            "total_reward_inr": 1141428.46,
+            "avg_reward_per_retry_inr": 1509.83
+          },
+          "4": {
+            "num_retries": 451,
+            "successes": 228,
+            "recovery_rate_pct": 50.55,
+            "total_reward_inr": 749198.11,
+            "avg_reward_per_retry_inr": 1661.19
+          }
+        },
+        "marginal_action_performance": {
+          "nb_same_method_1d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 560,
+            "success_count": 267,
+            "recovery_rate_pct": 47.68,
+            "total_reward_inr": 878091.75,
+            "avg_reward_per_execution_inr": 1568.02
+          },
+          "nb_same_method_3d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 17,
+            "success_count": 0,
+            "recovery_rate_pct": 0.0,
+            "total_reward_inr": -170.0,
+            "avg_reward_per_execution_inr": -10.0
+          },
+          "nb_same_method_7d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 33,
+            "success_count": 8,
+            "recovery_rate_pct": 24.24,
+            "total_reward_inr": 11444.9,
+            "avg_reward_per_execution_inr": 346.82
+          },
+          "nb_switch_to_card": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 4,
+            "success_count": 0,
+            "recovery_rate_pct": 0.0,
+            "total_reward_inr": -60.0,
+            "avg_reward_per_execution_inr": -15.0
+          },
+          "nb_switch_to_upi": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 233,
+            "success_count": 127,
+            "recovery_rate_pct": 54.51,
+            "total_reward_inr": 377984.38,
+            "avg_reward_per_execution_inr": 1622.25
+          },
+          "same_method_1d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 277,
+            "success_count": 89,
+            "recovery_rate_pct": 32.13,
+            "total_reward_inr": 163234.39,
+            "avg_reward_per_execution_inr": 589.29
+          },
+          "same_method_3d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 5,
+            "success_count": 0,
+            "recovery_rate_pct": 0.0,
+            "total_reward_inr": -50.0,
+            "avg_reward_per_execution_inr": -10.0
+          },
+          "same_method_7d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 147,
+            "success_count": 53,
+            "recovery_rate_pct": 36.05,
+            "total_reward_inr": 277287.19,
+            "avg_reward_per_execution_inr": 1886.31
+          },
+          "switch_to_netbanking": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 209,
+            "success_count": 88,
+            "recovery_rate_pct": 42.11,
+            "total_reward_inr": 138280.46,
+            "avg_reward_per_execution_inr": 661.63
+          },
+          "switch_to_upi": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 1503,
+            "success_count": 660,
+            "recovery_rate_pct": 43.91,
+            "total_reward_inr": 2767762.77,
+            "avg_reward_per_execution_inr": 1841.49
+          },
+          "upi_same_method_1d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 809,
+            "success_count": 468,
+            "recovery_rate_pct": 57.85,
+            "total_reward_inr": 2172084.82,
+            "avg_reward_per_execution_inr": 2684.9
+          },
+          "upi_same_method_3d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 1039,
+            "success_count": 623,
+            "recovery_rate_pct": 59.96,
+            "total_reward_inr": 2885523.88,
+            "avg_reward_per_execution_inr": 2777.21
+          },
+          "upi_same_method_7d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 716,
+            "success_count": 287,
+            "recovery_rate_pct": 40.08,
+            "total_reward_inr": 746468.36,
+            "avg_reward_per_execution_inr": 1042.55
+          },
+          "upi_switch_to_card": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 144,
+            "success_count": 43,
+            "recovery_rate_pct": 29.86,
+            "total_reward_inr": 67786.71,
+            "avg_reward_per_execution_inr": 470.74
+          },
+          "upi_switch_to_netbanking": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 216,
+            "success_count": 64,
+            "recovery_rate_pct": 29.63,
+            "total_reward_inr": 168476.29,
+            "avg_reward_per_execution_inr": 779.98
+          }
+        },
+        "low_value_retry_diagnosis": {
+          "negative_reward_retry_count": 3135,
+          "negative_reward_retry_pct": 53.03,
+          "total_negative_reward_inr": -37985.0,
+          "negative_reward_by_attempt": {
+            "1": 1705,
+            "2": 756,
+            "3": 451,
+            "4": 223
+          }
+        },
+        "cold_start_comparison": {
+          "early_first_500_tx": {
+            "total_retries": 960,
+            "negative_reward_pct": 51.15,
+            "avg_reward_per_retry_inr": 1841.97
+          },
+          "late_remaining_tx": {
+            "total_retries": 4952,
+            "negative_reward_pct": 53.39,
+            "avg_reward_per_retry_inr": 1794.4
+          }
+        },
+        "termination_reasons": {
+          "success": 2777,
+          "max_attempts": 223,
+          "early_stop": 0
+        }
+      },
+      "ev_feasibility": {
+        "reward_semantics": "theta^T x represents expected NET REWARD after deducting action cost (10 INR timed / 15 INR switch)",
+        "ucb_decomposition": {
+          "mean_estimated_reward_inr": 1802.14,
+          "mean_exploration_bonus_inr": 0.15,
+          "mean_ucb_score_inr": 1802.29
+        },
+        "negative_ev_opportunity_rates": {
+          "total_decision_opportunities": 5912,
+          "pct_decisions_max_theta_x_leq_zero": 0.19,
+          "pct_decisions_max_ucb_leq_zero": 0.19,
+          "pct_decisions_max_oracle_ev_leq_zero": 0.0
+        },
+        "offline_calibration_error": {
+          "mean_predicted_reward_inr": 1802.14,
+          "mean_realized_reward_inr": 1802.12,
+          "prediction_error_inr": -0.02
+        },
+        "signal_comparison": {
+          "Signal_A_UCB": {
+            "meaning": "Optimistic upper bound (estimate + bonus)",
+            "defensible_for_stopping": false,
+            "reason": "Exploration bonus remains positive at cold-start (~2.5 INR per unit norm), failing to halt low-EV attempts."
+          },
+          "Signal_B_Theta_T_x": {
+            "meaning": "Learned linear net reward estimate",
+            "defensible_for_stopping": false,
+            "reason": "At cold-start theta=0 so theta^T x = 0, causing premature stopping on attempt 1 before parameter learning."
+          },
+          "Signal_C_Synthetic_Oracle_EV": {
+            "meaning": "True simulator EV (P_true * amount - cost)",
+            "defensible_for_stopping": false,
+            "reason": "Analysis-only oracle using simulator ground-truth probabilities unavailable in production."
+          },
+          "Signal_D_Calibrated_EV_Estimator": {
+            "meaning": "Decoupled P_hat(success|x,a) * E[Amount|x] - cost(a)",
+            "defensible_for_stopping": true,
+            "reason": "Decouples probability estimation from reward modeling, enabling safe economic stopping without cold-start shutdown."
+          }
+        },
+        "architectural_recommendation": "OPTION B \u2014 A separate calibrated EV estimator is required"
+      },
+      "baselines": {
+        "same_method_1d": {
+          "total_transactions": 3000,
+          "num_recovered": 2334,
+          "recovery_rate_pct": 77.8,
+          "total_recovered_inr": 8878367.3,
+          "total_action_cost_inr": 69450.0,
+          "net_reward_inr": 8808917.3,
+          "avg_reward_per_tx": 2936.31,
+          "total_attempts": 6945,
+          "avg_attempts_per_tx": 2.31,
+          "action_counts": {
+            "nb_same_method_1d": 664,
+            "same_method_1d": 4594,
+            "upi_same_method_1d": 1687
+          },
+          "action_rates_pct": {
+            "nb_same_method_1d": 9.56,
+            "same_method_1d": 66.15,
+            "upi_same_method_1d": 24.29
+          },
+          "method_switch_count": 0,
+          "timed_retry_count": 6945,
+          "target_action_available_count": 6945,
+          "target_action_unavailable_count": 144,
+          "target_action_available_pct": 97.97
+        },
+        "same_method_3d": {
+          "total_transactions": 3000,
+          "num_recovered": 2397,
+          "recovery_rate_pct": 79.9,
+          "total_recovered_inr": 9867893.26,
+          "total_action_cost_inr": 65800.0,
+          "net_reward_inr": 9802093.26,
+          "avg_reward_per_tx": 3267.36,
+          "total_attempts": 6580,
+          "avg_attempts_per_tx": 2.19,
+          "action_counts": {
+            "nb_same_method_3d": 664,
+            "same_method_3d": 4229,
+            "upi_same_method_3d": 1687
+          },
+          "action_rates_pct": {
+            "nb_same_method_3d": 10.09,
+            "same_method_3d": 64.27,
+            "upi_same_method_3d": 25.64
+          },
+          "method_switch_count": 0,
+          "timed_retry_count": 6580,
+          "target_action_available_count": 6580,
+          "target_action_unavailable_count": 144,
+          "target_action_available_pct": 97.86
+        },
+        "same_method_7d": {
+          "total_transactions": 3000,
+          "num_recovered": 2187,
+          "recovery_rate_pct": 72.9,
+          "total_recovered_inr": 9303847.84,
+          "total_action_cost_inr": 71630.0,
+          "net_reward_inr": 9232217.84,
+          "avg_reward_per_tx": 3077.41,
+          "total_attempts": 7163,
+          "avg_attempts_per_tx": 2.39,
+          "action_counts": {
+            "nb_same_method_7d": 662,
+            "same_method_7d": 4815,
+            "upi_same_method_7d": 1686
+          },
+          "action_rates_pct": {
+            "nb_same_method_7d": 9.24,
+            "same_method_7d": 67.22,
+            "upi_same_method_7d": 23.54
+          },
+          "method_switch_count": 0,
+          "timed_retry_count": 7163,
+          "target_action_available_count": 7163,
+          "target_action_unavailable_count": 144,
+          "target_action_available_pct": 98.03
+        },
+        "switch_to_upi": {
+          "total_transactions": 3000,
+          "num_recovered": 931,
+          "recovery_rate_pct": 31.03,
+          "total_recovered_inr": 3700826.84,
+          "total_action_cost_inr": 31470.0,
+          "net_reward_inr": 3669356.84,
+          "avg_reward_per_tx": 1223.12,
+          "total_attempts": 2098,
+          "avg_attempts_per_tx": 0.7,
+          "action_counts": {
+            "nb_switch_to_upi": 320,
+            "switch_to_upi": 1778
+          },
+          "action_rates_pct": {
+            "nb_switch_to_upi": 15.25,
+            "switch_to_upi": 84.75
+          },
+          "method_switch_count": 2098,
+          "timed_retry_count": 0,
+          "target_action_available_count": 2098,
+          "target_action_unavailable_count": 2069,
+          "target_action_available_pct": 50.35
+        },
+        "switch_to_netbanking": {
+          "total_transactions": 3000,
+          "num_recovered": 1036,
+          "recovery_rate_pct": 34.53,
+          "total_recovered_inr": 4165822.58,
+          "total_action_cost_inr": 40200.0,
+          "net_reward_inr": 4125622.58,
+          "avg_reward_per_tx": 1375.21,
+          "total_attempts": 2680,
+          "avg_attempts_per_tx": 0.89,
+          "action_counts": {
+            "switch_to_netbanking": 1778,
+            "upi_switch_to_netbanking": 902
+          },
+          "action_rates_pct": {
+            "switch_to_netbanking": 66.34,
+            "upi_switch_to_netbanking": 33.66
+          },
+          "method_switch_count": 2680,
+          "timed_retry_count": 0,
+          "target_action_available_count": 2680,
+          "target_action_unavailable_count": 1964,
+          "target_action_available_pct": 57.71
+        }
+      }
+    },
+    {
+      "seed": 123,
+      "v2_linucb": {
+        "total_transactions": 3000,
+        "num_recovered": 2787,
+        "recovery_rate_pct": 92.9,
+        "total_recovered_inr": 10918929.43,
+        "total_action_cost_inr": 68825.0,
+        "net_reward_inr": 10850104.43,
+        "avg_reward_per_tx": 3616.7,
+        "total_attempts": 5883,
+        "avg_attempts_per_tx": 1.96,
+        "action_counts": {
+          "nb_same_method_1d": 24,
+          "nb_same_method_3d": 2,
+          "nb_same_method_7d": 406,
+          "same_method_1d": 4,
+          "same_method_3d": 461,
+          "upi_same_method_1d": 1529,
+          "same_method_7d": 3,
+          "switch_to_upi": 1063,
+          "upi_same_method_3d": 1421,
+          "switch_to_netbanking": 526,
+          "nb_switch_to_card": 1,
+          "nb_switch_to_upi": 402,
+          "upi_same_method_7d": 34,
+          "upi_switch_to_card": 7
+        },
+        "action_rates_pct": {
+          "nb_same_method_1d": 0.41,
+          "nb_same_method_3d": 0.03,
+          "nb_same_method_7d": 6.9,
+          "same_method_1d": 0.07,
+          "same_method_3d": 7.84,
+          "upi_same_method_1d": 25.99,
+          "same_method_7d": 0.05,
+          "switch_to_upi": 18.07,
+          "upi_same_method_3d": 24.15,
+          "switch_to_netbanking": 8.94,
+          "nb_switch_to_card": 0.02,
+          "nb_switch_to_upi": 6.83,
+          "upi_same_method_7d": 0.58,
+          "upi_switch_to_card": 0.12
+        },
+        "method_switch_count": 1999,
+        "timed_retry_count": 3884
+      },
+      "diagnostics": {
+        "retry_intensity": {
+          "avg_attempts_per_tx": 1.96,
+          "median_attempts_per_tx": 2.0,
+          "attempt_distribution": {
+            "1": 1276,
+            "2": 986,
+            "3": 317,
+            "4": 421
+          },
+          "pct_transactions_reaching_max_attempts": 7.1
+        },
+        "marginal_retry_value_by_attempt": {
+          "1": {
+            "num_retries": 3000,
+            "successes": 1276,
+            "recovery_rate_pct": 42.53,
+            "total_reward_inr": 4765225.14,
+            "avg_reward_per_retry_inr": 1588.41
+          },
+          "2": {
+            "num_retries": 1724,
+            "successes": 986,
+            "recovery_rate_pct": 57.19,
+            "total_reward_inr": 4045042.37,
+            "avg_reward_per_retry_inr": 2346.31
+          },
+          "3": {
+            "num_retries": 738,
+            "successes": 317,
+            "recovery_rate_pct": 42.95,
+            "total_reward_inr": 1215948.04,
+            "avg_reward_per_retry_inr": 1647.63
+          },
+          "4": {
+            "num_retries": 421,
+            "successes": 208,
+            "recovery_rate_pct": 49.41,
+            "total_reward_inr": 823888.88,
+            "avg_reward_per_retry_inr": 1956.98
+          }
+        },
+        "marginal_action_performance": {
+          "nb_same_method_1d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 24,
+            "success_count": 9,
+            "recovery_rate_pct": 37.5,
+            "total_reward_inr": 11085.53,
+            "avg_reward_per_execution_inr": 461.9
+          },
+          "nb_same_method_3d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 2,
+            "success_count": 0,
+            "recovery_rate_pct": 0.0,
+            "total_reward_inr": -20.0,
+            "avg_reward_per_execution_inr": -10.0
+          },
+          "nb_same_method_7d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 406,
+            "success_count": 211,
+            "recovery_rate_pct": 51.97,
+            "total_reward_inr": 1047825.96,
+            "avg_reward_per_execution_inr": 2580.85
+          },
+          "nb_switch_to_card": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 1,
+            "success_count": 0,
+            "recovery_rate_pct": 0.0,
+            "total_reward_inr": -15.0,
+            "avg_reward_per_execution_inr": -15.0
+          },
+          "nb_switch_to_upi": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 402,
+            "success_count": 191,
+            "recovery_rate_pct": 47.51,
+            "total_reward_inr": 447441.59,
+            "avg_reward_per_execution_inr": 1113.04
+          },
+          "same_method_1d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 4,
+            "success_count": 0,
+            "recovery_rate_pct": 0.0,
+            "total_reward_inr": -40.0,
+            "avg_reward_per_execution_inr": -10.0
+          },
+          "same_method_3d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 461,
+            "success_count": 232,
+            "recovery_rate_pct": 50.33,
+            "total_reward_inr": 1409949.39,
+            "avg_reward_per_execution_inr": 3058.46
+          },
+          "same_method_7d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 3,
+            "success_count": 0,
+            "recovery_rate_pct": 0.0,
+            "total_reward_inr": -30.0,
+            "avg_reward_per_execution_inr": -10.0
+          },
+          "switch_to_netbanking": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 526,
+            "success_count": 179,
+            "recovery_rate_pct": 34.03,
+            "total_reward_inr": 353386.26,
+            "avg_reward_per_execution_inr": 671.84
+          },
+          "switch_to_upi": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 1063,
+            "success_count": 491,
+            "recovery_rate_pct": 46.19,
+            "total_reward_inr": 1861399.72,
+            "avg_reward_per_execution_inr": 1751.08
+          },
+          "upi_same_method_1d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 1529,
+            "success_count": 798,
+            "recovery_rate_pct": 52.19,
+            "total_reward_inr": 4182042.01,
+            "avg_reward_per_execution_inr": 2735.15
+          },
+          "upi_same_method_3d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 1421,
+            "success_count": 659,
+            "recovery_rate_pct": 46.38,
+            "total_reward_inr": 1507522.62,
+            "avg_reward_per_execution_inr": 1060.89
+          },
+          "upi_same_method_7d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 34,
+            "success_count": 16,
+            "recovery_rate_pct": 47.06,
+            "total_reward_inr": 29145.56,
+            "avg_reward_per_execution_inr": 857.22
+          },
+          "upi_switch_to_card": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 7,
+            "success_count": 1,
+            "recovery_rate_pct": 14.29,
+            "total_reward_inr": 410.79,
+            "avg_reward_per_execution_inr": 58.68
+          }
+        },
+        "low_value_retry_diagnosis": {
+          "negative_reward_retry_count": 3096,
+          "negative_reward_retry_pct": 52.63,
+          "total_negative_reward_inr": -36645.0,
+          "negative_reward_by_attempt": {
+            "1": 1724,
+            "2": 738,
+            "3": 421,
+            "4": 213
+          }
+        },
+        "cold_start_comparison": {
+          "early_first_500_tx": {
+            "total_retries": 937,
+            "negative_reward_pct": 49.63,
+            "avg_reward_per_retry_inr": 2002.4
+          },
+          "late_remaining_tx": {
+            "total_retries": 4946,
+            "negative_reward_pct": 53.19,
+            "avg_reward_per_retry_inr": 1814.37
+          }
+        },
+        "termination_reasons": {
+          "success": 2787,
+          "max_attempts": 213,
+          "early_stop": 0
+        }
+      },
+      "ev_feasibility": {
+        "reward_semantics": "theta^T x represents expected NET REWARD after deducting action cost (10 INR timed / 15 INR switch)",
+        "ucb_decomposition": {
+          "mean_estimated_reward_inr": 1844.41,
+          "mean_exploration_bonus_inr": 0.13,
+          "mean_ucb_score_inr": 1844.53
+        },
+        "negative_ev_opportunity_rates": {
+          "total_decision_opportunities": 5883,
+          "pct_decisions_max_theta_x_leq_zero": 0.0,
+          "pct_decisions_max_ucb_leq_zero": 0.0,
+          "pct_decisions_max_oracle_ev_leq_zero": 0.0
+        },
+        "offline_calibration_error": {
+          "mean_predicted_reward_inr": 1844.41,
+          "mean_realized_reward_inr": 1844.31,
+          "prediction_error_inr": -0.09
+        },
+        "signal_comparison": {
+          "Signal_A_UCB": {
+            "meaning": "Optimistic upper bound (estimate + bonus)",
+            "defensible_for_stopping": false,
+            "reason": "Exploration bonus remains positive at cold-start (~2.5 INR per unit norm), failing to halt low-EV attempts."
+          },
+          "Signal_B_Theta_T_x": {
+            "meaning": "Learned linear net reward estimate",
+            "defensible_for_stopping": false,
+            "reason": "At cold-start theta=0 so theta^T x = 0, causing premature stopping on attempt 1 before parameter learning."
+          },
+          "Signal_C_Synthetic_Oracle_EV": {
+            "meaning": "True simulator EV (P_true * amount - cost)",
+            "defensible_for_stopping": false,
+            "reason": "Analysis-only oracle using simulator ground-truth probabilities unavailable in production."
+          },
+          "Signal_D_Calibrated_EV_Estimator": {
+            "meaning": "Decoupled P_hat(success|x,a) * E[Amount|x] - cost(a)",
+            "defensible_for_stopping": true,
+            "reason": "Decouples probability estimation from reward modeling, enabling safe economic stopping without cold-start shutdown."
+          }
+        },
+        "architectural_recommendation": "OPTION B \u2014 A separate calibrated EV estimator is required"
+      },
+      "baselines": {
+        "same_method_1d": {
+          "total_transactions": 3000,
+          "num_recovered": 2346,
+          "recovery_rate_pct": 78.2,
+          "total_recovered_inr": 9094679.23,
+          "total_action_cost_inr": 69420.0,
+          "net_reward_inr": 9025259.23,
+          "avg_reward_per_tx": 3008.42,
+          "total_attempts": 6942,
+          "avg_attempts_per_tx": 2.31,
+          "action_counts": {
+            "nb_same_method_1d": 591,
+            "same_method_1d": 4612,
+            "upi_same_method_1d": 1739
+          },
+          "action_rates_pct": {
+            "nb_same_method_1d": 8.51,
+            "same_method_1d": 66.44,
+            "upi_same_method_1d": 25.05
+          },
+          "method_switch_count": 0,
+          "timed_retry_count": 6942,
+          "target_action_available_count": 6942,
+          "target_action_unavailable_count": 148,
+          "target_action_available_pct": 97.91
+        },
+        "same_method_3d": {
+          "total_transactions": 3000,
+          "num_recovered": 2372,
+          "recovery_rate_pct": 79.07,
+          "total_recovered_inr": 9980463.87,
+          "total_action_cost_inr": 66850.0,
+          "net_reward_inr": 9913613.87,
+          "avg_reward_per_tx": 3304.54,
+          "total_attempts": 6685,
+          "avg_attempts_per_tx": 2.23,
+          "action_counts": {
+            "nb_same_method_3d": 590,
+            "same_method_3d": 4356,
+            "upi_same_method_3d": 1739
+          },
+          "action_rates_pct": {
+            "nb_same_method_3d": 8.83,
+            "same_method_3d": 65.16,
+            "upi_same_method_3d": 26.01
+          },
+          "method_switch_count": 0,
+          "timed_retry_count": 6685,
+          "target_action_available_count": 6685,
+          "target_action_unavailable_count": 148,
+          "target_action_available_pct": 97.83
+        },
+        "same_method_7d": {
+          "total_transactions": 3000,
+          "num_recovered": 2134,
+          "recovery_rate_pct": 71.13,
+          "total_recovered_inr": 9417785.42,
+          "total_action_cost_inr": 73040.0,
+          "net_reward_inr": 9344745.42,
+          "avg_reward_per_tx": 3114.92,
+          "total_attempts": 7304,
+          "avg_attempts_per_tx": 2.43,
+          "action_counts": {
+            "nb_same_method_7d": 591,
+            "same_method_7d": 4974,
+            "upi_same_method_7d": 1739
+          },
+          "action_rates_pct": {
+            "nb_same_method_7d": 8.09,
+            "same_method_7d": 68.1,
+            "upi_same_method_7d": 23.81
+          },
+          "method_switch_count": 0,
+          "timed_retry_count": 7304,
+          "target_action_available_count": 7304,
+          "target_action_unavailable_count": 148,
+          "target_action_available_pct": 98.01
+        },
+        "switch_to_upi": {
+          "total_transactions": 3000,
+          "num_recovered": 950,
+          "recovery_rate_pct": 31.67,
+          "total_recovered_inr": 3601508.9,
+          "total_action_cost_inr": 31710.0,
+          "net_reward_inr": 3569798.9,
+          "avg_reward_per_tx": 1189.93,
+          "total_attempts": 2114,
+          "avg_attempts_per_tx": 0.7,
+          "action_counts": {
+            "nb_switch_to_upi": 289,
+            "switch_to_upi": 1825
+          },
+          "action_rates_pct": {
+            "nb_switch_to_upi": 13.67,
+            "switch_to_upi": 86.33
+          },
+          "method_switch_count": 2114,
+          "timed_retry_count": 0,
+          "target_action_available_count": 2114,
+          "target_action_unavailable_count": 2050,
+          "target_action_available_pct": 50.77
+        },
+        "switch_to_netbanking": {
+          "total_transactions": 3000,
+          "num_recovered": 1034,
+          "recovery_rate_pct": 34.47,
+          "total_recovered_inr": 3811187.25,
+          "total_action_cost_inr": 40665.0,
+          "net_reward_inr": 3770522.25,
+          "avg_reward_per_tx": 1256.84,
+          "total_attempts": 2711,
+          "avg_attempts_per_tx": 0.9,
+          "action_counts": {
+            "switch_to_netbanking": 1825,
+            "upi_switch_to_netbanking": 886
+          },
+          "action_rates_pct": {
+            "switch_to_netbanking": 67.32,
+            "upi_switch_to_netbanking": 32.68
+          },
+          "method_switch_count": 2711,
+          "timed_retry_count": 0,
+          "target_action_available_count": 2711,
+          "target_action_unavailable_count": 1966,
+          "target_action_available_pct": 57.96
+        }
+      }
+    },
+    {
+      "seed": 456,
+      "v2_linucb": {
+        "total_transactions": 3000,
+        "num_recovered": 2757,
+        "recovery_rate_pct": 91.9,
+        "total_recovered_inr": 10587862.57,
+        "total_action_cost_inr": 75895.0,
+        "net_reward_inr": 10511967.57,
+        "avg_reward_per_tx": 3503.99,
+        "total_attempts": 6214,
+        "avg_attempts_per_tx": 2.07,
+        "action_counts": {
+          "same_method_1d": 5,
+          "same_method_3d": 6,
+          "same_method_7d": 23,
+          "switch_to_upi": 323,
+          "upi_same_method_1d": 70,
+          "upi_same_method_3d": 693,
+          "upi_same_method_7d": 724,
+          "nb_same_method_1d": 247,
+          "nb_same_method_3d": 1185,
+          "upi_switch_to_card": 101,
+          "upi_switch_to_netbanking": 456,
+          "switch_to_netbanking": 1521,
+          "nb_same_method_7d": 510,
+          "nb_switch_to_card": 5,
+          "nb_switch_to_upi": 345
+        },
+        "action_rates_pct": {
+          "same_method_1d": 0.08,
+          "same_method_3d": 0.1,
+          "same_method_7d": 0.37,
+          "switch_to_upi": 5.2,
+          "upi_same_method_1d": 1.13,
+          "upi_same_method_3d": 11.15,
+          "upi_same_method_7d": 11.65,
+          "nb_same_method_1d": 3.97,
+          "nb_same_method_3d": 19.07,
+          "upi_switch_to_card": 1.63,
+          "upi_switch_to_netbanking": 7.34,
+          "switch_to_netbanking": 24.48,
+          "nb_same_method_7d": 8.21,
+          "nb_switch_to_card": 0.08,
+          "nb_switch_to_upi": 5.55
+        },
+        "method_switch_count": 2751,
+        "timed_retry_count": 3463
+      },
+      "diagnostics": {
+        "retry_intensity": {
+          "avg_attempts_per_tx": 2.07,
+          "median_attempts_per_tx": 2.0,
+          "attempt_distribution": {
+            "1": 1156,
+            "2": 982,
+            "3": 354,
+            "4": 508
+          },
+          "pct_transactions_reaching_max_attempts": 8.1
+        },
+        "marginal_retry_value_by_attempt": {
+          "1": {
+            "num_retries": 3000,
+            "successes": 1156,
+            "recovery_rate_pct": 38.53,
+            "total_reward_inr": 4363179.9,
+            "avg_reward_per_retry_inr": 1454.39
+          },
+          "2": {
+            "num_retries": 1844,
+            "successes": 982,
+            "recovery_rate_pct": 53.25,
+            "total_reward_inr": 3756684.91,
+            "avg_reward_per_retry_inr": 2037.25
+          },
+          "3": {
+            "num_retries": 862,
+            "successes": 354,
+            "recovery_rate_pct": 41.07,
+            "total_reward_inr": 1416918.99,
+            "avg_reward_per_retry_inr": 1643.76
+          },
+          "4": {
+            "num_retries": 508,
+            "successes": 265,
+            "recovery_rate_pct": 52.17,
+            "total_reward_inr": 975183.77,
+            "avg_reward_per_retry_inr": 1919.65
+          }
+        },
+        "marginal_action_performance": {
+          "nb_same_method_1d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 247,
+            "success_count": 90,
+            "recovery_rate_pct": 36.44,
+            "total_reward_inr": 174921.33,
+            "avg_reward_per_execution_inr": 708.18
+          },
+          "nb_same_method_3d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 1185,
+            "success_count": 664,
+            "recovery_rate_pct": 56.03,
+            "total_reward_inr": 3283330.62,
+            "avg_reward_per_execution_inr": 2770.74
+          },
+          "nb_same_method_7d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 510,
+            "success_count": 271,
+            "recovery_rate_pct": 53.14,
+            "total_reward_inr": 512390.3,
+            "avg_reward_per_execution_inr": 1004.69
+          },
+          "nb_switch_to_card": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 5,
+            "success_count": 0,
+            "recovery_rate_pct": 0.0,
+            "total_reward_inr": -75.0,
+            "avg_reward_per_execution_inr": -15.0
+          },
+          "nb_switch_to_upi": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 345,
+            "success_count": 130,
+            "recovery_rate_pct": 37.68,
+            "total_reward_inr": 311199.9,
+            "avg_reward_per_execution_inr": 902.03
+          },
+          "same_method_1d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 5,
+            "success_count": 0,
+            "recovery_rate_pct": 0.0,
+            "total_reward_inr": -50.0,
+            "avg_reward_per_execution_inr": -10.0
+          },
+          "same_method_3d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 6,
+            "success_count": 0,
+            "recovery_rate_pct": 0.0,
+            "total_reward_inr": -60.0,
+            "avg_reward_per_execution_inr": -10.0
+          },
+          "same_method_7d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 23,
+            "success_count": 2,
+            "recovery_rate_pct": 8.7,
+            "total_reward_inr": 2234.03,
+            "avg_reward_per_execution_inr": 97.13
+          },
+          "switch_to_netbanking": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 1521,
+            "success_count": 564,
+            "recovery_rate_pct": 37.08,
+            "total_reward_inr": 1872828.43,
+            "avg_reward_per_execution_inr": 1231.31
+          },
+          "switch_to_upi": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 323,
+            "success_count": 144,
+            "recovery_rate_pct": 44.58,
+            "total_reward_inr": 846387.2,
+            "avg_reward_per_execution_inr": 2620.39
+          },
+          "upi_same_method_1d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 70,
+            "success_count": 21,
+            "recovery_rate_pct": 30.0,
+            "total_reward_inr": 41292.97,
+            "avg_reward_per_execution_inr": 589.9
+          },
+          "upi_same_method_3d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 693,
+            "success_count": 351,
+            "recovery_rate_pct": 50.65,
+            "total_reward_inr": 1729633.97,
+            "avg_reward_per_execution_inr": 2495.86
+          },
+          "upi_same_method_7d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 724,
+            "success_count": 305,
+            "recovery_rate_pct": 42.13,
+            "total_reward_inr": 671189.59,
+            "avg_reward_per_execution_inr": 927.06
+          },
+          "upi_switch_to_card": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 101,
+            "success_count": 25,
+            "recovery_rate_pct": 24.75,
+            "total_reward_inr": 45030.8,
+            "avg_reward_per_execution_inr": 445.85
+          },
+          "upi_switch_to_netbanking": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 456,
+            "success_count": 190,
+            "recovery_rate_pct": 41.67,
+            "total_reward_inr": 1021713.43,
+            "avg_reward_per_execution_inr": 2240.6
+          }
+        },
+        "low_value_retry_diagnosis": {
+          "negative_reward_retry_count": 3457,
+          "negative_reward_retry_pct": 55.63,
+          "total_negative_reward_inr": -43060.0,
+          "negative_reward_by_attempt": {
+            "1": 1844,
+            "2": 862,
+            "3": 508,
+            "4": 243
+          }
+        },
+        "cold_start_comparison": {
+          "early_first_500_tx": {
+            "total_retries": 1016,
+            "negative_reward_pct": 55.02,
+            "avg_reward_per_retry_inr": 1894.23
+          },
+          "late_remaining_tx": {
+            "total_retries": 5198,
+            "negative_reward_pct": 55.75,
+            "avg_reward_per_retry_inr": 1652.06
+          }
+        },
+        "termination_reasons": {
+          "success": 2757,
+          "max_attempts": 243,
+          "early_stop": 0
+        }
+      },
+      "ev_feasibility": {
+        "reward_semantics": "theta^T x represents expected NET REWARD after deducting action cost (10 INR timed / 15 INR switch)",
+        "ucb_decomposition": {
+          "mean_estimated_reward_inr": 1691.7,
+          "mean_exploration_bonus_inr": 0.14,
+          "mean_ucb_score_inr": 1691.84
+        },
+        "negative_ev_opportunity_rates": {
+          "total_decision_opportunities": 6214,
+          "pct_decisions_max_theta_x_leq_zero": 0.21,
+          "pct_decisions_max_ucb_leq_zero": 0.21,
+          "pct_decisions_max_oracle_ev_leq_zero": 0.0
+        },
+        "offline_calibration_error": {
+          "mean_predicted_reward_inr": 1691.7,
+          "mean_realized_reward_inr": 1691.66,
+          "prediction_error_inr": -0.04
+        },
+        "signal_comparison": {
+          "Signal_A_UCB": {
+            "meaning": "Optimistic upper bound (estimate + bonus)",
+            "defensible_for_stopping": false,
+            "reason": "Exploration bonus remains positive at cold-start (~2.5 INR per unit norm), failing to halt low-EV attempts."
+          },
+          "Signal_B_Theta_T_x": {
+            "meaning": "Learned linear net reward estimate",
+            "defensible_for_stopping": false,
+            "reason": "At cold-start theta=0 so theta^T x = 0, causing premature stopping on attempt 1 before parameter learning."
+          },
+          "Signal_C_Synthetic_Oracle_EV": {
+            "meaning": "True simulator EV (P_true * amount - cost)",
+            "defensible_for_stopping": false,
+            "reason": "Analysis-only oracle using simulator ground-truth probabilities unavailable in production."
+          },
+          "Signal_D_Calibrated_EV_Estimator": {
+            "meaning": "Decoupled P_hat(success|x,a) * E[Amount|x] - cost(a)",
+            "defensible_for_stopping": true,
+            "reason": "Decouples probability estimation from reward modeling, enabling safe economic stopping without cold-start shutdown."
+          }
+        },
+        "architectural_recommendation": "OPTION B \u2014 A separate calibrated EV estimator is required"
+      },
+      "baselines": {
+        "same_method_1d": {
+          "total_transactions": 3000,
+          "num_recovered": 2306,
+          "recovery_rate_pct": 76.87,
+          "total_recovered_inr": 8729961.37,
+          "total_action_cost_inr": 70610.0,
+          "net_reward_inr": 8659351.37,
+          "avg_reward_per_tx": 2886.45,
+          "total_attempts": 7061,
+          "avg_attempts_per_tx": 2.35,
+          "action_counts": {
+            "same_method_1d": 4629,
+            "upi_same_method_1d": 1809,
+            "nb_same_method_1d": 623
+          },
+          "action_rates_pct": {
+            "same_method_1d": 65.56,
+            "upi_same_method_1d": 25.62,
+            "nb_same_method_1d": 8.82
+          },
+          "method_switch_count": 0,
+          "timed_retry_count": 7061,
+          "target_action_available_count": 7061,
+          "target_action_unavailable_count": 167,
+          "target_action_available_pct": 97.69
+        },
+        "same_method_3d": {
+          "total_transactions": 3000,
+          "num_recovered": 2349,
+          "recovery_rate_pct": 78.3,
+          "total_recovered_inr": 9712908.9,
+          "total_action_cost_inr": 66840.0,
+          "net_reward_inr": 9646068.9,
+          "avg_reward_per_tx": 3215.36,
+          "total_attempts": 6684,
+          "avg_attempts_per_tx": 2.23,
+          "action_counts": {
+            "same_method_3d": 4252,
+            "upi_same_method_3d": 1809,
+            "nb_same_method_3d": 623
+          },
+          "action_rates_pct": {
+            "same_method_3d": 63.61,
+            "upi_same_method_3d": 27.06,
+            "nb_same_method_3d": 9.32
+          },
+          "method_switch_count": 0,
+          "timed_retry_count": 6684,
+          "target_action_available_count": 6684,
+          "target_action_unavailable_count": 167,
+          "target_action_available_pct": 97.56
+        },
+        "same_method_7d": {
+          "total_transactions": 3000,
+          "num_recovered": 2156,
+          "recovery_rate_pct": 71.87,
+          "total_recovered_inr": 9289272.4,
+          "total_action_cost_inr": 72250.0,
+          "net_reward_inr": 9217022.4,
+          "avg_reward_per_tx": 3072.34,
+          "total_attempts": 7225,
+          "avg_attempts_per_tx": 2.41,
+          "action_counts": {
+            "same_method_7d": 4792,
+            "upi_same_method_7d": 1811,
+            "nb_same_method_7d": 622
+          },
+          "action_rates_pct": {
+            "same_method_7d": 66.33,
+            "upi_same_method_7d": 25.07,
+            "nb_same_method_7d": 8.61
+          },
+          "method_switch_count": 0,
+          "timed_retry_count": 7225,
+          "target_action_available_count": 7225,
+          "target_action_unavailable_count": 167,
+          "target_action_available_pct": 97.74
+        },
+        "switch_to_upi": {
+          "total_transactions": 3000,
+          "num_recovered": 877,
+          "recovery_rate_pct": 29.23,
+          "total_recovered_inr": 3349600.91,
+          "total_action_cost_inr": 30765.0,
+          "net_reward_inr": 3318835.91,
+          "avg_reward_per_tx": 1106.28,
+          "total_attempts": 2051,
+          "avg_attempts_per_tx": 0.68,
+          "action_counts": {
+            "switch_to_upi": 1765,
+            "nb_switch_to_upi": 286
+          },
+          "action_rates_pct": {
+            "switch_to_upi": 86.06,
+            "nb_switch_to_upi": 13.94
+          },
+          "method_switch_count": 2051,
+          "timed_retry_count": 0,
+          "target_action_available_count": 2051,
+          "target_action_unavailable_count": 2123,
+          "target_action_available_pct": 49.14
+        },
+        "switch_to_netbanking": {
+          "total_transactions": 3000,
+          "num_recovered": 1006,
+          "recovery_rate_pct": 33.53,
+          "total_recovered_inr": 3892835.89,
+          "total_action_cost_inr": 40710.0,
+          "net_reward_inr": 3852125.89,
+          "avg_reward_per_tx": 1284.04,
+          "total_attempts": 2714,
+          "avg_attempts_per_tx": 0.9,
+          "action_counts": {
+            "switch_to_netbanking": 1765,
+            "upi_switch_to_netbanking": 949
+          },
+          "action_rates_pct": {
+            "switch_to_netbanking": 65.03,
+            "upi_switch_to_netbanking": 34.97
+          },
+          "method_switch_count": 2714,
+          "timed_retry_count": 0,
+          "target_action_available_count": 2714,
+          "target_action_unavailable_count": 1994,
+          "target_action_available_pct": 57.65
+        }
+      }
+    },
+    {
+      "seed": 789,
+      "v2_linucb": {
+        "total_transactions": 3000,
+        "num_recovered": 2737,
+        "recovery_rate_pct": 91.23,
+        "total_recovered_inr": 10810491.85,
+        "total_action_cost_inr": 71795.0,
+        "net_reward_inr": 10738696.85,
+        "avg_reward_per_tx": 3579.57,
+        "total_attempts": 6177,
+        "avg_attempts_per_tx": 2.06,
+        "action_counts": {
+          "upi_same_method_1d": 546,
+          "same_method_1d": 160,
+          "same_method_3d": 706,
+          "same_method_7d": 208,
+          "nb_same_method_1d": 819,
+          "nb_same_method_3d": 178,
+          "nb_same_method_7d": 100,
+          "switch_to_upi": 730,
+          "switch_to_netbanking": 642,
+          "upi_same_method_3d": 1093,
+          "nb_switch_to_upi": 173,
+          "nb_switch_to_card": 52,
+          "upi_same_method_7d": 362,
+          "upi_switch_to_card": 7,
+          "upi_switch_to_netbanking": 401
+        },
+        "action_rates_pct": {
+          "upi_same_method_1d": 8.84,
+          "same_method_1d": 2.59,
+          "same_method_3d": 11.43,
+          "same_method_7d": 3.37,
+          "nb_same_method_1d": 13.26,
+          "nb_same_method_3d": 2.88,
+          "nb_same_method_7d": 1.62,
+          "switch_to_upi": 11.82,
+          "switch_to_netbanking": 10.39,
+          "upi_same_method_3d": 17.69,
+          "nb_switch_to_upi": 2.8,
+          "nb_switch_to_card": 0.84,
+          "upi_same_method_7d": 5.86,
+          "upi_switch_to_card": 0.11,
+          "upi_switch_to_netbanking": 6.49
+        },
+        "method_switch_count": 2005,
+        "timed_retry_count": 4172
+      },
+      "diagnostics": {
+        "retry_intensity": {
+          "avg_attempts_per_tx": 2.06,
+          "median_attempts_per_tx": 2.0,
+          "attempt_distribution": {
+            "1": 1199,
+            "2": 944,
+            "3": 338,
+            "4": 519
+          },
+          "pct_transactions_reaching_max_attempts": 8.77
+        },
+        "marginal_retry_value_by_attempt": {
+          "1": {
+            "num_retries": 3000,
+            "successes": 1199,
+            "recovery_rate_pct": 39.97,
+            "total_reward_inr": 4652229.9,
+            "avg_reward_per_retry_inr": 1550.74
+          },
+          "2": {
+            "num_retries": 1801,
+            "successes": 944,
+            "recovery_rate_pct": 52.42,
+            "total_reward_inr": 3774083.05,
+            "avg_reward_per_retry_inr": 2095.55
+          },
+          "3": {
+            "num_retries": 857,
+            "successes": 338,
+            "recovery_rate_pct": 39.44,
+            "total_reward_inr": 1324984.77,
+            "avg_reward_per_retry_inr": 1546.07
+          },
+          "4": {
+            "num_retries": 519,
+            "successes": 256,
+            "recovery_rate_pct": 49.33,
+            "total_reward_inr": 987399.13,
+            "avg_reward_per_retry_inr": 1902.5
+          }
+        },
+        "marginal_action_performance": {
+          "nb_same_method_1d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 819,
+            "success_count": 471,
+            "recovery_rate_pct": 57.51,
+            "total_reward_inr": 2589509.49,
+            "avg_reward_per_execution_inr": 3161.79
+          },
+          "nb_same_method_3d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 178,
+            "success_count": 114,
+            "recovery_rate_pct": 64.04,
+            "total_reward_inr": 224142.7,
+            "avg_reward_per_execution_inr": 1259.23
+          },
+          "nb_same_method_7d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 100,
+            "success_count": 37,
+            "recovery_rate_pct": 37.0,
+            "total_reward_inr": 95000.62,
+            "avg_reward_per_execution_inr": 950.01
+          },
+          "nb_switch_to_card": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 52,
+            "success_count": 14,
+            "recovery_rate_pct": 26.92,
+            "total_reward_inr": 21708.19,
+            "avg_reward_per_execution_inr": 417.47
+          },
+          "nb_switch_to_upi": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 173,
+            "success_count": 75,
+            "recovery_rate_pct": 43.35,
+            "total_reward_inr": 153962.8,
+            "avg_reward_per_execution_inr": 889.96
+          },
+          "same_method_1d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 160,
+            "success_count": 25,
+            "recovery_rate_pct": 15.62,
+            "total_reward_inr": 93438.45,
+            "avg_reward_per_execution_inr": 583.99
+          },
+          "same_method_3d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 706,
+            "success_count": 362,
+            "recovery_rate_pct": 51.27,
+            "total_reward_inr": 2139941.17,
+            "avg_reward_per_execution_inr": 3031.08
+          },
+          "same_method_7d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 208,
+            "success_count": 32,
+            "recovery_rate_pct": 15.38,
+            "total_reward_inr": 57845.74,
+            "avg_reward_per_execution_inr": 278.1
+          },
+          "switch_to_netbanking": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 642,
+            "success_count": 258,
+            "recovery_rate_pct": 40.19,
+            "total_reward_inr": 1114790.73,
+            "avg_reward_per_execution_inr": 1736.43
+          },
+          "switch_to_upi": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 730,
+            "success_count": 294,
+            "recovery_rate_pct": 40.27,
+            "total_reward_inr": 584232.71,
+            "avg_reward_per_execution_inr": 800.32
+          },
+          "upi_same_method_1d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 546,
+            "success_count": 238,
+            "recovery_rate_pct": 43.59,
+            "total_reward_inr": 1432561.16,
+            "avg_reward_per_execution_inr": 2623.74
+          },
+          "upi_same_method_3d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 1093,
+            "success_count": 461,
+            "recovery_rate_pct": 42.18,
+            "total_reward_inr": 1155770.19,
+            "avg_reward_per_execution_inr": 1057.43
+          },
+          "upi_same_method_7d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 362,
+            "success_count": 188,
+            "recovery_rate_pct": 51.93,
+            "total_reward_inr": 342491.83,
+            "avg_reward_per_execution_inr": 946.11
+          },
+          "upi_switch_to_card": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 7,
+            "success_count": 0,
+            "recovery_rate_pct": 0.0,
+            "total_reward_inr": -105.0,
+            "avg_reward_per_execution_inr": -15.0
+          },
+          "upi_switch_to_netbanking": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 401,
+            "success_count": 168,
+            "recovery_rate_pct": 41.9,
+            "total_reward_inr": 733406.07,
+            "avg_reward_per_execution_inr": 1828.94
+          }
+        },
+        "low_value_retry_diagnosis": {
+          "negative_reward_retry_count": 3440,
+          "negative_reward_retry_pct": 55.69,
+          "total_negative_reward_inr": -40380.0,
+          "negative_reward_by_attempt": {
+            "1": 1801,
+            "2": 857,
+            "3": 519,
+            "4": 263
+          }
+        },
+        "cold_start_comparison": {
+          "early_first_500_tx": {
+            "total_retries": 1037,
+            "negative_reward_pct": 57.47,
+            "avg_reward_per_retry_inr": 1732.79
+          },
+          "late_remaining_tx": {
+            "total_retries": 5140,
+            "negative_reward_pct": 55.33,
+            "avg_reward_per_retry_inr": 1739.65
+          }
+        },
+        "termination_reasons": {
+          "success": 2737,
+          "max_attempts": 263,
+          "early_stop": 0
+        }
+      },
+      "ev_feasibility": {
+        "reward_semantics": "theta^T x represents expected NET REWARD after deducting action cost (10 INR timed / 15 INR switch)",
+        "ucb_decomposition": {
+          "mean_estimated_reward_inr": 1738.73,
+          "mean_exploration_bonus_inr": 0.16,
+          "mean_ucb_score_inr": 1738.89
+        },
+        "negative_ev_opportunity_rates": {
+          "total_decision_opportunities": 6177,
+          "pct_decisions_max_theta_x_leq_zero": 0.06,
+          "pct_decisions_max_ucb_leq_zero": 0.06,
+          "pct_decisions_max_oracle_ev_leq_zero": 0.0
+        },
+        "offline_calibration_error": {
+          "mean_predicted_reward_inr": 1738.73,
+          "mean_realized_reward_inr": 1738.5,
+          "prediction_error_inr": -0.23
+        },
+        "signal_comparison": {
+          "Signal_A_UCB": {
+            "meaning": "Optimistic upper bound (estimate + bonus)",
+            "defensible_for_stopping": false,
+            "reason": "Exploration bonus remains positive at cold-start (~2.5 INR per unit norm), failing to halt low-EV attempts."
+          },
+          "Signal_B_Theta_T_x": {
+            "meaning": "Learned linear net reward estimate",
+            "defensible_for_stopping": false,
+            "reason": "At cold-start theta=0 so theta^T x = 0, causing premature stopping on attempt 1 before parameter learning."
+          },
+          "Signal_C_Synthetic_Oracle_EV": {
+            "meaning": "True simulator EV (P_true * amount - cost)",
+            "defensible_for_stopping": false,
+            "reason": "Analysis-only oracle using simulator ground-truth probabilities unavailable in production."
+          },
+          "Signal_D_Calibrated_EV_Estimator": {
+            "meaning": "Decoupled P_hat(success|x,a) * E[Amount|x] - cost(a)",
+            "defensible_for_stopping": true,
+            "reason": "Decouples probability estimation from reward modeling, enabling safe economic stopping without cold-start shutdown."
+          }
+        },
+        "architectural_recommendation": "OPTION B \u2014 A separate calibrated EV estimator is required"
+      },
+      "baselines": {
+        "same_method_1d": {
+          "total_transactions": 3000,
+          "num_recovered": 2344,
+          "recovery_rate_pct": 78.13,
+          "total_recovered_inr": 9025404.05,
+          "total_action_cost_inr": 70590.0,
+          "net_reward_inr": 8954814.05,
+          "avg_reward_per_tx": 2984.94,
+          "total_attempts": 7059,
+          "avg_attempts_per_tx": 2.35,
+          "action_counts": {
+            "upi_same_method_1d": 1742,
+            "same_method_1d": 4703,
+            "nb_same_method_1d": 614
+          },
+          "action_rates_pct": {
+            "upi_same_method_1d": 24.68,
+            "same_method_1d": 66.62,
+            "nb_same_method_1d": 8.7
+          },
+          "method_switch_count": 0,
+          "timed_retry_count": 7059,
+          "target_action_available_count": 7059,
+          "target_action_unavailable_count": 119,
+          "target_action_available_pct": 98.34
+        },
+        "same_method_3d": {
+          "total_transactions": 3000,
+          "num_recovered": 2383,
+          "recovery_rate_pct": 79.43,
+          "total_recovered_inr": 9986743.54,
+          "total_action_cost_inr": 67710.0,
+          "net_reward_inr": 9919033.54,
+          "avg_reward_per_tx": 3306.34,
+          "total_attempts": 6771,
+          "avg_attempts_per_tx": 2.26,
+          "action_counts": {
+            "upi_same_method_3d": 1741,
+            "same_method_3d": 4413,
+            "nb_same_method_3d": 617
+          },
+          "action_rates_pct": {
+            "upi_same_method_3d": 25.71,
+            "same_method_3d": 65.18,
+            "nb_same_method_3d": 9.11
+          },
+          "method_switch_count": 0,
+          "timed_retry_count": 6771,
+          "target_action_available_count": 6771,
+          "target_action_unavailable_count": 119,
+          "target_action_available_pct": 98.27
+        },
+        "same_method_7d": {
+          "total_transactions": 3000,
+          "num_recovered": 2147,
+          "recovery_rate_pct": 71.57,
+          "total_recovered_inr": 9400207.6,
+          "total_action_cost_inr": 73800.0,
+          "net_reward_inr": 9326407.6,
+          "avg_reward_per_tx": 3108.8,
+          "total_attempts": 7380,
+          "avg_attempts_per_tx": 2.46,
+          "action_counts": {
+            "upi_same_method_7d": 1741,
+            "same_method_7d": 5023,
+            "nb_same_method_7d": 616
+          },
+          "action_rates_pct": {
+            "upi_same_method_7d": 23.59,
+            "same_method_7d": 68.06,
+            "nb_same_method_7d": 8.35
+          },
+          "method_switch_count": 0,
+          "timed_retry_count": 7380,
+          "target_action_available_count": 7380,
+          "target_action_unavailable_count": 119,
+          "target_action_available_pct": 98.41
+        },
+        "switch_to_upi": {
+          "total_transactions": 3000,
+          "num_recovered": 896,
+          "recovery_rate_pct": 29.87,
+          "total_recovered_inr": 3382499.36,
+          "total_action_cost_inr": 31380.0,
+          "net_reward_inr": 3351119.36,
+          "avg_reward_per_tx": 1117.04,
+          "total_attempts": 2092,
+          "avg_attempts_per_tx": 0.7,
+          "action_counts": {
+            "switch_to_upi": 1805,
+            "nb_switch_to_upi": 287
+          },
+          "action_rates_pct": {
+            "switch_to_upi": 86.28,
+            "nb_switch_to_upi": 13.72
+          },
+          "method_switch_count": 2092,
+          "timed_retry_count": 0,
+          "target_action_available_count": 2092,
+          "target_action_unavailable_count": 2104,
+          "target_action_available_pct": 49.86
+        },
+        "switch_to_netbanking": {
+          "total_transactions": 3000,
+          "num_recovered": 1024,
+          "recovery_rate_pct": 34.13,
+          "total_recovered_inr": 3979042.57,
+          "total_action_cost_inr": 40695.0,
+          "net_reward_inr": 3938347.57,
+          "avg_reward_per_tx": 1312.78,
+          "total_attempts": 2713,
+          "avg_attempts_per_tx": 0.9,
+          "action_counts": {
+            "upi_switch_to_netbanking": 908,
+            "switch_to_netbanking": 1805
+          },
+          "action_rates_pct": {
+            "upi_switch_to_netbanking": 33.47,
+            "switch_to_netbanking": 66.53
+          },
+          "method_switch_count": 2713,
+          "timed_retry_count": 0,
+          "target_action_available_count": 2713,
+          "target_action_unavailable_count": 1976,
+          "target_action_available_pct": 57.86
+        }
+      }
+    },
+    {
+      "seed": 2026,
+      "v2_linucb": {
+        "total_transactions": 3000,
+        "num_recovered": 2778,
+        "recovery_rate_pct": 92.6,
+        "total_recovered_inr": 11014300.04,
+        "total_action_cost_inr": 71525.0,
+        "net_reward_inr": 10942775.04,
+        "avg_reward_per_tx": 3647.59,
+        "total_attempts": 6133,
+        "avg_attempts_per_tx": 2.04,
+        "action_counts": {
+          "upi_same_method_1d": 1024,
+          "same_method_1d": 189,
+          "same_method_3d": 419,
+          "same_method_7d": 99,
+          "switch_to_upi": 1313,
+          "nb_same_method_1d": 462,
+          "switch_to_netbanking": 439,
+          "upi_same_method_3d": 1043,
+          "nb_same_method_3d": 65,
+          "upi_same_method_7d": 581,
+          "nb_same_method_7d": 212,
+          "upi_switch_to_card": 96,
+          "upi_switch_to_netbanking": 24,
+          "nb_switch_to_card": 26,
+          "nb_switch_to_upi": 141
+        },
+        "action_rates_pct": {
+          "upi_same_method_1d": 16.7,
+          "same_method_1d": 3.08,
+          "same_method_3d": 6.83,
+          "same_method_7d": 1.61,
+          "switch_to_upi": 21.41,
+          "nb_same_method_1d": 7.53,
+          "switch_to_netbanking": 7.16,
+          "upi_same_method_3d": 17.01,
+          "nb_same_method_3d": 1.06,
+          "upi_same_method_7d": 9.47,
+          "nb_same_method_7d": 3.46,
+          "upi_switch_to_card": 1.57,
+          "upi_switch_to_netbanking": 0.39,
+          "nb_switch_to_card": 0.42,
+          "nb_switch_to_upi": 2.3
+        },
+        "method_switch_count": 2039,
+        "timed_retry_count": 4094
+      },
+      "diagnostics": {
+        "retry_intensity": {
+          "avg_attempts_per_tx": 2.04,
+          "median_attempts_per_tx": 2.0,
+          "attempt_distribution": {
+            "1": 1191,
+            "2": 988,
+            "3": 318,
+            "4": 503
+          },
+          "pct_transactions_reaching_max_attempts": 7.4
+        },
+        "marginal_retry_value_by_attempt": {
+          "1": {
+            "num_retries": 3000,
+            "successes": 1191,
+            "recovery_rate_pct": 39.7,
+            "total_reward_inr": 4933205.05,
+            "avg_reward_per_retry_inr": 1644.4
+          },
+          "2": {
+            "num_retries": 1809,
+            "successes": 988,
+            "recovery_rate_pct": 54.62,
+            "total_reward_inr": 3913492.91,
+            "avg_reward_per_retry_inr": 2163.35
+          },
+          "3": {
+            "num_retries": 821,
+            "successes": 318,
+            "recovery_rate_pct": 38.73,
+            "total_reward_inr": 1243213.74,
+            "avg_reward_per_retry_inr": 1514.27
+          },
+          "4": {
+            "num_retries": 503,
+            "successes": 281,
+            "recovery_rate_pct": 55.86,
+            "total_reward_inr": 852863.34,
+            "avg_reward_per_retry_inr": 1695.55
+          }
+        },
+        "marginal_action_performance": {
+          "nb_same_method_1d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 462,
+            "success_count": 264,
+            "recovery_rate_pct": 57.14,
+            "total_reward_inr": 1262176.0,
+            "avg_reward_per_execution_inr": 2731.98
+          },
+          "nb_same_method_3d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 65,
+            "success_count": 25,
+            "recovery_rate_pct": 38.46,
+            "total_reward_inr": 47316.76,
+            "avg_reward_per_execution_inr": 727.95
+          },
+          "nb_same_method_7d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 212,
+            "success_count": 97,
+            "recovery_rate_pct": 45.75,
+            "total_reward_inr": 188728.19,
+            "avg_reward_per_execution_inr": 890.23
+          },
+          "nb_switch_to_card": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 26,
+            "success_count": 7,
+            "recovery_rate_pct": 26.92,
+            "total_reward_inr": 8988.69,
+            "avg_reward_per_execution_inr": 345.72
+          },
+          "nb_switch_to_upi": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 141,
+            "success_count": 63,
+            "recovery_rate_pct": 44.68,
+            "total_reward_inr": 165389.59,
+            "avg_reward_per_execution_inr": 1172.98
+          },
+          "same_method_1d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 189,
+            "success_count": 29,
+            "recovery_rate_pct": 15.34,
+            "total_reward_inr": 65984.94,
+            "avg_reward_per_execution_inr": 349.13
+          },
+          "same_method_3d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 419,
+            "success_count": 92,
+            "recovery_rate_pct": 21.96,
+            "total_reward_inr": 142273.63,
+            "avg_reward_per_execution_inr": 339.56
+          },
+          "same_method_7d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 99,
+            "success_count": 8,
+            "recovery_rate_pct": 8.08,
+            "total_reward_inr": 28088.42,
+            "avg_reward_per_execution_inr": 283.72
+          },
+          "switch_to_netbanking": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 439,
+            "success_count": 185,
+            "recovery_rate_pct": 42.14,
+            "total_reward_inr": 666185.17,
+            "avg_reward_per_execution_inr": 1517.51
+          },
+          "switch_to_upi": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 1313,
+            "success_count": 561,
+            "recovery_rate_pct": 42.73,
+            "total_reward_inr": 2385749.51,
+            "avg_reward_per_execution_inr": 1817.02
+          },
+          "upi_same_method_1d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 1024,
+            "success_count": 593,
+            "recovery_rate_pct": 57.91,
+            "total_reward_inr": 3303204.07,
+            "avg_reward_per_execution_inr": 3225.79
+          },
+          "upi_same_method_3d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 1043,
+            "success_count": 526,
+            "recovery_rate_pct": 50.43,
+            "total_reward_inr": 1013839.16,
+            "avg_reward_per_execution_inr": 972.04
+          },
+          "upi_same_method_7d": {
+            "action_type": "TIMED_RETRY",
+            "execution_count": 581,
+            "success_count": 317,
+            "recovery_rate_pct": 54.56,
+            "total_reward_inr": 1597486.21,
+            "avg_reward_per_execution_inr": 2749.55
+          },
+          "upi_switch_to_card": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 96,
+            "success_count": 11,
+            "recovery_rate_pct": 11.46,
+            "total_reward_inr": 67724.7,
+            "avg_reward_per_execution_inr": 705.47
+          },
+          "upi_switch_to_netbanking": {
+            "action_type": "METHOD_SWITCH",
+            "execution_count": 24,
+            "success_count": 0,
+            "recovery_rate_pct": 0.0,
+            "total_reward_inr": -360.0,
+            "avg_reward_per_execution_inr": -15.0
+          }
+        },
+        "low_value_retry_diagnosis": {
+          "negative_reward_retry_count": 3355,
+          "negative_reward_retry_pct": 54.7,
+          "total_negative_reward_inr": -39610.0,
+          "negative_reward_by_attempt": {
+            "1": 1809,
+            "2": 821,
+            "3": 503,
+            "4": 222
+          }
+        },
+        "cold_start_comparison": {
+          "early_first_500_tx": {
+            "total_retries": 979,
+            "negative_reward_pct": 52.6,
+            "avg_reward_per_retry_inr": 2064.13
+          },
+          "late_remaining_tx": {
+            "total_retries": 5154,
+            "negative_reward_pct": 55.1,
+            "avg_reward_per_retry_inr": 1731.08
+          }
+        },
+        "termination_reasons": {
+          "success": 2778,
+          "max_attempts": 222,
+          "early_stop": 0
+        }
+      },
+      "ev_feasibility": {
+        "reward_semantics": "theta^T x represents expected NET REWARD after deducting action cost (10 INR timed / 15 INR switch)",
+        "ucb_decomposition": {
+          "mean_estimated_reward_inr": 1784.5,
+          "mean_exploration_bonus_inr": 0.16,
+          "mean_ucb_score_inr": 1784.65
+        },
+        "negative_ev_opportunity_rates": {
+          "total_decision_opportunities": 6133,
+          "pct_decisions_max_theta_x_leq_zero": 0.44,
+          "pct_decisions_max_ucb_leq_zero": 0.44,
+          "pct_decisions_max_oracle_ev_leq_zero": 0.0
+        },
+        "offline_calibration_error": {
+          "mean_predicted_reward_inr": 1784.5,
+          "mean_realized_reward_inr": 1784.25,
+          "prediction_error_inr": -0.25
+        },
+        "signal_comparison": {
+          "Signal_A_UCB": {
+            "meaning": "Optimistic upper bound (estimate + bonus)",
+            "defensible_for_stopping": false,
+            "reason": "Exploration bonus remains positive at cold-start (~2.5 INR per unit norm), failing to halt low-EV attempts."
+          },
+          "Signal_B_Theta_T_x": {
+            "meaning": "Learned linear net reward estimate",
+            "defensible_for_stopping": false,
+            "reason": "At cold-start theta=0 so theta^T x = 0, causing premature stopping on attempt 1 before parameter learning."
+          },
+          "Signal_C_Synthetic_Oracle_EV": {
+            "meaning": "True simulator EV (P_true * amount - cost)",
+            "defensible_for_stopping": false,
+            "reason": "Analysis-only oracle using simulator ground-truth probabilities unavailable in production."
+          },
+          "Signal_D_Calibrated_EV_Estimator": {
+            "meaning": "Decoupled P_hat(success|x,a) * E[Amount|x] - cost(a)",
+            "defensible_for_stopping": true,
+            "reason": "Decouples probability estimation from reward modeling, enabling safe economic stopping without cold-start shutdown."
+          }
+        },
+        "architectural_recommendation": "OPTION B \u2014 A separate calibrated EV estimator is required"
+      },
+      "baselines": {
+        "same_method_1d": {
+          "total_transactions": 3000,
+          "num_recovered": 2337,
+          "recovery_rate_pct": 77.9,
+          "total_recovered_inr": 8984344.56,
+          "total_action_cost_inr": 69560.0,
+          "net_reward_inr": 8914784.56,
+          "avg_reward_per_tx": 2971.59,
+          "total_attempts": 6956,
+          "avg_attempts_per_tx": 2.32,
+          "action_counts": {
+            "upi_same_method_1d": 1706,
+            "same_method_1d": 4624,
+            "nb_same_method_1d": 626
+          },
+          "action_rates_pct": {
+            "upi_same_method_1d": 24.53,
+            "same_method_1d": 66.47,
+            "nb_same_method_1d": 9.0
+          },
+          "method_switch_count": 0,
+          "timed_retry_count": 6956,
+          "target_action_available_count": 6956,
+          "target_action_unavailable_count": 156,
+          "target_action_available_pct": 97.81
+        },
+        "same_method_3d": {
+          "total_transactions": 3000,
+          "num_recovered": 2383,
+          "recovery_rate_pct": 79.43,
+          "total_recovered_inr": 10127125.78,
+          "total_action_cost_inr": 66320.0,
+          "net_reward_inr": 10060805.78,
+          "avg_reward_per_tx": 3353.6,
+          "total_attempts": 6632,
+          "avg_attempts_per_tx": 2.21,
+          "action_counts": {
+            "upi_same_method_3d": 1706,
+            "same_method_3d": 4300,
+            "nb_same_method_3d": 626
+          },
+          "action_rates_pct": {
+            "upi_same_method_3d": 25.72,
+            "same_method_3d": 64.84,
+            "nb_same_method_3d": 9.44
+          },
+          "method_switch_count": 0,
+          "timed_retry_count": 6632,
+          "target_action_available_count": 6632,
+          "target_action_unavailable_count": 156,
+          "target_action_available_pct": 97.7
+        },
+        "same_method_7d": {
+          "total_transactions": 3000,
+          "num_recovered": 2173,
+          "recovery_rate_pct": 72.43,
+          "total_recovered_inr": 9598920.35,
+          "total_action_cost_inr": 72080.0,
+          "net_reward_inr": 9526840.35,
+          "avg_reward_per_tx": 3175.61,
+          "total_attempts": 7208,
+          "avg_attempts_per_tx": 2.4,
+          "action_counts": {
+            "upi_same_method_7d": 1705,
+            "same_method_7d": 4875,
+            "nb_same_method_7d": 628
+          },
+          "action_rates_pct": {
+            "upi_same_method_7d": 23.65,
+            "same_method_7d": 67.63,
+            "nb_same_method_7d": 8.71
+          },
+          "method_switch_count": 0,
+          "timed_retry_count": 7208,
+          "target_action_available_count": 7208,
+          "target_action_unavailable_count": 156,
+          "target_action_available_pct": 97.88
+        },
+        "switch_to_upi": {
+          "total_transactions": 3000,
+          "num_recovered": 961,
+          "recovery_rate_pct": 32.03,
+          "total_recovered_inr": 3706818.73,
+          "total_action_cost_inr": 31470.0,
+          "net_reward_inr": 3675348.73,
+          "avg_reward_per_tx": 1225.12,
+          "total_attempts": 2098,
+          "avg_attempts_per_tx": 0.7,
+          "action_counts": {
+            "switch_to_upi": 1792,
+            "nb_switch_to_upi": 306
+          },
+          "action_rates_pct": {
+            "switch_to_upi": 85.41,
+            "nb_switch_to_upi": 14.59
+          },
+          "method_switch_count": 2098,
+          "timed_retry_count": 0,
+          "target_action_available_count": 2098,
+          "target_action_unavailable_count": 2039,
+          "target_action_available_pct": 50.71
+        },
+        "switch_to_netbanking": {
+          "total_transactions": 3000,
+          "num_recovered": 1018,
+          "recovery_rate_pct": 33.93,
+          "total_recovered_inr": 4082061.84,
+          "total_action_cost_inr": 40410.0,
+          "net_reward_inr": 4041651.84,
+          "avg_reward_per_tx": 1347.22,
+          "total_attempts": 2694,
+          "avg_attempts_per_tx": 0.9,
+          "action_counts": {
+            "upi_switch_to_netbanking": 902,
+            "switch_to_netbanking": 1792
+          },
+          "action_rates_pct": {
+            "upi_switch_to_netbanking": 33.48,
+            "switch_to_netbanking": 66.52
+          },
+          "method_switch_count": 2694,
+          "timed_retry_count": 0,
+          "target_action_available_count": 2694,
+          "target_action_unavailable_count": 1982,
+          "target_action_available_pct": 57.61
+        }
+      }
+    }
+  ]
+}

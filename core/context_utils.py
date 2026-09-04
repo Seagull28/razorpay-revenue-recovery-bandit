@@ -2,11 +2,10 @@
 context_utils.py
 Neutral context transformation utilities for RecoverFlow.
 Contains generic, deterministic context feature bucket transformers.
-Has ZERO dependency on simulator ground truth or recovery probability curves.
+Has ZERO top-level dependency on simulator ground truth or config.
 """
 
 from typing import Union
-from bandit_retry_scheduler.simulator.config import DAY_OF_MONTH_BOUNDARIES
 
 
 def to_success_bucket(val: Union[int, str]) -> str:
@@ -48,6 +47,8 @@ def to_day_bucket(day_of_month: Union[int, str]) -> str:
     Converts a day of the month (1-31) to ('early', 'mid', 'late')
     using DAY_OF_MONTH_BOUNDARIES from config.py.
     """
+    from bandit_retry_scheduler.simulator.config import DAY_OF_MONTH_BOUNDARIES
+
     if isinstance(day_of_month, str):
         if day_of_month in DAY_OF_MONTH_BOUNDARIES:
             return day_of_month
