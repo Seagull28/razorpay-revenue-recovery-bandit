@@ -15,7 +15,7 @@ def main():
 
     ignore_dirs = {".git", "__pycache__", ".pytest_cache", ".streamlit", ".venv", "venv", "env", "tmp_extract", "scratch", "experimental"}
     ignore_extensions = {".pyc", ".pyo", ".zip", ".tmp", ".log"}
-    ignore_filenames = {"copy_files.py", "test_v2_init.py", "create_zip.py", "capture_dashboard_screenshots.py"}
+    ignore_filenames = {"copy_files.py", "test_v2_init.py", "create_zip.py", "capture_dashboard_screenshots.py", "HANDOFF_STATUS.md"}
 
     print("====================================================================================================")
     print("CREATING PORTABLE SUBMISSION ZIP ARCHIVE FOR INDEPENDENT VERIFICATION")
