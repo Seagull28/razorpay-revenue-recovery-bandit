@@ -39,6 +39,23 @@ The evaluation framework benchmark compares 5 distinct policies under strictly m
 
 ---
 
+## 🔄 RecoverFlow V1 vs. RecoverFlow V2
+
+RecoverFlow includes two verified engine architectures:
+
+| Feature / Dimension | RecoverFlow V1 (Canonical Baseline) | RecoverFlow V2 (Primary Production Engine) |
+| :--- | :--- | :--- |
+| **Action Space** | Delay-Only (`1hr`, `6hr`, `1d`, `3d`, `7d`) | **Action-Aware (16 Actions)** across CARD, UPI, NETBANKING channels (Delays + Payment-Method Switching) |
+| **Stopping Rule** | Post-hoc LinUCB $\max \hat{\theta}^T x \le 0$ | **Decision-Time Economic EV Feasibility Gate** ($\hat{P}(\text{success} \mid x, a) \cdot \text{Amount} - \text{Cost}(a) > 0$) |
+| **Cold-Start Handling** | UCB Exploration Bonus | Decoupled Logistic Probability Estimator with Optimistic Prior ($p_{\text{prior}} = 0.35$) |
+| **Benchmark Suite** | 10-Seed CRN Suite (10,000 transactions) | **5-Seed CRN Benchmark (15,000 transactions)** |
+| **Benchmark Result** | +INR 720k Net Lift over Fixed Schedule | **92.24% Recovery Rate (+73.87% net value gain, INR 10.74M net reward)** |
+| **Evaluation Primary Status** | Verified Foundation Baseline | **Primary Submission System** for multi-channel autonomous recovery |
+
+> **Primary System Designation**: **RecoverFlow V2** is the primary, production-grade engine representing RecoverFlow's full autonomous multi-channel payment recovery capabilities. RecoverFlow V1 is preserved as the immutable, fully verified baseline foundation.
+
+---
+
 ## 🏗️ System Architecture & Workflow
 
 ```text
@@ -179,7 +196,7 @@ pip install -r requirements.txt
 ```bash
 python verify_submission.py
 ```
-*Executes all 9 verification stages (Environment, Structure, Imports, AST Ground-Truth Isolation, Pytest Suite, Phase 1 Benchmark, Artifact Schema Validation, Deterministic Reproducibility, Synthetic Disclosures).*
+*Executes all 16 verification stages (Environment, Structure, Imports, AST Ground-Truth Isolation, V1 Locked-File Integrity, Pytest Suite, Dashboard Smoke Testing, Phase 1 Benchmark, Artifact Schema Validation, Phase 1 Deterministic Reproducibility, Phase 3/4A Strategy Diagnostics, Phase 4B Robustness, Offline V2 Artifact Validation, V2 Evaluation Reproducibility, Package Installation & External Import, Synthetic Disclosures).*
 
 ### 5. Run Phase 1 Benchmark Evaluation Harness
 ```bash
@@ -200,15 +217,21 @@ python run_phase4_strategy_diagnostics.py
 
 - **What it evaluates**: Policy confidence, score gaps, ambiguity tier distributions, transition matrices, failure code & transaction amount segmentations, low-confidence decision subsets, and counterfactual risk-weight sensitivity.
 - **Key Empirical Finding**: Low global strategy divergence (2.32%) is **intended and healthy product behavior**. High policy confidence ($C \ge 0.50$, 94.16% of transactions) naturally decays risk adjustments to preserve optimal net revenue recovery. When decision confidence is low / score gap is narrow (the 10% ambiguous decision subset), strategy modes activate aggressively with a **22.97% disagreement rate** and a **35.84% CONSERVATIVE override rate**.
-- **Reports & Provenance Artifacts**: See [`audit/PHASE4_STRATEGY_INTELLIGENCE_REPORT.md`](audit/PHASE4_STRATEGY_INTELLIGENCE_REPORT.md) and [`audit/evaluation_results/phase4_strategy_diagnostics/`](audit/evaluation_results/phase4_strategy_diagnostics/).
+- **Reports & Audit Provenance**:
+  - [`audit/COMPLIANCE_DISCLOSURE.md`](audit/COMPLIANCE_DISCLOSURE.md)
+  - [`audit/RETRY_COST_SENSITIVITY_REPORT.md`](audit/RETRY_COST_SENSITIVITY_REPORT.md)
+  - [`audit/PARAMETER_REGISTRY.md`](audit/PARAMETER_REGISTRY.md)
+  - [`audit/PHASE4B_ROBUSTNESS_REPORT.md`](audit/PHASE4B_ROBUSTNESS_REPORT.md)
+  - [`audit/PHASE4_STRATEGY_INTELLIGENCE_REPORT.md`](audit/PHASE4_STRATEGY_INTELLIGENCE_REPORT.md)
+  - [`v2_evaluation_results.json`](v2_evaluation_results.json)
 
 ---
 
 ## 🔌 Sim-to-Real Deployment Boundary
 
 ### Synthetic vs. Data-Agnostic Core
-- **Synthetic Components**: `simulator/ground_truth.py` and `simulator/stream_generator.py` are strictly for evaluation.
-- **Data-Agnostic Production Core**: `policies/linucb.py`, `api/eligibility.py`, `api/decision_service.py`, and `api/feedback_loop.py` operate purely on context vectors and realized rewards without referencing simulator logic.
+- **Synthetic Components**: `simulator/ground_truth.py`, `simulator/v2_ground_truth.py`, and `simulator/stream_generator.py` are strictly for evaluation.
+- **Data-Agnostic Production Core**: `policies/linucb.py`, `policies/v2_linucb.py`, `api/v2_decision_service.py`, `core/v2_ev_estimator.py`, and `api/v2_feedback_loop.py` operate purely on context vectors and realized rewards without referencing simulator logic.
 
 ---
 
@@ -218,6 +241,8 @@ python run_phase4_strategy_diagnostics.py
 3. **Model-Derived Probability Estimates**: Expected recovery probabilities in explainability strings are derived from learned linear reward estimates ($\hat{\theta}^T \mathbf{x}$), not direct calibrated probability classifiers.
 4. **Regulatory Scope**: RecoverFlow does not model India-specific recurring-payment retry regulations (e.g. RBI/NPCI e-mandate retry attempt and window rules). See [`audit/COMPLIANCE_DISCLOSURE.md`](audit/COMPLIANCE_DISCLOSURE.md) for a full disclosure of this scope boundary.
 5. **Flat Retry Cost Model**: `DEFAULT_RETRY_COST` is a single constant across all delay arms in the canonical Phase 1 evaluation. See [`audit/RETRY_COST_SENSITIVITY_REPORT.md`](audit/RETRY_COST_SENSITIVITY_REPORT.md) for a post-hoc sensitivity analysis under a more realistic per-arm cost assumption.
+6. **V2 Synthetic Action Cost Model**: V2 models action costs as ₹10 for timed retries and ₹15 for payment-method switching. These values are illustrative benchmark parameters rather than measured production gateway fees.
+7. **Decoupled EV Estimator Optimistic Prior**: V2's `V2EVEstimator` initializes with an optimistic success probability prior ($p_{\text{prior}} = 0.35$) to enable safe economic stopping without premature cold-start shutdown.
 
 ---
 

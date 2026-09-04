@@ -17,8 +17,19 @@ import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-PROHIBITED_MODULES = {"ground_truth", "simulator.ground_truth", "bandit_retry_scheduler.simulator.ground_truth"}
-PROHIBITED_FUNCTIONS = {"calculate_recovery_probability", "get_true_recovery_probability"}
+PROHIBITED_MODULES = {
+    "ground_truth",
+    "simulator.ground_truth",
+    "bandit_retry_scheduler.simulator.ground_truth",
+    "v2_ground_truth",
+    "simulator.v2_ground_truth",
+    "bandit_retry_scheduler.simulator.v2_ground_truth",
+}
+PROHIBITED_FUNCTIONS = {
+    "calculate_recovery_probability",
+    "get_true_recovery_probability",
+    "calculate_v2_recovery_probability",
+}
 
 
 class GroundTruthLeakageVisitor(ast.NodeVisitor):
@@ -141,6 +152,13 @@ def test_ast_scanner_detects_package_qualified_import(tmp_path):
     f.write_text("import simulator.ground_truth\n")
     violations = scan_file_for_ast_leakage(f)
     assert len(violations) >= 1, "Failed to detect package qualified import violation!"
+
+
+def test_ast_scanner_detects_v2_ground_truth_import(tmp_path):
+    f = tmp_path / "violation_v2_gt.py"
+    f.write_text("from bandit_retry_scheduler.simulator.v2_ground_truth import calculate_v2_recovery_probability\n")
+    violations = scan_file_for_ast_leakage(f)
+    assert len(violations) >= 1, "Failed to detect V2 ground truth import violation!"
 
 
 def test_allowed_evaluation_and_simulator_access_is_not_incorrectly_flagged():

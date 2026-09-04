@@ -17,6 +17,24 @@ dependencies = [
     "matplotlib>=3.5.0",
 ]
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["api*", "policies*", "simulator*", "evaluation*", "runner*", "core*", "audit*"]
+[tool.setuptools]
+packages = [
+    "bandit_retry_scheduler",
+    "bandit_retry_scheduler.api",
+    "bandit_retry_scheduler.policies",
+    "bandit_retry_scheduler.simulator",
+    "bandit_retry_scheduler.evaluation",
+    "bandit_retry_scheduler.runner",
+    "bandit_retry_scheduler.core",
+    "bandit_retry_scheduler.audit",
+]
+
+[tool.setuptools.package-dir]
+bandit_retry_scheduler = "."
+"bandit_retry_scheduler.api" = "api"
+"bandit_retry_scheduler.policies" = "policies"
+"bandit_retry_scheduler.simulator" = "simulator"
+"bandit_retry_scheduler.evaluation" = "evaluation"
+"bandit_retry_scheduler.runner" = "runner"
+"bandit_retry_scheduler.core" = "core"
+"bandit_retry_scheduler.audit" = "audit"

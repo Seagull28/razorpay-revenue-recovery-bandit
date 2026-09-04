@@ -1,9 +1,9 @@
 """
 test_dashboard_smoke.py
-Real smoke test for dashboard.py: actually executes the app end-to-end using
-Streamlit's AppTest framework and asserts no unhandled exception occurred.
-Structural checks (file exists, compiles, imports) are kept as fast pre-checks,
-but the critical check is at.exception being empty after a real run.
+Real smoke test suite for dashboard.py: executes the app end-to-end using
+Streamlit's AppTest framework and asserts no unhandled exception occurs across all UI flows.
+Covers fast structural pre-checks, widget interaction, preset selection, strategy mode switching,
+action execution, hard-stop halt validation, and full cross-tab user journeys.
 """
 
 import pytest
@@ -48,10 +48,8 @@ def test_dashboard_ast_parsing_and_imports():
 
 def test_dashboard_actually_runs_without_exception():
     """
-    CRITICAL: actually executes dashboard.py top-to-bottom via Streamlit's
-    AppTest framework. This is the only test in this file that would have
-    caught either the simulator.step() AttributeError or the phase1_summary
-    KeyError crash — the tests above only check syntax, not runtime behavior.
+    Executes dashboard.py top-to-bottom via Streamlit's AppTest framework.
+    Verifies initial page load renders without unhandled exceptions.
     """
     at = AppTest.from_file(str(PROJECT_ROOT / "dashboard.py"), default_timeout=60)
     at.run()
@@ -61,24 +59,19 @@ def test_dashboard_actually_runs_without_exception():
 
 
 def test_dashboard_section1_metrics_render():
-    """Confirms Section 1's metric cards and 5-policy table actually populate,
-    not just that the script didn't crash."""
+    """Confirms Section 1's top-line metric cards and baseline comparison elements populate."""
     at = AppTest.from_file(str(PROJECT_ROOT / "dashboard.py"), default_timeout=60)
     at.run()
     assert not at.exception
-    # At least the 4 top-line st.metric cards from Section 1 must be present
     assert len(at.metric) >= 4, f"Expected at least 4 metric cards, found {len(at.metric)}"
 
 
 def test_dashboard_all_preset_transactions_render():
-    """Cycles through every preset transaction option and confirms no exception,
-    including the Card Expired hard-stop case which should recommend HALT rather
-    than a retry delay."""
+    """Cycles through every preset transaction option and confirms no exception."""
     at = AppTest.from_file(str(PROJECT_ROOT / "dashboard.py"), default_timeout=60)
     at.run()
     assert not at.exception
 
-    # Find the preset selectbox by checking its current options include the known presets
     target = None
     for sb in at.selectbox:
         if any("Insufficient Funds" in str(opt) for opt in sb.options):
@@ -110,8 +103,7 @@ def test_dashboard_all_strategy_modes_render():
 
 
 def test_dashboard_custom_transaction_entry_renders():
-    """Selects 'Custom Transaction Entry' and confirms the custom input form
-    renders without exception."""
+    """Selects 'Custom Transaction Entry' and confirms custom input form renders cleanly."""
     at = AppTest.from_file(str(PROJECT_ROOT / "dashboard.py"), default_timeout=60)
     at.run()
     assert not at.exception
@@ -125,14 +117,11 @@ def test_dashboard_custom_transaction_entry_renders():
 
     preset_sb.select("Custom Transaction Entry").run()
     assert not at.exception, f"Exception on Custom Transaction Entry: {at.exception}"
-    # After selecting custom entry, additional selectboxes/number_inputs for the
-    # custom form should now be present
     assert len(at.selectbox) > 2, "Custom entry form widgets did not appear"
 
 
 def test_dashboard_execute_retry_action_button():
-    """Clicks the Execute Retry Action button on the default preset and confirms
-    the action completes without exception and a success message renders."""
+    """Clicks Execute Retry Action button on default preset and confirms action execution."""
     at = AppTest.from_file(str(PROJECT_ROOT / "dashboard.py"), default_timeout=60)
     at.run()
     assert not at.exception
@@ -146,13 +135,11 @@ def test_dashboard_execute_retry_action_button():
 
     exec_button.click().run()
     assert not at.exception, f"Exception when clicking Execute Retry Action: {at.exception}"
-    # A success message should appear after execution
     assert len(at.success) > 0, "No success message rendered after executing retry action"
 
 
 def test_dashboard_card_expired_hard_stop_shows_halt():
-    """Specifically verifies the Card Expired preset (a hard-stop case) renders
-    a HALT recommendation rather than crashing or showing a bogus delay."""
+    """Specifically verifies Card Expired preset renders a HALT recommendation."""
     at = AppTest.from_file(str(PROJECT_ROOT / "dashboard.py"), default_timeout=60)
     at.run()
     assert not at.exception
@@ -168,8 +155,40 @@ def test_dashboard_card_expired_hard_stop_shows_halt():
     preset_sb.select(card_expired_option).run()
     assert not at.exception, f"Exception on Card Expired preset: {at.exception}"
 
-    # At least one metric should show HALT for the Recommended Delay
     metric_values = [m.value for m in at.metric]
     assert any("HALT" in str(v) for v in metric_values), (
         f"Expected a HALT recommendation for Card Expired hard-stop, got metrics: {metric_values}"
     )
+
+
+def test_dashboard_full_cross_tab_user_journey():
+    """
+    Executes a complete cross-tab user journey:
+    1. Loads app top-to-bottom via AppTest.
+    2. Cycles through all preset transactions and strategy modes.
+    3. Triggers Execute Retry Action button.
+    4. Confirms session state history is updated post-execution.
+    5. Confirms app state remains healthy with zero unhandled exceptions.
+    """
+    at = AppTest.from_file(str(PROJECT_ROOT / "dashboard.py"), default_timeout=60)
+    at.run()
+    assert not at.exception
+
+    # Select preset 1
+    preset_sb = next(sb for sb in at.selectbox if any("Insufficient Funds" in str(opt) for opt in sb.options))
+    preset_sb.select(preset_sb.options[0]).run()
+    assert not at.exception
+
+    # Switch strategy mode
+    strat_sb = next(sb for sb in at.selectbox if set(sb.options) >= {"BALANCED", "MAXIMIZE_RECOVERY", "CONSERVATIVE"})
+    strat_sb.select("MAXIMIZE_RECOVERY").run()
+    assert not at.exception
+
+    # Execute action
+    exec_btn = next(btn for btn in at.button if "Execute Retry Action" in str(btn.label))
+    exec_btn.click().run()
+    assert not at.exception
+
+    # Check session state history populated
+    history = at.session_state["history"]
+    assert len(history) > 0, "Session state history was not populated after retry action execution!"

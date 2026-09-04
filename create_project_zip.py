@@ -15,6 +15,7 @@ def main():
 
     ignore_dirs = {".git", "__pycache__", ".pytest_cache", ".streamlit", ".venv", "venv", "env", "tmp_extract", "scratch", "experimental"}
     ignore_extensions = {".pyc", ".pyo", ".zip", ".tmp", ".log"}
+    ignore_filenames = {"copy_files.py", "test_v2_init.py", "create_zip.py", "capture_dashboard_screenshots.py"}
 
     print("====================================================================================================")
     print("CREATING PORTABLE SUBMISSION ZIP ARCHIVE FOR INDEPENDENT VERIFICATION")
@@ -26,7 +27,7 @@ def main():
             dirs[:] = [d for d in dirs if d not in ignore_dirs]
             for f in files:
                 file_path = Path(root) / f
-                if file_path.suffix in ignore_extensions:
+                if file_path.suffix in ignore_extensions or file_path.name in ignore_filenames:
                     continue
                 if file_path == output_zip or file_path.name.endswith(".zip"):
                     continue

@@ -26,10 +26,13 @@ class V2PolicyExecutionEngine:
         self,
         simulator: Optional[V2RetrySimulator] = None,
         registry: Optional[ActionRegistry] = None,
+        policy: Optional[V2LinUCBPolicy] = None,
     ):
         self.simulator = simulator or V2RetrySimulator()
         self.registry = registry or ActionRegistry()
         self.decision_service = V2DecisionService(registry=self.registry)
+        if policy is not None:
+            self.decision_service.policy = policy
 
     def process_transaction(
         self,

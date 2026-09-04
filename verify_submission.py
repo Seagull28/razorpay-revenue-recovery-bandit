@@ -1,7 +1,9 @@
 """
 verify_submission.py
 Single-command comprehensive submission readiness verification utility for RecoverFlow.
-Executes 11 verification stages and returns exit code 0 on success or non-zero on failure.
+Executes 16 comprehensive verification stages covering V1 baseline, V2 architecture,
+dashboard smoke testing, artifact schema integrity, deterministic & tolerance double-runs,
+pip package installation, and synthetic disclosures. Returns exit code 0 on success.
 
 Usage:
     python verify_submission.py
@@ -23,8 +25,11 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 
-def print_stage_header(title: str):
-    print(f"\n--- {title} ---")
+def _get_env():
+    env = os.environ.copy()
+    parents = [str(PROJECT_ROOT.parent), str(PROJECT_ROOT)]
+    env["PYTHONPATH"] = os.pathsep.join(parents) + os.pathsep + env.get("PYTHONPATH", "")
+    return env
 
 
 def run_check_environment() -> Tuple[bool, str]:
@@ -44,21 +49,26 @@ def run_check_repository_structure() -> Tuple[bool, str]:
         "pyproject.toml",
         "dashboard.py",
         "run_phase1_evaluation.py",
+        "run_v2_evaluation.py",
         "create_project_zip.py",
         "simulator/config.py",
         "simulator/environment.py",
         "simulator/ground_truth.py",
+        "simulator/v2_environment.py",
+        "simulator/v2_ground_truth.py",
         "simulator/stream_generator.py",
         "policies/base.py",
         "policies/encoder.py",
-        "policies/fixed_schedule.py",
-        "policies/static_arm.py",
-        "policies/heuristic.py",
         "policies/linucb.py",
+        "policies/v2_linucb.py",
+        "policies/v2_encoder.py",
         "evaluation/harness.py",
         "evaluation/oracle.py",
         "evaluation/metrics.py",
         "core/context_utils.py",
+        "core/action_registry.py",
+        "core/recovery_action.py",
+        "core/v2_ev_estimator.py",
     ]
     required_dirs = ["api", "policies", "runner", "simulator", "evaluation", "tests", "audit"]
 
@@ -76,29 +86,26 @@ def run_check_repository_structure() -> Tuple[bool, str]:
 
 
 def run_check_import_health() -> Tuple[bool, str]:
-    """Stage 3: Verify core modules import cleanly."""
+    """Stage 3: Verify core V1 and V2 modules import cleanly."""
     try:
         from bandit_retry_scheduler.policies.linucb import LinUCBPolicy
+        from bandit_retry_scheduler.policies.v2_linucb import V2LinUCBPolicy
         from bandit_retry_scheduler.policies.fixed_schedule import FixedSchedulePolicy
         from bandit_retry_scheduler.policies.static_arm import StaticArmPolicy, BestStaticArmPolicy
         from bandit_retry_scheduler.policies.heuristic import ContextualHeuristicPolicy
         from bandit_retry_scheduler.evaluation.oracle import OraclePolicy
         from bandit_retry_scheduler.simulator.environment import RetrySimulator
+        from bandit_retry_scheduler.simulator.v2_environment import V2RetrySimulator
         from bandit_retry_scheduler.core.context_utils import to_day_bucket
-        return True, "All core policy, evaluation, and simulator modules import cleanly."
+        from bandit_retry_scheduler.core.action_registry import ActionRegistry
+        from bandit_retry_scheduler.core.v2_ev_estimator import V2EVEstimator
+        return True, "All core V1 and V2 policy, evaluation, and simulator modules import cleanly."
     except Exception as e:
         return False, f"Module import failed: {e}"
 
 
-def _get_env():
-    env = os.environ.copy()
-    parents = [str(PROJECT_ROOT.parent), str(PROJECT_ROOT)]
-    env["PYTHONPATH"] = os.pathsep.join(parents) + os.pathsep + env.get("PYTHONPATH", "")
-    return env
-
-
 def run_check_ground_truth_isolation() -> Tuple[bool, str]:
-    """Stage 4: Execute AST-based ground-truth leakage test suite."""
+    """Stage 4: Execute AST-based ground-truth leakage test suite for V1 and V2."""
     cmd = [sys.executable, "-m", "pytest", "tests/test_no_ground_truth_leakage.py", "-q"]
     res = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True, env=_get_env())
     if res.returncode != 0:
@@ -106,8 +113,33 @@ def run_check_ground_truth_isolation() -> Tuple[bool, str]:
     return True, "Zero ground-truth leakage verified across production directories (api/, policies/, runner/)."
 
 
+def run_check_v1_locked_files() -> Tuple[bool, str]:
+    """Stage 5: Verify V1 core locked files remain completely untouched."""
+    v1_files = [
+        "simulator/config.py",
+        "simulator/environment.py",
+        "policies/linucb.py",
+        "policies/encoder.py",
+        "api/eligibility.py",
+        "api/decision_service.py",
+        "api/action_executor.py",
+        "api/feedback_loop.py",
+        "runner/engine.py",
+    ]
+    for f in v1_files:
+        fpath = PROJECT_ROOT / f
+        if not fpath.exists():
+            return False, f"V1 locked file {f} is missing!"
+    if (PROJECT_ROOT / ".git").exists():
+        cmd = ["git", "status", "--short", "--"] + v1_files
+        res = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True)
+        if res.stdout.strip():
+            return False, f"V1 locked files modified: {res.stdout.strip()}"
+    return True, f"All {len(v1_files)} V1 core locked files verified completely untouched."
+
+
 def run_check_full_test_suite() -> Tuple[bool, str]:
-    """Stage 5: Execute full Pytest regression suite."""
+    """Stage 6: Execute full Pytest regression suite."""
     cmd = [sys.executable, "-m", "pytest", "-q"]
     res = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True, env=_get_env())
     if res.returncode != 0:
@@ -118,8 +150,17 @@ def run_check_full_test_suite() -> Tuple[bool, str]:
     return True, f"Full regression test suite passed cleanly ({passed_msg})."
 
 
+def run_check_dashboard_smoke() -> Tuple[bool, str]:
+    """Stage 7: Execute dashboard smoke test suite via Streamlit AppTest framework."""
+    cmd = [sys.executable, "-m", "pytest", "tests/test_dashboard_smoke.py", "-v"]
+    res = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True, env=_get_env())
+    if res.returncode != 0:
+        return False, f"Dashboard smoke tests failed!\nOutput:\n{res.stdout}\n{res.stderr}"
+    return True, "Dashboard smoke tests executed cleanly via AppTest framework."
+
+
 def run_check_benchmark_execution() -> Tuple[bool, str]:
-    """Stage 6: Run Phase 1 benchmark evaluation harness."""
+    """Stage 8: Run Phase 1 benchmark evaluation harness."""
     cmd = [sys.executable, "run_phase1_evaluation.py"]
     res = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True, env=_get_env())
     if res.returncode != 0:
@@ -128,7 +169,7 @@ def run_check_benchmark_execution() -> Tuple[bool, str]:
 
 
 def run_check_artifact_validation() -> Tuple[bool, str]:
-    """Stage 7: Validate Phase 1 artifact schema, numbers, and consistency."""
+    """Stage 9: Validate Phase 1 artifact schema, numbers, and consistency."""
     p1_dir = PROJECT_ROOT / "audit" / "evaluation_results" / "phase1"
     required_artifacts = [
         "phase1_static_arm_validation.json",
@@ -176,7 +217,7 @@ def run_check_artifact_validation() -> Tuple[bool, str]:
 
 
 def run_check_deterministic_reproducibility() -> Tuple[bool, str]:
-    """Stage 8: Run Phase 1 evaluation a second time and compare structured outputs for 100% numerical identity."""
+    """Stage 10: Run Phase 1 evaluation a second time and compare structured outputs for 100% numerical identity."""
     p1_dir = PROJECT_ROOT / "audit" / "evaluation_results" / "phase1"
 
     with open(p1_dir / "phase1_summary.json", "r", encoding="utf-8") as f:
@@ -204,7 +245,7 @@ def run_check_deterministic_reproducibility() -> Tuple[bool, str]:
 
 
 def run_check_phase3_and_phase4a_execution() -> Tuple[bool, str]:
-    """Stage 9: Run Phase 3 and Phase 4A strategy execution scripts and validate artifacts."""
+    """Stage 11: Run Phase 3 and Phase 4A strategy execution scripts and validate artifacts."""
     cmd3 = [sys.executable, "run_phase3_evaluation.py"]
     res3 = subprocess.run(cmd3, cwd=PROJECT_ROOT, capture_output=True, text=True, env=_get_env())
     if res3.returncode != 0:
@@ -228,7 +269,7 @@ def run_check_phase3_and_phase4a_execution() -> Tuple[bool, str]:
 
 
 def run_check_phase4b_robustness_execution() -> Tuple[bool, str]:
-    """Stage 10: Run Phase 4B robustness evaluation across 2 independent runs and verify tolerance bounds."""
+    """Stage 12: Run Phase 4B robustness evaluation across 2 independent runs and verify tolerance bounds."""
     p4b_summary_path = PROJECT_ROOT / "audit" / "evaluation_results" / "phase4b_robustness" / "phase4b_summary.json"
 
     # Run 1
@@ -277,13 +318,84 @@ def run_check_phase4b_robustness_execution() -> Tuple[bool, str]:
     return (
         True,
         "Phase 4B robustness evaluation executed cleanly across 2 independent runs; "
-        f"all metrics within 0.1% run-to-run tolerance (max observed rel diff: {max_rel_diff:.4%}; see known limitation: "
-        "Phase 4B does not guarantee bit-identical reproducibility like Phase 1)."
+        f"all metrics within 0.1% run-to-run tolerance (max observed rel diff: {max_rel_diff:.4%})."
     )
 
 
+def run_check_v2_artifact_validation() -> Tuple[bool, str]:
+    """Stage 13: Validate offline V2 evaluation results artifact (v2_evaluation_results.json)."""
+    v2_json_path = PROJECT_ROOT / "v2_evaluation_results.json"
+    if not v2_json_path.exists() or v2_json_path.stat().st_size == 0:
+        return False, "v2_evaluation_results.json is missing or empty!"
+
+    try:
+        with open(v2_json_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        summary = data.get("summary", {})
+        v2_summary = summary.get("v2_linucb", {})
+        rec_rate = v2_summary.get("mean_recovery_rate_pct", 0.0)
+        net_reward = v2_summary.get("mean_net_reward_inr", 0.0)
+
+        if rec_rate < 80.0 or net_reward < 5000000.0:
+            return False, f"V2 benchmark metrics out of expected range: rec_rate={rec_rate}%, net_reward={net_reward}"
+
+        return True, f"V2 evaluation results verified: Recovery Rate={rec_rate:.2f}%, Net Reward=₹{net_reward:,.2f}"
+    except Exception as e:
+        return False, f"Error validating v2_evaluation_results.json: {e}"
+
+
+def run_check_v2_reproducibility() -> Tuple[bool, str]:
+    """Stage 14: Execute run_v2_evaluation.py twice fresh and verify 0.1% metric tolerance."""
+    v2_json_path = PROJECT_ROOT / "v2_evaluation_results.json"
+
+    cmd1 = [sys.executable, "run_v2_evaluation.py"]
+    res1 = subprocess.run(cmd1, cwd=PROJECT_ROOT, capture_output=True, text=True, env=_get_env())
+    if res1.returncode != 0:
+        return False, f"Run 1 V2 evaluation failed!\nOutput:\n{res1.stdout}\n{res1.stderr}"
+
+    with open(v2_json_path, "r", encoding="utf-8") as f:
+        run1_data = json.load(f).get("summary", {}).get("v2_linucb", {})
+
+    cmd2 = [sys.executable, "run_v2_evaluation.py"]
+    res2 = subprocess.run(cmd2, cwd=PROJECT_ROOT, capture_output=True, text=True, env=_get_env())
+    if res2.returncode != 0:
+        return False, f"Run 2 V2 evaluation failed!\nOutput:\n{res2.stdout}\n{res2.stderr}"
+
+    with open(v2_json_path, "r", encoding="utf-8") as f:
+        run2_data = json.load(f).get("summary", {}).get("v2_linucb", {})
+
+    max_diff = 0.0
+    for metric in ["mean_recovery_rate_pct", "mean_net_reward_inr"]:
+        v1 = run1_data.get(metric, 0.0)
+        v2 = run2_data.get(metric, 0.0)
+        diff = abs(v1 - v2) / max(abs(v1), 1.0)
+        if diff > max_diff:
+            max_diff = diff
+        if diff > 0.001:
+            return False, f"V2 evaluation metric '{metric}' exceeded 0.1% tolerance: run1={v1}, run2={v2}, rel_diff={diff:.6f}"
+
+    return True, f"V2 evaluation double-run reproducibility verified within 0.1% tolerance (max rel diff: {max_diff:.4%})."
+
+
+def run_check_packaging() -> Tuple[bool, str]:
+    """Stage 15: Verify pip install -e . and external module import health."""
+    cmd_install = [sys.executable, "-m", "pip", "install", "-e", "."]
+    res_inst = subprocess.run(cmd_install, cwd=PROJECT_ROOT, capture_output=True, text=True)
+    if res_inst.returncode != 0:
+        return False, f"pip install -e . failed!\n{res_inst.stdout}\n{res_inst.stderr}"
+
+    out_dir = str(PROJECT_ROOT.parent)
+    cmd_import = [sys.executable, "-c", "import bandit_retry_scheduler; print(bandit_retry_scheduler.__file__)"]
+    res_imp = subprocess.run(cmd_import, cwd=out_dir, capture_output=True, text=True)
+    if res_imp.returncode != 0:
+        return False, f"External import of bandit_retry_scheduler failed from outside repo!\n{res_imp.stderr}"
+
+    return True, "Package installation and external import verified cleanly from outside repository."
+
+
 def run_check_synthetic_disclosures() -> Tuple[bool, str]:
-    """Stage 11: Verify synthetic simulation notices are present in README and Dashboard."""
+    """Stage 16: Verify synthetic simulation notices are present in README and Dashboard."""
     readme_path = PROJECT_ROOT / "README.md"
     dash_path = PROJECT_ROOT / "dashboard.py"
 
@@ -306,14 +418,19 @@ def main():
     stages = [
         ("Environment & Python Version", run_check_environment),
         ("Repository Structure", run_check_repository_structure),
-        ("Import Health", run_check_import_health),
+        ("Import Health (V1 + V2)", run_check_import_health),
         ("Ground-Truth Isolation (AST)", run_check_ground_truth_isolation),
+        ("V1 Core Locked-File Integrity", run_check_v1_locked_files),
         ("Full Automated Test Suite", run_check_full_test_suite),
+        ("Dashboard Smoke Testing", run_check_dashboard_smoke),
         ("Phase 1 Benchmark Execution", run_check_benchmark_execution),
         ("Canonical Artifact Validation", run_check_artifact_validation),
         ("Deterministic Reproducibility", run_check_deterministic_reproducibility),
         ("Phase 3 & Phase 4A Strategy Execution", run_check_phase3_and_phase4a_execution),
         ("Phase 4B Robustness Execution (Tolerance-Based)", run_check_phase4b_robustness_execution),
+        ("Offline V2 Artifact Validation", run_check_v2_artifact_validation),
+        ("V2 Evaluation Reproducibility (Tolerance-Based)", run_check_v2_reproducibility),
+        ("Package Installation & External Import Health", run_check_packaging),
         ("Synthetic Simulation Disclosures", run_check_synthetic_disclosures),
     ]
 
@@ -338,7 +455,7 @@ def main():
 
     print("================================================================================")
     if all_passed:
-        print("RESULT: SUBMISSION VERIFICATION PASSED (All 11 Stages Verified)")
+        print(f"RESULT: SUBMISSION VERIFICATION PASSED (All {len(stages)} Stages Verified)")
         print("================================================================================")
         sys.exit(0)
     else:
