@@ -2,7 +2,8 @@
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Build Status](https://img.shields.io/badge/tests-110%20passed-brightgreen.svg)](tests/)
+[![Build Status](https://img.shields.io/badge/tests-222%20passed-brightgreen.svg)](tests/)
+[![Verification](https://img.shields.io/badge/verify__submission.py-16%2F16%20stages-brightgreen.svg)](verify_submission.py)
 
 > An intelligent, context-aware payment retry scheduling engine powered by **Disjoint Contextual LinUCB** bandit algorithms and bounded safety rules. Replaces fixed retry schedules with contextual decision-making to optimize net revenue recovery while minimizing retry overhead.
 
@@ -57,6 +58,18 @@ RecoverFlow includes two verified engine architectures:
 ---
 
 ## 🏗️ System Architecture & Workflow
+
+RecoverFlow is one layered system with two independent decision engines: a locked V1 baseline and V2, the primary action-aware engine. All live interfaces (the Razorpay webhook adapter, the Streamlit dashboard, and the thin HTTP API) call into V2 — V1 is exercised only by the Phase 1 canonical benchmark, never by live traffic.
+
+![RecoverFlow system architecture](docs/diagrams/architecture_overview.png)
+
+### How one V2 decision is actually made
+
+The diagram below traces a single failed transaction end to end — the exact payload at each step, from the raw Razorpay webhook through eligibility checks, economic EV estimation, LinUCB scoring, the combined decision, and the online feedback update that follows execution.
+
+![RecoverFlow V2 decision workflow](docs/diagrams/v2_decision_workflow.png)
+
+### V1's decision loop, in detail
 
 ```text
                Payment Failure Event
@@ -159,7 +172,11 @@ bandit_retry_scheduler/
 ├── policies/                   # Policy Implementations
 ├── runner/                     # Simulation Engine
 ├── simulator/                  # Synthetic Environment Engine
-└── tests/                      # Pytest Unit Test Suite (114 Tests)
+├── service/                    # Thin HTTP API + Razorpay Webhook Adapter (FastAPI)
+│   ├── http_api.py             # /health, /v1/webhooks/razorpay, /v1/recovery/decide
+│   └── razorpay_adapter.py     # Real Razorpay payload -> internal transaction context
+├── docs/diagrams/               # Architecture & workflow diagrams
+└── tests/                      # Pytest Unit Test Suite (222 Tests)
 ```
 
 ---
@@ -232,6 +249,30 @@ python run_phase4_strategy_diagnostics.py
 ### Synthetic vs. Data-Agnostic Core
 - **Synthetic Components**: `simulator/ground_truth.py`, `simulator/v2_ground_truth.py`, and `simulator/stream_generator.py` are strictly for evaluation.
 - **Data-Agnostic Production Core**: `policies/linucb.py`, `policies/v2_linucb.py`, `api/v2_decision_service.py`, `core/v2_ev_estimator.py`, and `api/v2_feedback_loop.py` operate purely on context vectors and realized rewards without referencing simulator logic.
+
+---
+
+## 🔌 HTTP API & Deployability
+
+RecoverFlow ships a thin FastAPI service (`service/http_api.py`) and a Razorpay webhook adapter (`service/razorpay_adapter.py`) proving the V2 decision logic is cleanly callable over HTTP — not just from the dashboard or CLI scripts.
+
+**Endpoints:**
+- `GET /health` — liveness check
+- `POST /v1/webhooks/razorpay` — accepts a real Razorpay `payment.failed` webhook payload (paise amounts, `error_reason` codes, card/UPI/netbanking method shapes), parses it via the adapter, and returns a V2 decision
+- `POST /v1/recovery/decide` — accepts an already-normalized transaction context directly, for integration testing without a real webhook
+
+**Run it:**
+```bash
+uvicorn service.http_api:app --port 8000
+curl -s http://localhost:8000/health
+curl -s -X POST http://localhost:8000/v1/webhooks/razorpay \
+  -H "Content-Type: application/json" \
+  -d '{"entity":"event","event":"payment.failed","payload":{"payment":{"entity":{"id":"pay_example","amount":250000,"method":"card","card":{"network":"Visa"},"error_reason":"insufficient_funds","created_at":1735689600}}}}'
+```
+
+**Honest scope:** this is a proof-of-concept, not a hardened production service — no database, no authentication, no persistence beyond a single in-process policy instance. It demonstrates that the decision logic is cleanly separable from the dashboard and safely callable over a real network boundary; wrapping it with persistence and auth is the deliberate next step, not an oversight.
+
+Covered by `tests/test_http_api.py` (7 tests: health check, valid webhook parsing, card-expired eligibility handling, malformed-payload rejection, direct-decision endpoint, and confirmation that no internal stack trace ever leaks to an external caller on error).
 
 ---
 
