@@ -256,8 +256,10 @@ def test_dashboard_ev_and_ucb_banner_table_consistency():
     assert_banner_and_table_synchronized(at, "AFTER click")
 
 
-def test_dashboard_all_four_sections_render():
-    """Confirms all four main section expanders render with expected labels."""
+def test_dashboard_all_three_sections_render():
+    """Confirms all three main section expanders render with expected labels
+    (Section B and Section C were merged into a single 'Model internals'
+    section)."""
     at = AppTest.from_file(str(PROJECT_ROOT / "dashboard.py"), default_timeout=60)
     at.run()
     assert not at.exception
@@ -266,13 +268,16 @@ def test_dashboard_all_four_sections_render():
     expected_sections = [
         "📊 Section 1: Executive overview & benchmarks",
         "🔍 Section A: Recovery strategy intelligence",
-        "🧠 Section B: Action & policy insights",
-        "📈 Section C: Algorithmic learning insights",
+        "🧠 Model internals",
     ]
     for section in expected_sections:
         assert any(section in label for label in expander_labels), (
             f"Expected expander section '{section}' not found in rendered expanders: {expander_labels}"
         )
+    # Explicitly confirm the old separate B/C labels no longer exist as
+    # distinct top-level expanders.
+    assert not any("Section B:" in label for label in expander_labels)
+    assert not any("Section C:" in label for label in expander_labels)
 
 
 def test_dashboard_section_a_expanded_by_default():
@@ -285,12 +290,10 @@ def test_dashboard_section_a_expanded_by_default():
     assert sec_a.proto.expanded is True, "Section A expander should be expanded by default!"
 
     sec_1 = next(e for e in at.expander if "Section 1:" in e.label)
-    sec_b = next(e for e in at.expander if "Section B:" in e.label)
-    sec_c = next(e for e in at.expander if "Section C:" in e.label)
+    sec_model_internals = next(e for e in at.expander if "Model internals" in e.label)
 
     assert sec_1.proto.expanded is False, "Section 1 expander should be collapsed by default!"
-    assert sec_b.proto.expanded is False, "Section B expander should be collapsed by default!"
-    assert sec_c.proto.expanded is False, "Section C expander should be collapsed by default!"
+    assert sec_model_internals.proto.expanded is False, "Model internals expander should be collapsed by default!"
 
 
 def test_dashboard_recent_activity_expander_shows_history():

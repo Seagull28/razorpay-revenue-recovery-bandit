@@ -1,11 +1,11 @@
 """
 dashboard.py
 RecoverFlow V2 Interactive Merchant Control Center & Recovery Decision Engine (Streamlit).
-Single-Page Collapsible Console providing 4 major sections:
+Single-Page Collapsible Console providing 3 major sections:
 - Section 1: 📊 Executive Overview & Benchmarks
 - Section A: 🔍 Recovery Strategy Intelligence (Live Decision Engine & Recent Activity Audit)
-- Section B: 🧠 Action & Policy Insights (16-Action Hierarchy, Model Weights & Pull Counts)
-- Section C: 📈 Algorithmic Learning Insights (Decision-Time Calibration & Architectural Defense)
+- Model Internals: 🧠 Action & Policy Insights (16-Action Hierarchy, Model Weights & Pull Counts)
+  + 📈 Algorithmic Learning Insights (Decision-Time Calibration & Architectural Defense)
 
 Consumes live V2 backend APIs:
 - api.v2_decision_service.get_v2_retry_decision
@@ -599,9 +599,11 @@ with st.expander("🔍 Section A: Recovery strategy intelligence", expanded=True
 
 
 # ==============================================================================
-# SECTION B: ACTION & POLICY INSIGHTS
+# SECTION B: MODEL INTERNALS (merged: action/policy insights + learning insights)
 # ==============================================================================
-with st.expander("🧠 Section B: Action & policy insights", expanded=False):
+with st.expander("🧠 Model internals", expanded=False):
+    st.caption("16 recovery actions tracked · predicted odds checked against real outcomes")
+
     st.header("🧠 AI Policy & Action Space Hierarchy")
     st.caption("Explores all 16 registered V2 recovery actions across payment channels and inspects LinUCB regression states.")
 
@@ -657,11 +659,8 @@ with st.expander("🧠 Section B: Action & policy insights", expanded=False):
     )
     st.altair_chart(chart, use_container_width=True)
 
+    st.markdown("---")
 
-# ==============================================================================
-# SECTION C: ALGORITHMIC LEARNING INSIGHTS
-# ==============================================================================
-with st.expander("📈 Section C: Algorithmic learning insights", expanded=False):
     st.header("📈 Decision-Time Probability Calibration & Analytics")
     st.caption("Inspects empirical probability agreement, decision-time EV signal properties, and convergence dynamics.")
 
