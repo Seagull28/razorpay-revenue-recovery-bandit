@@ -76,7 +76,7 @@ The diagram below traces a single failed transaction end to end — the exact pa
                          │
                          ▼
         ┌──────────────────────────────────┐
-        │  19D Context Vector Encoder     │
+        │  19D Context Vector Encoder      │
         │  (Failure, Bank, Network, etc.)  │
         └────────────────┬─────────────────┘
                          │
