@@ -212,9 +212,15 @@ def test_dashboard_ev_and_ucb_banner_table_consistency():
         metric_ev_str = str(m2.value).replace("₹", "").replace(",", "").strip()
         metric_ev_val = float(metric_ev_str)
 
-        # Find candidate evaluation matrix dataframe
-        assert len(app_state.dataframe) > 0, f"No dataframes found ({stage_label})"
-        df = app_state.dataframe[0].value
+        # Find candidate evaluation matrix dataframe (the dataframe containing column 'Status')
+        target_df = None
+        for d in app_state.dataframe:
+            val = d.value
+            if "Status" in val.columns:
+                target_df = val
+                break
+        assert target_df is not None, f"Candidate evaluation matrix dataframe not found ({stage_label})"
+        df = target_df
 
         selected_rows = df[df["Status"] == "SELECTED"]
         assert len(selected_rows) == 1, f"Expected exactly 1 SELECTED row, found {len(selected_rows)} ({stage_label})"
@@ -248,3 +254,100 @@ def test_dashboard_ev_and_ucb_banner_table_consistency():
 
     # 3. Assert synchronization AFTER click
     assert_banner_and_table_synchronized(at, "AFTER click")
+
+
+def test_dashboard_all_four_sections_render():
+    """Confirms all four main section expanders render with expected labels."""
+    at = AppTest.from_file(str(PROJECT_ROOT / "dashboard.py"), default_timeout=60)
+    at.run()
+    assert not at.exception
+
+    expander_labels = [e.label for e in at.expander]
+    expected_sections = [
+        "📊 Section 1: Executive overview & benchmarks",
+        "🔍 Section A: Recovery strategy intelligence",
+        "🧠 Section B: Action & policy insights",
+        "📈 Section C: Algorithmic learning insights",
+    ]
+    for section in expected_sections:
+        assert any(section in label for label in expander_labels), (
+            f"Expected expander section '{section}' not found in rendered expanders: {expander_labels}"
+        )
+
+
+def test_dashboard_section_a_expanded_by_default():
+    """Verifies Section A is expanded=True by default while other main sections are expanded=False."""
+    at = AppTest.from_file(str(PROJECT_ROOT / "dashboard.py"), default_timeout=60)
+    at.run()
+    assert not at.exception
+
+    sec_a = next(e for e in at.expander if "Section A:" in e.label)
+    assert sec_a.proto.expanded is True, "Section A expander should be expanded by default!"
+
+    sec_1 = next(e for e in at.expander if "Section 1:" in e.label)
+    sec_b = next(e for e in at.expander if "Section B:" in e.label)
+    sec_c = next(e for e in at.expander if "Section C:" in e.label)
+
+    assert sec_1.proto.expanded is False, "Section 1 expander should be collapsed by default!"
+    assert sec_b.proto.expanded is False, "Section B expander should be collapsed by default!"
+    assert sec_c.proto.expanded is False, "Section C expander should be collapsed by default!"
+
+
+def test_dashboard_recent_activity_expander_shows_history():
+    """Verifies nested 'Recent activity' expander inside Section A renders history post-execution."""
+    at = AppTest.from_file(str(PROJECT_ROOT / "dashboard.py"), default_timeout=60)
+    at.run()
+    assert not at.exception
+
+    # Execute retry action
+    exec_btn = next(btn for btn in at.button if "Execute Retry Action" in str(btn.label))
+    exec_btn.click().run()
+    assert not at.exception
+
+    # Find nested Recent activity expander
+    recent_expander = next((e for e in at.expander if "Recent activity" in e.label), None)
+    assert recent_expander is not None, "Could not locate 'Recent activity' nested expander!"
+    assert len(at.session_state["history"]) == 1, "Expected 1 history item after execution!"
+
+
+def test_dashboard_charts_render():
+    """Confirms native Streamlit charts render in dashboard sections."""
+    at = AppTest.from_file(str(PROJECT_ROOT / "dashboard.py"), default_timeout=60)
+    at.run()
+    assert not at.exception
+
+    # Check chart elements present via vega_lite_chart
+    charts = at.get("vega_lite_chart")
+    assert len(charts) > 0, f"Expected native Streamlit charts (vega_lite_chart), found {len(charts)}"
+
+
+def test_dashboard_preset_modification_warning_shows():
+    """Verifies 'Modified from preset' warning caption appears when preset fields are changed, but not on default or custom entry."""
+    at = AppTest.from_file(str(PROJECT_ROOT / "dashboard.py"), default_timeout=60)
+    at.run()
+    assert not at.exception
+
+    # Initial load on Preset 1: caption should NOT be present
+    initial_mod_captions = [c.value for c in at.caption if "Modified from" in str(c.value)]
+    assert len(initial_mod_captions) == 0, "Warning caption should NOT appear on initial preset load!"
+
+    # Change source payment method radio to 'upi'
+    radio = next(r for r in at.radio if r.key == "source_method_radio")
+    radio.set_value("upi").run()
+    assert not at.exception
+
+    # Modified caption SHOULD be present
+    mod_captions = [c.value for c in at.caption if "Modified from" in str(c.value)]
+    assert len(mod_captions) == 1, f"Expected 1 modified warning caption, found {len(mod_captions)}"
+    assert "Preset 1" in mod_captions[0]
+    assert "Source Payment Method" in mod_captions[0]
+
+    # Switch preset to Custom Transaction Entry
+    preset_sb = next(sb for sb in at.selectbox if sb.key == "preset_choice_sb")
+    preset_sb.select("Custom Transaction Entry").run()
+    assert not at.exception
+
+    # Warning caption should NOT appear when preset_choice is Custom Transaction Entry
+    custom_mod_captions = [c.value for c in at.caption if "Modified from" in str(c.value)]
+    assert len(custom_mod_captions) == 0, "Warning caption should NOT appear when Custom Transaction Entry is selected!"
+

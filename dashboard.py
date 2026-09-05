@@ -1,12 +1,11 @@
 """
 dashboard.py
 RecoverFlow V2 Interactive Merchant Control Center & Recovery Decision Engine (Streamlit).
-Multi-Tab Fintech AI Console providing:
-- Tab 1: ⚡ Recovery Control Center (Primary Interactive Demo & Decision Engine)
-- Tab 2: 🔍 Transaction Explorer (Interactive Transaction Audit & Lifecycle Decomposer)
-- Tab 3: 🧠 AI Policy & Action Graph (16-Action Hierarchy, Channel Transitions & Model Weights)
-- Tab 4: 📊 Performance & Benchmarks (5-Seed 15,000 Transaction Benchmark Suite)
-- Tab 5: 📈 Learning & Empirical Analytics (Decision-Time Probability Calibration & Convergence)
+Single-Page Collapsible Console providing 4 major sections:
+- Section 1: 📊 Executive Overview & Benchmarks
+- Section A: 🔍 Recovery Strategy Intelligence (Live Decision Engine & Recent Activity Audit)
+- Section B: 🧠 Action & Policy Insights (16-Action Hierarchy, Model Weights & Pull Counts)
+- Section C: 📈 Algorithmic Learning Insights (Decision-Time Calibration & Architectural Defense)
 
 Consumes live V2 backend APIs:
 - api.v2_decision_service.get_v2_retry_decision
@@ -24,6 +23,7 @@ from pathlib import Path
 import streamlit as st
 import pandas as pd
 import numpy as np
+import altair as alt
 
 # Project-relative root setup
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -42,6 +42,7 @@ from bandit_retry_scheduler.api.v2_feedback_loop import process_v2_outcome_and_u
 from bandit_retry_scheduler.runner.v2_engine import V2PolicyExecutionEngine
 from bandit_retry_scheduler.audit.logger import AuditLogger
 from run_v2_evaluation import generate_v2_stream
+from compare_ev_impact import DecisionTimeAuditEngine
 
 # Page configuration
 st.set_page_config(
@@ -89,6 +90,18 @@ st.markdown("""
         font-weight: bold;
         font-size: 13px;
     }
+    .st-key-live_decision_metrics [data-testid="stMetricValue"] {
+        font-size: 20px !important;
+    }
+    .st-key-live_decision_metrics [data-testid="stMetricLabel"] {
+        font-size: 11px !important;
+    }
+    .st-key-live_decision_metrics [data-testid="stMetricValue"] > div {
+        overflow: visible !important;
+        white-space: normal !important;
+        text-overflow: unset !important;
+        word-break: break-word !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -112,6 +125,53 @@ def load_pretrained_v2_models():
     engine.run(stream, policy=policy, logger=logger, evaluation_seed=42, use_crn=True)
 
     return policy, ev_estimator, simulator, registry
+
+
+@st.cache_data
+def load_calibration_data():
+    """
+    Computes decision-time probability calibration data over a benchmark stream.
+    Reuses the exact binning approach from analyze_calibration.py.
+    """
+    registry = ActionRegistry()
+    bins = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+    sel_bin_preds = [[] for _ in range(len(bins) - 1)]
+    sel_bin_actuals = [[] for _ in range(len(bins) - 1)]
+
+    stream = generate_v2_stream(seed=42, num_days=2, tx_per_day=100)
+    sim_policy = V2LinUCBPolicy(registry=registry)
+    ev_estimator = V2EVEstimator(registry=registry)
+    sim_policy.ev_estimator = ev_estimator
+
+    engine = DecisionTimeAuditEngine(registry=registry)
+    engine.decision_service.policy = sim_policy
+    engine.decision_service.ev_estimator = ev_estimator
+
+    logger = AuditLogger()
+    engine.run([dict(tx) for tx in stream], sim_policy, logger=logger, evaluation_seed=42, use_crn=True)
+
+    for snap in engine.decision_snapshots:
+        if snap.get("executed") and snap.get("chosen_action_id"):
+            p_hat = snap["chosen_action_p_hat"]
+            actual = float(snap["actual_outcome"])
+            for i in range(len(bins) - 1):
+                if bins[i] <= p_hat < bins[i + 1] or (i == len(bins) - 2 and p_hat == 1.0):
+                    sel_bin_preds[i].append(p_hat)
+                    sel_bin_actuals[i].append(actual)
+                    break
+
+    calib_rows = []
+    for i in range(len(bins) - 1):
+        b_label = f"{bins[i]:.1f}-{bins[i+1]:.1f}"
+        if sel_bin_preds[i]:
+            mean_p = float(np.mean(sel_bin_preds[i]))
+            actual_r = float(np.mean(sel_bin_actuals[i]))
+            calib_rows.append({
+                "Bin": b_label,
+                "Predicted P̂": round(mean_p, 3),
+                "Actual Success Rate": round(actual_r, 3),
+            })
+    return pd.DataFrame(calib_rows)
 
 
 # Initialize Session State
@@ -141,20 +201,71 @@ if EVAL_RESULTS_PATH.exists():
 st.title("⚡ RecoverFlow V2 — Merchant Control Center & AI Recovery Engine")
 st.markdown("Autonomous multi-channel payment recovery powered by **Disjoint LinUCB** and **Economic Expected-Value (EV)** estimation.")
 
-# Top Navigation Tabs
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "⚡ Recovery Control Center",
-    "🔍 Transaction Explorer",
-    "🧠 AI Policy & Action Graph",
-    "📊 Performance & Benchmarks",
-    "📈 Learning & Empirical Analytics",
-])
+
+# ==============================================================================
+# SECTION 1: EXECUTIVE OVERVIEW & BENCHMARKS
+# ==============================================================================
+with st.expander("📊 Section 1: Executive overview & benchmarks", expanded=False):
+    st.header("📊 5-Seed Synthetic Benchmark (15,000 transactions)")
+    st.markdown("**Evaluation Environment:** 5 deterministic random seeds (42, 123, 456, 789, 2026) × 30 days × 100 transactions/day.")
+
+    if eval_results and "summary" in eval_results:
+        s_data = eval_results["summary"]
+        v2_summary = s_data.get("v2_linucb", {})
+        base_summary = s_data.get("baselines", {})
+
+        # Top benchmark metric cards
+        bm1, bm2, bm3, bm4 = st.columns(4)
+        bm1.metric("V2 LinUCB Recovery Rate", f"{v2_summary.get('mean_recovery_rate_pct', 92.24):.2f}%")
+        bm2.metric("V2 Mean Net Reward", f"₹{v2_summary.get('mean_net_reward_inr', 10739537.96):,.2f}")
+        bm3.metric("Avg Attempts / Tx", f"{v2_summary.get('mean_avg_attempts_per_tx', 2.02):.2f}")
+        bm4.metric("Total Evaluation Stream", "15,000 tx")
+
+        st.subheader("Policy Benchmark Comparison Table")
+
+        bench_rows = [
+            {
+                "Policy / Baseline": "V2 LinUCB + EV Stop (Fix 55C)",
+                "Recovery Rate (%)": f"{v2_summary.get('mean_recovery_rate_pct', 92.24):.2f}%",
+                "Net Reward (INR)": f"₹{v2_summary.get('mean_net_reward_inr', 10739537.96):,.2f}",
+                "Total Recovered (INR)": f"₹{v2_summary.get('mean_total_recovered_inr', 10811278.96):,.2f}",
+                "Action Costs (INR)": f"₹{v2_summary.get('mean_action_cost_inr', 71741.0):,.2f}",
+                "Avg Attempts/Tx": f"{v2_summary.get('mean_avg_attempts_per_tx', 2.02):.2f}",
+            }
+        ]
+
+        for b_name, b_info in base_summary.items():
+            bench_rows.append({
+                "Policy / Baseline": f"Baseline: {b_name}",
+                "Recovery Rate (%)": f"{b_info.get('mean_recovery_rate_pct', 0.0):.2f}%",
+                "Net Reward (INR)": f"₹{b_info.get('mean_net_reward_inr', 0.0):,.2f}",
+                "Total Recovered (INR)": f"₹{b_info.get('mean_total_recovered_inr', 0.0):,.2f}",
+                "Action Costs (INR)": f"₹{b_info.get('mean_action_cost_inr', 0.0):,.2f}",
+                "Avg Attempts/Tx": f"{b_info.get('mean_avg_attempts_per_tx', 0.0):.2f}",
+            })
+
+        df_bench = pd.DataFrame(bench_rows)
+        st.dataframe(df_bench, use_container_width=True, hide_index=True)
+
+        # Chart 2a: Benchmark Recovery Rate Comparison
+        st.subheader("Recovery Rate Comparison Across Policies (%)")
+        chart_df = pd.DataFrame({
+            "policy": [row["Policy / Baseline"] for row in bench_rows],
+            "recovery_rate_pct": [float(str(row["Recovery Rate (%)"]).rstrip("%")) for row in bench_rows],
+        }).set_index("policy")
+        chart = alt.Chart(chart_df.reset_index()).mark_bar().encode(
+            x=alt.X("policy", sort=None, title=None),
+            y=alt.Y("recovery_rate_pct", scale=alt.Scale(domain=[0, 100]), title="Recovery Rate (%)"),
+        )
+        st.altair_chart(chart, use_container_width=True)
+    else:
+        st.info("Evaluation results artifact v2_evaluation_results.json loaded with default benchmark targets.")
 
 
 # ==============================================================================
-# TAB 1: RECOVERY CONTROL CENTER (Primary Interactive Demo & Decision Engine)
+# SECTION A: RECOVERY STRATEGY INTELLIGENCE
 # ==============================================================================
-with tab1:
+with st.expander("🔍 Section A: Recovery strategy intelligence", expanded=True):
     st.header("⚡ Live Payment Recovery Decision Engine")
     st.caption("Select a transaction preset or enter custom parameters to evaluate live V2 retry decisions in real time.")
 
@@ -196,6 +307,41 @@ with tab1:
             st.session_state.network_sb = def_net
             st.session_state.merchant_tier_sb = def_tier
             st.session_state.attempt_number_slider = def_attempt
+
+            st.session_state.preset_baseline = {
+                "source_method": def_method,
+                "amount": def_amount,
+                "failure_code": def_code,
+                "bank": def_bank,
+                "network": def_net,
+                "merchant_tier": def_tier,
+                "attempt_number": def_attempt,
+            }
+
+        if preset_choice != "Custom Transaction Entry" and "preset_baseline" in st.session_state:
+            baseline = st.session_state.preset_baseline
+            current = {
+                "source_method": st.session_state.get("source_method_radio", baseline["source_method"]),
+                "amount": st.session_state.get("amount_input", baseline["amount"]),
+                "failure_code": st.session_state.get("failure_code_sb", baseline["failure_code"]),
+                "bank": st.session_state.get("bank_sb", baseline["bank"]),
+                "network": st.session_state.get("network_sb", baseline["network"]),
+                "merchant_tier": st.session_state.get("merchant_tier_sb", baseline["merchant_tier"]),
+                "attempt_number": st.session_state.get("attempt_number_slider", baseline["attempt_number"]),
+            }
+            changed_fields = [k for k in baseline if current.get(k) != baseline[k]]
+            if changed_fields:
+                field_labels = {
+                    "source_method": "Source Payment Method",
+                    "amount": "Transaction Amount",
+                    "failure_code": "Failure Reason Code",
+                    "bank": "Issuing Bank",
+                    "network": "Card Network",
+                    "merchant_tier": "Merchant Tier",
+                    "attempt_number": "Attempt Number",
+                }
+                changed_labels = ", ".join(field_labels.get(f, f) for f in changed_fields)
+                st.caption(f"⚠️ Modified from {preset_choice} — changed: {changed_labels}")
 
         # Interactive Form Controls
         source_method = st.radio(
@@ -327,13 +473,14 @@ with tab1:
             )
 
         # Metric Cards Header
-        m1, m2, m3, m4, m5 = st.columns(5)
+        with st.container(key="live_decision_metrics"):
+            m1, m2, m3, m4, m5 = st.columns(5)
 
-        m1.metric("Est. Success P̂", f"{p_hat*100:.1f}%")
-        m2.metric("Expected Net EV", f"₹{expected_ev:,.2f}")
-        m3.metric("LinUCB Score", f"{ucb_score:.2f}" if should_retry else "HALT")
-        m4.metric("Action Channel", channel_str)
-        m5.metric("Recommended Delay", delay_str)
+            m1.metric("Est. Success P̂", f"{p_hat*100:.1f}%")
+            m2.metric("Expected Net EV", f"₹{expected_ev:,.2f}")
+            m3.metric("LinUCB Score", f"{ucb_score:.2f}" if should_retry else "HALT")
+            m4.metric("Action Channel", channel_str)
+            m5.metric("Recommended Delay", delay_str)
 
         # Action Execution Button
         st.markdown("---")
@@ -371,6 +518,21 @@ with tab1:
             else:
                 st.success("Action execution completed: Decision is HALT (Hard-stop enforced safely).")
 
+        # Chart 2b: EV per Eligible Candidate
+        if eligible_candidates:
+            st.subheader("Expected Net Value (EV) per Eligible Action")
+            ev_chart_df = pd.DataFrame({
+                "action": [c.action_id for c in eligible_candidates],
+                "expected_value_inr": [candidate_evs.get(c.action_id, 0.0) for c in eligible_candidates],
+            }).set_index("action")
+            max_ev = max(candidate_evs.values()) if candidate_evs else 100
+            axis_max = ((int(max_ev) // 100) + 1) * 100  # round up to next 100
+            chart = alt.Chart(ev_chart_df.reset_index()).mark_bar().encode(
+                x=alt.X("action", sort=None, title=None),
+                y=alt.Y("expected_value_inr", scale=alt.Scale(domain=[0, axis_max]), title="Expected Net Value (INR)"),
+            )
+            st.altair_chart(chart, use_container_width=True)
+
         # Eligible Candidates Table
         st.subheader("Candidate Action Evaluation Matrix")
 
@@ -401,48 +563,45 @@ with tab1:
         else:
             st.info(f"No candidate actions eligible for attempt {attempt_number} ({gate_reason}).")
 
+    # Nested Recent Activity Expander inside Section A
+    with st.expander("📜 Recent activity", expanded=False):
+        st.header("🔍 Transaction Audit & Lifecycle Explorer")
+        st.caption("Inspect executed session transactions and examine decision rationale across context features.")
 
-# ==============================================================================
-# TAB 2: TRANSACTION EXPLORER (Interactive Transaction Audit)
-# ==============================================================================
-with tab2:
-    st.header("🔍 Transaction Audit & Lifecycle Explorer")
-    st.caption("Inspect executed session transactions and examine decision rationale across context features.")
+        history = st.session_state.history
 
-    history = st.session_state.history
+        if not history:
+            st.info("No interactive transactions executed yet in this session. Return to Section A above and click 'Execute Retry Action' to populate the audit log.")
+        else:
+            tx_options = [f"{h['tx_id']} | {h['context']['source_method'].upper()} | Amount: ₹{h['context']['amount']:,.2f} | Outcome: {h['execution'].get('outcome', 'HALT').upper()}" for h in history]
+            sel_idx = st.selectbox("Select Executed Transaction to Inspect", range(len(history)), format_func=lambda i: tx_options[i])
 
-    if not history:
-        st.info("No interactive transactions executed yet in this session. Return to Tab 1 and click 'Execute Retry Action' to populate the audit log.")
-    else:
-        tx_options = [f"{h['tx_id']} | {h['context']['source_method'].upper()} | Amount: ₹{h['context']['amount']:,.2f} | Outcome: {h['execution'].get('outcome', 'HALT').upper()}" for h in history]
-        sel_idx = st.selectbox("Select Executed Transaction to Inspect", range(len(history)), format_func=lambda i: tx_options[i])
+            sel_item = history[sel_idx]
+            tx_c = sel_item["context"]
+            tx_d = sel_item["decision"]
+            tx_e = sel_item["execution"]
 
-        sel_item = history[sel_idx]
-        tx_c = sel_item["context"]
-        tx_d = sel_item["decision"]
-        tx_e = sel_item["execution"]
+            c1, c2 = st.columns(2)
+            with c1:
+                st.subheader("Transaction Metadata")
+                st.json(tx_c)
 
-        c1, c2 = st.columns(2)
-        with c1:
-            st.subheader("Transaction Metadata")
-            st.json(tx_c)
-
-        with c2:
-            st.subheader("Execution Result")
-            st.json({
-                "action_chosen": tx_d.get("action_id"),
-                "should_retry": tx_d.get("should_retry"),
-                "expected_net_value_inr": tx_d.get("expected_net_value_inr"),
-                "outcome": tx_e.get("outcome"),
-                "amount_recovered": tx_e.get("amount_recovered"),
-                "reward_inr": tx_e.get("reward"),
-            })
+            with c2:
+                st.subheader("Execution Result")
+                st.json({
+                    "action_chosen": tx_d.get("action_id"),
+                    "should_retry": tx_d.get("should_retry"),
+                    "expected_net_value_inr": tx_d.get("expected_net_value_inr"),
+                    "outcome": tx_e.get("outcome"),
+                    "amount_recovered": tx_e.get("amount_recovered"),
+                    "reward_inr": tx_e.get("reward"),
+                })
 
 
 # ==============================================================================
-# TAB 3: AI POLICY & ACTION GRAPH (16-Action Hierarchy & Model Weights)
+# SECTION B: ACTION & POLICY INSIGHTS
 # ==============================================================================
-with tab3:
+with st.expander("🧠 Section B: Action & policy insights", expanded=False):
     st.header("🧠 AI Policy & Action Space Hierarchy")
     st.caption("Explores all 16 registered V2 recovery actions across payment channels and inspects LinUCB regression states.")
 
@@ -486,59 +645,23 @@ with tab3:
         df_w = pd.DataFrame(rows_w)
         st.dataframe(df_w, use_container_width=True, hide_index=True)
 
-
-# ==============================================================================
-# TAB 4: PERFORMANCE & BENCHMARKS (5-Seed 15,000 Transaction Suite)
-# ==============================================================================
-with tab4:
-    st.header("📊 5-Seed Synthetic Benchmark (15,000 transactions)")
-    st.markdown("**Evaluation Environment:** 5 deterministic random seeds (42, 123, 456, 789, 2026) × 30 days × 100 transactions/day.")
-
-    if eval_results and "summary" in eval_results:
-        s_data = eval_results["summary"]
-        v2_summary = s_data.get("v2_linucb", {})
-        base_summary = s_data.get("baselines", {})
-
-        # Top benchmark metric cards
-        bm1, bm2, bm3, bm4 = st.columns(4)
-        bm1.metric("V2 LinUCB Recovery Rate", f"{v2_summary.get('mean_recovery_rate_pct', 92.24):.2f}%")
-        bm2.metric("V2 Mean Net Reward", f"₹{v2_summary.get('mean_net_reward_inr', 10739537.96):,.2f}")
-        bm3.metric("Avg Attempts / Tx", f"{v2_summary.get('mean_avg_attempts_per_tx', 2.02):.2f}")
-        bm4.metric("Total Evaluation Stream", "15,000 tx")
-
-        st.subheader("Policy Benchmark Comparison Table")
-
-        bench_rows = [
-            {
-                "Policy / Baseline": "V2 LinUCB + EV Stop (Fix 55C)",
-                "Recovery Rate (%)": f"{v2_summary.get('mean_recovery_rate_pct', 92.24):.2f}%",
-                "Net Reward (INR)": f"₹{v2_summary.get('mean_net_reward_inr', 10739537.96):,.2f}",
-                "Total Recovered (INR)": f"₹{v2_summary.get('mean_total_recovered_inr', 10811278.96):,.2f}",
-                "Action Costs (INR)": f"₹{v2_summary.get('mean_action_cost_inr', 71741.0):,.2f}",
-                "Avg Attempts/Tx": f"{v2_summary.get('mean_avg_attempts_per_tx', 2.02):.2f}",
-            }
-        ]
-
-        for b_name, b_info in base_summary.items():
-            bench_rows.append({
-                "Policy / Baseline": f"Baseline: {b_name}",
-                "Recovery Rate (%)": f"{b_info.get('mean_recovery_rate_pct', 0.0):.2f}%",
-                "Net Reward (INR)": f"₹{b_info.get('mean_net_reward_inr', 0.0):,.2f}",
-                "Total Recovered (INR)": f"₹{b_info.get('mean_total_recovered_inr', 0.0):,.2f}",
-                "Action Costs (INR)": f"₹{b_info.get('mean_action_cost_inr', 0.0):,.2f}",
-                "Avg Attempts/Tx": f"{b_info.get('mean_avg_attempts_per_tx', 0.0):.2f}",
-            })
-
-        df_bench = pd.DataFrame(bench_rows)
-        st.dataframe(df_bench, use_container_width=True, hide_index=True)
-    else:
-        st.info("Evaluation results artifact v2_evaluation_results.json loaded with default benchmark targets.")
+    # Chart 2c: Arm Pull Count Distribution
+    st.subheader("Arm Pull Count Distribution")
+    pull_chart_df = pd.DataFrame({
+        "action": [act.action_id for act in all_actions],
+        "pull_count": [pull_counts.get(act.action_id, 0) for act in all_actions],
+    }).set_index("action")
+    chart = alt.Chart(pull_chart_df.reset_index()).mark_bar().encode(
+        x=alt.X("action", sort=None, title=None),
+        y=alt.Y("pull_count", scale=alt.Scale(domain=[0, 500]), title="Pull Count"),
+    )
+    st.altair_chart(chart, use_container_width=True)
 
 
 # ==============================================================================
-# TAB 5: LEARNING & EMPIRICAL ANALYTICS (Calibration & Convergence)
+# SECTION C: ALGORITHMIC LEARNING INSIGHTS
 # ==============================================================================
-with tab5:
+with st.expander("📈 Section C: Algorithmic learning insights", expanded=False):
     st.header("📈 Decision-Time Probability Calibration & Analytics")
     st.caption("Inspects empirical probability agreement, decision-time EV signal properties, and convergence dynamics.")
 
@@ -548,6 +671,18 @@ with tab5:
     $$\hat{P}(\text{success} \mid x, a) = \sigma(w_a^T x)$$
     Decoupling success probability from transaction amount ensures safe economic stopping without cold-start shutdown.
     """)
+
+    # Chart 2d: Decision-Time Probability Calibration Curve
+    df_calib = load_calibration_data()
+    if not df_calib.empty:
+        st.subheader("Decision-Time Calibration Curve (Predicted P̂ vs Actual Success Rate)")
+        melted = df_calib.melt(id_vars="Bin", var_name="series", value_name="value")
+        chart = alt.Chart(melted).mark_line(point=True).encode(
+            x=alt.X("Bin", sort=None, title="Predicted probability bin"),
+            y=alt.Y("value", scale=alt.Scale(domain=[0, 1]), title="Rate"),
+            color="series",
+        )
+        st.altair_chart(chart, use_container_width=True)
 
     c_col1, c_col2 = st.columns(2)
     with c_col1:

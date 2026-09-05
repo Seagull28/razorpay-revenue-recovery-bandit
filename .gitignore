@@ -28,3 +28,8 @@ experimental/
 build/
 dist/
 capture_dashboard_screenshots.py
+truly_fresh_env/
+screenshots/
+dashboard_diff.txt
+smoke_diff.txt
+
