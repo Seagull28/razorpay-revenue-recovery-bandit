@@ -44,7 +44,7 @@ The evaluation framework benchmark compares 5 distinct policies under strictly m
 
 RecoverFlow includes two verified engine architectures:
 
-| Feature / Dimension | RecoverFlow V1 (Canonical Baseline) | RecoverFlow V2 (Primary Production Engine) |
+| Feature / Dimension | RecoverFlow V1 (Canonical Baseline) | RecoverFlow V2 (Primary Recovery Engine) |
 | :--- | :--- | :--- |
 | **Action Space** | Delay-Only (`1hr`, `6hr`, `1d`, `3d`, `7d`) | **Action-Aware (16 Actions)** across CARD, UPI, NETBANKING channels (Delays + Payment-Method Switching) |
 | **Stopping Rule** | Post-hoc LinUCB $\max \hat{\theta}^T x \le 0$ | **Decision-Time Economic EV Feasibility Gate** ($\hat{P}(\text{success} \mid x, a) \cdot \text{Amount} - \text{Cost}(a) > 0$) |
@@ -53,7 +53,7 @@ RecoverFlow includes two verified engine architectures:
 | **Benchmark Result** | +INR 720k Net Lift over Fixed Schedule | **92.24% Recovery Rate (+73.87% net value gain, INR 10.74M net reward)** |
 | **Evaluation Primary Status** | Verified Foundation Baseline | **Primary Submission System** for multi-channel autonomous recovery |
 
-> **Primary System Designation**: **RecoverFlow V2** is the primary, production-grade engine representing RecoverFlow's full autonomous multi-channel payment recovery capabilities. RecoverFlow V1 is preserved as the immutable, fully verified baseline foundation.
+> **Primary System Designation**: **RecoverFlow V2** is the primary recovery engine representing RecoverFlow's full autonomous multi-channel payment recovery capabilities. RecoverFlow V1 is preserved as the immutable, fully verified baseline foundation.
 
 ---
 

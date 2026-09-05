@@ -484,7 +484,7 @@ with st.expander("🔍 Section A: Recovery strategy intelligence", expanded=True
 
         # Action Execution Button
         st.markdown("---")
-        if st.button("Execute Retry Action", type="primary", use_container_width=True):
+        if st.button("Simulate Retry Action", type="primary", use_container_width=True):
             if should_retry:
                 exec_result = execute_v2_retry_action(
                     transaction=tx_context,
@@ -512,9 +512,9 @@ with st.expander("🔍 Section A: Recovery strategy intelligence", expanded=True
                 rew = exec_result.get("reward", 0.0)
 
                 if out == "SUCCESS":
-                    st.success(f"✅ Retry Action Succeeded! Recovered: ₹{rec_amt:,.2f} | Net Reward: +₹{rew:,.2f}")
+                    st.success(f"✅ Simulated Retry Succeeded! Recovered: ₹{rec_amt:,.2f} | Net Reward: +₹{rew:,.2f}")
                 else:
-                    st.success(f"⚠️ Retry Action Executed (Outcome: {out}). Cost Incurred: ₹{abs(rew):,.2f} | Net Reward: ₹{rew:,.2f}")
+                    st.success(f"ℹ️ Simulated Retry Completed (Outcome: {out}). Cost Incurred: ₹{abs(rew):,.2f} | Net Reward: ₹{rew:,.2f}")
             else:
                 st.success("Action execution completed: Decision is HALT (Hard-stop enforced safely).")
 
@@ -571,7 +571,7 @@ with st.expander("🔍 Section A: Recovery strategy intelligence", expanded=True
         history = st.session_state.history
 
         if not history:
-            st.info("No interactive transactions executed yet in this session. Return to Section A above and click 'Execute Retry Action' to populate the audit log.")
+            st.info("No interactive transactions executed yet in this session. Return to Section A above and click 'Simulate Retry Action' to populate the audit log.")
         else:
             tx_options = [f"{h['tx_id']} | {h['context']['source_method'].upper()} | Amount: ₹{h['context']['amount']:,.2f} | Outcome: {h['execution'].get('outcome', 'HALT').upper()}" for h in history]
             sel_idx = st.selectbox("Select Executed Transaction to Inspect", range(len(history)), format_func=lambda i: tx_options[i])
@@ -602,7 +602,7 @@ with st.expander("🔍 Section A: Recovery strategy intelligence", expanded=True
 # SECTION B: MODEL INTERNALS (merged: action/policy insights + learning insights)
 # ==============================================================================
 with st.expander("🧠 Model internals", expanded=False):
-    st.caption("16 recovery actions tracked · predicted odds checked against real outcomes")
+    st.caption("16 recovery actions tracked · predicted odds checked against observed outcomes in the evaluation environment")
 
     st.header("🧠 AI Policy & Action Space Hierarchy")
     st.caption("Explores all 16 registered V2 recovery actions across payment channels and inspects LinUCB regression states.")

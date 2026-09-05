@@ -121,20 +121,20 @@ def test_dashboard_custom_transaction_entry_renders():
 
 
 def test_dashboard_execute_retry_action_button():
-    """Clicks Execute Retry Action button on default preset and confirms action execution."""
+    """Clicks Simulate Retry Action button on default preset and confirms action execution."""
     at = AppTest.from_file(str(PROJECT_ROOT / "dashboard.py"), default_timeout=60)
     at.run()
     assert not at.exception
 
     exec_button = None
     for btn in at.button:
-        if "Execute Retry Action" in str(btn.label):
+        if "Simulate Retry Action" in str(btn.label):
             exec_button = btn
             break
-    assert exec_button is not None, "Could not locate the Execute Retry Action button"
+    assert exec_button is not None, "Could not locate the Simulate Retry Action button"
 
     exec_button.click().run()
-    assert not at.exception, f"Exception when clicking Execute Retry Action: {at.exception}"
+    assert not at.exception, f"Exception when clicking Simulate Retry Action: {at.exception}"
     assert len(at.success) > 0, "No success message rendered after executing retry action"
 
 
@@ -166,7 +166,7 @@ def test_dashboard_full_cross_tab_user_journey():
     Executes a complete cross-tab user journey:
     1. Loads app top-to-bottom via AppTest.
     2. Cycles through all preset transactions and strategy modes.
-    3. Triggers Execute Retry Action button.
+    3. Triggers Simulate Retry Action button.
     4. Confirms session state history is updated post-execution.
     5. Confirms app state remains healthy with zero unhandled exceptions.
     """
@@ -185,7 +185,7 @@ def test_dashboard_full_cross_tab_user_journey():
     assert not at.exception
 
     # Execute action
-    exec_btn = next(btn for btn in at.button if "Execute Retry Action" in str(btn.label))
+    exec_btn = next(btn for btn in at.button if "Simulate Retry Action" in str(btn.label))
     exec_btn.click().run()
     assert not at.exception
 
@@ -247,8 +247,8 @@ def test_dashboard_ev_and_ucb_banner_table_consistency():
     # 1. Assert synchronization BEFORE click
     assert_banner_and_table_synchronized(at, "BEFORE click")
 
-    # 2. Click Execute Retry Action (mutates policy state via process_v2_outcome_and_update)
-    exec_btn = next(btn for btn in at.button if "Execute Retry Action" in str(btn.label))
+    # 2. Click Simulate Retry Action (mutates policy state via process_v2_outcome_and_update)
+    exec_btn = next(btn for btn in at.button if "Simulate Retry Action" in str(btn.label))
     exec_btn.click().run()
     assert not at.exception
 
@@ -303,7 +303,7 @@ def test_dashboard_recent_activity_expander_shows_history():
     assert not at.exception
 
     # Execute retry action
-    exec_btn = next(btn for btn in at.button if "Execute Retry Action" in str(btn.label))
+    exec_btn = next(btn for btn in at.button if "Simulate Retry Action" in str(btn.label))
     exec_btn.click().run()
     assert not at.exception
 
