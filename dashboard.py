@@ -27,8 +27,17 @@ import altair as alt
 
 # Project-relative root setup
 PROJECT_ROOT = Path(__file__).resolve().parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 if str(PROJECT_ROOT.parent) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT.parent))
+
+# Ensure 'bandit_retry_scheduler' package resolves even if repository directory has a different name
+if "bandit_retry_scheduler" not in sys.modules:
+    import types
+    mod = types.ModuleType("bandit_retry_scheduler")
+    mod.__path__ = [str(PROJECT_ROOT)]
+    sys.modules["bandit_retry_scheduler"] = mod
 
 from bandit_retry_scheduler.core.action_registry import ActionRegistry
 from bandit_retry_scheduler.core.recovery_action import RecoveryAction
