@@ -89,13 +89,13 @@ The diagram below traces a single failed transaction end to end — the exact pa
                          ▼
         ┌──────────────────────────────────┐
         │    Disjoint LinUCB Policy Engine │
-        │    Score Arms: θ^T x + α √(x^T A⁻¹ x)
+        │    Score Arm: θᵀx + α√(xᵀA⁻¹x)   |
         └────────────────┬─────────────────┘
                          │ Best Delay Selected
                          ▼
         ┌──────────────────────────────────┐
         │    Expected-Value Stopping Rule  │
-        │    (Halt if max θ^T x <= 0)      │
+        │    (Halt if max θᵀx <= 0)        │
         └────────────────┬─────────────────┘
                          │ Execute Action
                          ▼
@@ -107,7 +107,7 @@ The diagram below traces a single failed transaction end to end — the exact pa
                          ▼
         ┌──────────────────────────────────┐
         │    Online Learning Update        │
-        │    A_a += x x^T,  b_a += r x     │
+        │    Aₐ ← Aₐ + xxᵀ  bₐ ← bₐ + rx   │
         └──────────────────────────────────┘
 ```
 
